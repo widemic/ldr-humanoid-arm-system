@@ -1,0 +1,19 @@
+# =======================================
+# ROS 2 Build Directories 
+# =======================================
+**/build/
+**/install/ 
+**/log/
+*/build-/
+*/install-/
+
+# Colcon specific
+*/.colcon_
+*/colcon-
+
+# =======================================
+# Development Tools
+# =======================================
+# VSCode - IGNORE COMPLET
+**/.vscode/
+*/.code-workspace
