@@ -17,3 +17,4 @@
 # VSCode - IGNORE COMPLET
 **/.vscode/
 */.code-workspace
+/.claude/
