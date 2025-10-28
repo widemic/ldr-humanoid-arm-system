@@ -1,26 +1,19 @@
-# ROS2 build artifacts
-build/
-install/
-log/
+# =======================================
+# ROS 2 Build Directories 
+# =======================================
+**/build/
+**/install/ 
+**/log/
+*/build-/
+*/install-/
 
-# Python cache
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
+# Colcon specific
+*/.colcon_
+*/colcon-
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.log
-*.tmp
+# =======================================
+# Development Tools
+# =======================================
+# VSCode - IGNORE COMPLET
+**/.vscode/
+*/.code-workspace
