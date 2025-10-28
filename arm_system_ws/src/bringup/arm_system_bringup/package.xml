@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>arm_system_bringup</name>
+  <version>0.1.0</version>
+  <description>Top-level launch files for the complete arm system</description>
+  <maintainer email="your.email@example.com">Your Name</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>arm_description</exec_depend>
+  <exec_depend>gripper_description</exec_depend>
+  <exec_depend>dual_arm_description</exec_depend>
+  <exec_depend>arm_control</exec_depend>
+  <exec_depend>gripper_control</exec_depend>
+  <exec_depend>dual_arm_control</exec_depend>
+  <exec_depend>arm_hardware</exec_depend>
+  <exec_depend>gripper_hardware</exec_depend>
+  <exec_depend>arm_gazebo</exec_depend>
+  <exec_depend>arm_moveit_config</exec_depend>
+  <exec_depend>arm_gripper_moveit_config</exec_depend>
+  <exec_depend>dual_arm_moveit_config</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
