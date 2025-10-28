@@ -54,9 +54,9 @@ base_link (400 kg support)
 ```
 arm_description/
 ├── config/                    # RViz configuration files
-│   └── view_robot.rviz       # (optional) Saved RViz settings
+│   └── view_arm.rviz         # (optional) Saved RViz settings
 ├── launch/                    # Launch files
-│   └── view_robot.launch.py  # Visualize robot in RViz
+│   └── view_arm.launch.py    # Visualize robot in RViz
 ├── meshes/                    # 3D mesh files
 │   ├── collision/            # 14 collision meshes (STL)
 │   └── visual/               # 14 visual meshes (STL)
@@ -99,7 +99,7 @@ source install/setup.bash
 Launch RViz with interactive joint control:
 
 ```bash
-ros2 launch arm_description view_robot.launch.py
+ros2 launch arm_description view_arm.launch.py
 ```
 
 This will open:
@@ -119,7 +119,7 @@ This will open:
 
 **Save Configuration:**
 ```
-File → Save Config As → config/view_robot.rviz
+File → Save Config As → config/view_arm.rviz
 ```
 
 ### 2. Visualization Without Joint GUI
@@ -127,7 +127,7 @@ File → Save Config As → config/view_robot.rviz
 Launch with fixed joint positions:
 
 ```bash
-ros2 launch arm_description view_robot.launch.py gui:=false
+ros2 launch arm_description view_arm.launch.py gui:=false
 ```
 
 ### 3. With Saved RViz Configuration
@@ -135,7 +135,7 @@ ros2 launch arm_description view_robot.launch.py gui:=false
 After saving an RViz config file:
 
 ```bash
-ros2 launch arm_description view_robot.launch.py use_rviz_config:=true
+ros2 launch arm_description view_arm.launch.py use_rviz_config:=true
 ```
 
 ### 4. For Simulation (Gazebo)
@@ -143,12 +143,12 @@ ros2 launch arm_description view_robot.launch.py use_rviz_config:=true
 When using with simulation time:
 
 ```bash
-ros2 launch arm_description view_robot.launch.py use_sim_time:=true
+ros2 launch arm_description view_arm.launch.py use_sim_time:=true
 ```
 
 ## Launch File Arguments
 
-The `view_robot.launch.py` file supports the following arguments:
+The `view_arm.launch.py` file supports the following arguments:
 
 | Argument | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -160,21 +160,21 @@ The `view_robot.launch.py` file supports the following arguments:
 
 ```bash
 # Visualization with all defaults (GUI enabled)
-ros2 launch arm_description view_robot.launch.py
+ros2 launch arm_description view_arm.launch.py
 
 # No joint sliders, manual joint states only
-ros2 launch arm_description view_robot.launch.py gui:=false
+ros2 launch arm_description view_arm.launch.py gui:=false
 
 # With simulation time and saved config
-ros2 launch arm_description view_robot.launch.py use_sim_time:=true use_rviz_config:=true
+ros2 launch arm_description view_arm.launch.py use_sim_time:=true use_rviz_config:=true
 
 # All arguments specified
-ros2 launch arm_description view_robot.launch.py gui:=true use_sim_time:=false use_rviz_config:=false
+ros2 launch arm_description view_arm.launch.py gui:=true use_sim_time:=false use_rviz_config:=false
 ```
 
 ## ROS 2 Topics
 
-When running `view_robot.launch.py`, the following topics are available:
+When running `view_arm.launch.py`, the following topics are available:
 
 ### Published Topics
 

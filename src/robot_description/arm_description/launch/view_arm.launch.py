@@ -23,7 +23,7 @@ def generate_launch_description():
     rviz_config = PathJoinSubstitution([
         pkg_share,
         'config',
-        'view_robot.rviz'
+        'view_arm.rviz'
     ])
 
     # Declare arguments
