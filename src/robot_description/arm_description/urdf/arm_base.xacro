@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
     <!-- Include macros -->
-    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/materials.xacro" /> -->
+    <xacro:include filename="$(find arm_description)/urdf/macros/materials.xacro" />
 
     <!-- Base link -->
     <!-- <xacro:include filename="$(find arm_description)/urdf/links/base_link.xacro" /> -->

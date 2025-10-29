@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<xacro:macro xmlns:xacro="http://ros.org/wiki/xacro">
+    <ros2_control name="ArmSystem" type="system">
+        <hardware>
+            <plugin>arm_hardware/ArmHardwareInterface</plugin>
+        </hardware>
+        <joint name="base_rotation_joint">
+            <command_interface name="position" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+        <joint name="shoulder_pitch_joint">
+            <command_interface name="position" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+        <joint name="elbow_pitch_joint">
+            <command_interface name="position" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+        <joint name="wrist_pitch_joint">
+            <command_interface name="position" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+        <joint name="wrist_roll_joint">
+            <command_interface name="position" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+        <joint name="end_effector_joint">
+            <command_interface name="position" />
+            <state_interface name="position" />
+        </joint>
+    </ros2_control>
+</xacro:macro>
