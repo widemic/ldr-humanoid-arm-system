@@ -1,0 +1,549 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <link name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.024994 0 0.26232"
+        rpy="0 0 0" />
+      <mass
+        value="400" />
+      <inertia
+        ixx="1.5195"
+        ixy="1.3429E-18"
+        ixz="0.19574"
+        iyy="1.5765"
+        iyz="-8.9523E-18"
+        izz="0.18464" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/suport.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.82353 0.82353 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/suport.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="shoulder_motor_link">
+    <inertial>
+      <origin
+        xyz="0.0243243517152052 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.532509536641061" />
+      <inertia
+        ixx="0.000896146800566172"
+        ixy="7.65326457438951E-19"
+        ixz="5.78067703056341E-21"
+        iyy="0.000557965001798214"
+        iyz="-2.71050543121376E-20"
+        izz="0.000557965001798214" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="upper_arm_link">
+    <inertial>
+      <origin
+        xyz="-0.0509057984087349 -0.0396720299469153 -4.4229364353221E-06"
+        rpy="0 0 0" />
+      <mass
+        value="1.20124643575938" />
+      <inertia
+        ixx="0.00348505331685035"
+        ixy="-0.00165216394353781"
+        ixz="2.67939253448173E-07"
+        iyy="0.00605759008406016"
+        iyz="1.08709312370402E-07"
+        izz="0.00617091360181918" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/umar1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/umar1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="shoulder_pitch_motor_link">
+    <inertial>
+      <origin
+        xyz="0 0.0243243517152051 4.44089209850063E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.532509536641061" />
+      <inertia
+        ixx="0.000557965001798215"
+        ixy="-1.24833103737913E-19"
+        ixz="-3.47612311997922E-20"
+        iyy="0.000896146800566172"
+        iyz="-4.40457132572236E-20"
+        izz="0.000557965001798215" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="forearm_link">
+    <inertial>
+      <origin
+        xyz="-0.000514440092235335 0.0143797752068014 0.0237335051671055"
+        rpy="0 0 0" />
+      <mass
+        value="0.973351849869395" />
+      <inertia
+        ixx="0.00511269011442378"
+        ixy="-3.42392056381466E-06"
+        ixz="2.69291498275984E-05"
+        iyy="0.00564141880545679"
+        iyz="-0.000614155352552255"
+        izz="0.00166819885883731" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/umar2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/umar2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="elbow_motor_link">
+    <inertial>
+      <origin
+        xyz="-1.20675569450501E-05 -0.000785396018441256 0.027257965695012"
+        rpy="0 0 0" />
+      <mass
+        value="0.360887409455794" />
+      <inertia
+        ixx="0.000278935913838484"
+        ixy="-2.06010246975602E-07"
+        ixz="-2.55321502584602E-08"
+        iyy="0.000273885658331841"
+        iyz="-2.48624895479077E-06"
+        izz="0.000382815455821848" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="elbow_flange_link">
+    <inertial>
+      <origin
+        xyz="0.00116670382474426 -6.27956020515796E-11 0.00545877059772315"
+        rpy="0 0 0" />
+      <mass
+        value="0.0361105497150978" />
+      <inertia
+        ixx="1.01535422247132E-05"
+        ixy="-1.22213682639349E-07"
+        ixz="1.86684214103761E-06"
+        iyy="9.92336545082146E-06"
+        iyz="2.61207556751279E-08"
+        izz="1.84891176177678E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/flansa .STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/flansa .STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="wrist_base_link">
+    <inertial>
+      <origin
+        xyz="0.0275870325632882 0.000456266358311211 -0.0255871211461605"
+        rpy="0 0 0" />
+      <mass
+        value="0.488307483069969" />
+      <inertia
+        ixx="0.00147006507522484"
+        ixy="-4.65595546047694E-06"
+        ixz="0.00027167450677181"
+        iyy="0.00131739364749704"
+        iyz="8.9484187724332E-06"
+        izz="0.000811973910583158" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/cot1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/cot1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="wrist_motor_link">
+    <inertial>
+      <origin
+        xyz="0.0272676404708343 -3.23230331389368E-12 -0.000299114552538171"
+        rpy="0 0 0" />
+      <mass
+        value="0.360887409455794" />
+      <inertia
+        ixx="0.000382869487141332"
+        ixy="-5.86805229973612E-15"
+        ixz="-5.4163761017029E-07"
+        iyy="0.000278944249014422"
+        iyz="-5.51485072039016E-14"
+        izz="0.000273823291836418" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="wrist_pitch_link">
+    <inertial>
+      <origin
+        xyz="-0.0168411101625994 0.0319189691211335 0.000336872868540894"
+        rpy="0 0 0" />
+      <mass
+        value="0.712349677072855" />
+      <inertia
+        ixx="0.00274213383054037"
+        ixy="-0.000360585785123124"
+        ixz="-4.0408551100849E-06"
+        iyy="0.000686221353304623"
+        iyz="-2.99782183377003E-05"
+        izz="0.00245236142748917" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/cot2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/cot2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="wrist_assembly_link">
+    <inertial>
+      <origin
+        xyz="-3.21210067431021E-05 0.0482626493278655 0.00930988660267218"
+        rpy="0 0 0" />
+      <mass
+        value="0.252087613812296" />
+      <inertia
+        ixx="0.000386568084282558"
+        ixy="2.73707509277677E-07"
+        ixz="-3.07646788142713E-06"
+        iyy="0.000148260685924684"
+        iyz="-1.70698355727776E-05"
+        izz="0.000386791416540263" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/cot3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/cot3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="wrist_roll_motor_link">
+    <inertial>
+      <origin
+        xyz="-2.22044604925031E-16 -0.022658467867997 -8.88178419700125E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.184647500913822" />
+      <inertia
+        ixx="9.04144135943578E-05"
+        ixy="2.2446373102239E-20"
+        ixz="1.01643953670516E-20"
+        iyy="0.00012896778778608"
+        iyz="1.35525271560688E-20"
+        izz="9.04144135943578E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor5.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="end_effector_link">
+    <inertial>
+      <origin
+        xyz="0.0177294335201367 0.024115357060854 9.0674231068899E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.270547651840176" />
+      <inertia
+        ixx="0.000584531523502896"
+        ixy="-0.000153360729551245"
+        ixz="-6.73620480104151E-07"
+        iyy="0.000292116186966144"
+        iyz="-1.01904271471951E-06"
+        izz="0.000574918124436289" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/incheietura.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.823529411764706 0.823529411764706 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/incheietura.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="end_motor_link">
+    <inertial>
+      <origin
+        xyz="0.0226584678679964 1.11022302462516E-16 -6.66133814775094E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.184647500913822" />
+      <inertia
+        ixx="0.00012896778778608"
+        ixy="2.72241683203452E-20"
+        ixz="-1.18584612615602E-20"
+        iyy="9.04144135943577E-05"
+        iyz="5.34689547954277E-21"
+        izz="9.04144135943578E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor6.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://arm_description/meshes/visual/pmotor6.STL" />
+      </geometry>
+    </collision>
+  </link>
+</robot>
