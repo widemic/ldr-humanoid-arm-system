@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
     <xacro:include filename="$(find arm_description)/urdf/arm_base.xacro" />
-    <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro" />
-    <xacro:arm_ros2_control/>
+    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro" /> -->
+    <!-- <xacro:arm_ros2_control/> -->
 </robot>
