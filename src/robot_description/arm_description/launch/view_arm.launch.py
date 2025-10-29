@@ -16,7 +16,7 @@ def generate_launch_description():
     urdf_file = PathJoinSubstitution([
         pkg_share,
         'urdf',
-        'humanoid_arm_5dof.urdf'
+        'arm.urdf.xacro'
     ])
 
     # Path to RViz config (optional)
@@ -28,8 +28,8 @@ def generate_launch_description():
 
     # Declare arguments
     use_sim_time_arg = DeclareLaunchArgument(
-        'use_sim_time',
-        default_value='false',
+        'use_sim',
+        default_value='true',
         description='Use simulation time'
     )
 
@@ -45,10 +45,17 @@ def generate_launch_description():
         description='Use saved RViz configuration file'
     )
 
+    use_sim_arg = DeclareLaunchArgument(
+        'use_sim',
+        default_value='true',
+        description='Use simulation (gazebo) or real robot configuration'
+    )
+
     # Launch configuration variables
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    # use_sim_time = LaunchConfiguration('use_sim_time')
     gui = LaunchConfiguration('gui')
     use_rviz_config = LaunchConfiguration('use_rviz_config')
+    use_sim = LaunchConfiguration('use_sim')
 
     # Robot State Publisher - publishes TF transforms from URDF
     robot_state_publisher = Node(
@@ -57,8 +64,8 @@ def generate_launch_description():
         name='robot_state_publisher',
         output='screen',
         parameters=[{
-            'use_sim_time': use_sim_time,
-            'robot_description': Command(['cat ', urdf_file])
+            'use_sim_time': use_sim,
+            'robot_description': Command(['xacro ', urdf_file, ' use_sim:=', use_sim])
         }]
     )
 
@@ -87,7 +94,7 @@ def generate_launch_description():
         name='rviz2',
         output='screen',
         arguments=['-d', rviz_config],
-        parameters=[{'use_sim_time': use_sim_time}],
+        parameters=[{'use_sim_time': use_sim}],
         condition=IfCondition(use_rviz_config)
     )
 
@@ -97,12 +104,13 @@ def generate_launch_description():
         executable='rviz2',
         name='rviz2',
         output='screen',
-        parameters=[{'use_sim_time': use_sim_time}],
+        parameters=[{'use_sim_time': use_sim}],
         condition=UnlessCondition(use_rviz_config)
     )
 
     return LaunchDescription([
         use_sim_time_arg,
+        use_sim_arg,
         gui_arg,
         use_rviz_config_arg,
         robot_state_publisher,

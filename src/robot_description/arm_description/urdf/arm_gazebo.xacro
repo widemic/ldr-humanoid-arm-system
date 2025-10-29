@@ -5,12 +5,12 @@
     <xacro:include filename="$(find arm_description)/urdf/arm_base.xacro" />
 
     <!-- ros2_control interfaces -->
-    <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro" />
-    <xacro:arm_ros2_control/>
+    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro" />
+    <xacro:arm_ros2_control/> -->
 
     <!-- Gazebo extensions -->
-    <xacro:include filename="$(find arm_description)/urdf/macros/gazebo_extensions.xacro" />
-    <xacro:gazebo_joint_properties/>
+    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/gazebo_extensions.xacro" />
+    <xacro:gazebo_joint_properties/> -->
 
     <!-- Gazebo plugin -->
     <gazebo>
