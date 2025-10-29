@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="arm_description">
 
-  <!-- Include common macros -->
-  <!-- <xacro:include filename="$(find arm_description)/urdf/macros/materials.xacro" />
+    <!-- Include common macros -->
+    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/materials.xacro" />
   <xacro:include filename="$(find arm_description)/urdf/macros/utils.xacro" /> -->
 
-  <!-- Select robot variant (base, gazebo, or real) -->
-  <xacro:arg name="use_sim" default="true" />
+    <!-- Select robot variant (base, gazebo, or real) -->
+    <xacro:arg name="use_sim" default="true" />
 
-  <xacro:if value="$(arg use_sim)">
-    <xacro:include filename="$(find arm_description)/urdf/arm_gazebo.xacro" />
-  </xacro:if>
-  <xacro:unless value="$(arg use_sim)">
-    <xacro:include filename="$(find arm_description)/urdf/arm_real.xacro" />
-  </xacro:unless>
+    <xacro:if value="$(arg use_sim)">
+        <xacro:include filename="$(find arm_description)/urdf/arm_gazebo.xacro" />
+    </xacro:if>
+    <xacro:unless value="$(arg use_sim)">
+        <xacro:include filename="$(find arm_description)/urdf/arm_real.xacro" />
+    </xacro:unless>
 
 </robot>
