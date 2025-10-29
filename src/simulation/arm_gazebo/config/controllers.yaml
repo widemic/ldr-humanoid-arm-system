@@ -1,0 +1,19 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+      joints:
+        - base_rotation_joint
+        - shoulder_pitch_joint
+        - elbow_pitch_joint
+        - wrist_pitch_joint
+        - wrist_roll_joint
+      command_interfaces:
+        - position
+      state_interfaces:
+        - position
+        - velocity
