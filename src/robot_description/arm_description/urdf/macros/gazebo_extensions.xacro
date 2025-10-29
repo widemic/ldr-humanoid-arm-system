@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<xacro:macro xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:property name="damping" value="0.05" />
+    <xacro:property name="friction" value="0.01" />
+
+    <gazebo reference="base_rotation_joint">
+        <damping>${damping}</damping>
+        <friction>${friction}</friction>
+    </gazebo>
+
+    <gazebo reference="shoulder_pitch_joint">
+        <damping>${damping}</damping>
+        <friction>${friction}</friction>
+    </gazebo>
+
+    <gazebo reference="elbow_pitch_joint">
+        <damping>${damping}</damping>
+        <friction>${friction}</friction>
+    </gazebo>
+</xacro:macro>

@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Basic colors -->
+  <material name="black">
+    <color rgba="0.0 0.0 0.0 1.0"/>
+  </material>
+
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1.0"/>
+  </material>
+
+  <material name="red">
+    <color rgba="1.0 0.0 0.0 1.0"/>
+  </material>
+
+  <material name="green">
+    <color rgba="0.0 1.0 0.0 1.0"/>
+  </material>
+
+  <material name="blue">
+    <color rgba="0.0 0.0 1.0 1.0"/>
+  </material>
+
+  <material name="yellow">
+    <color rgba="1.0 1.0 0.0 1.0"/>
+  </material>
+
+  <material name="orange">
+    <color rgba="1.0 0.647 0.0 1.0"/>
+  </material>
+
+  <material name="purple">
+    <color rgba="0.5 0.0 0.5 1.0"/>
+  </material>
+
+  <!-- Grayscale variations -->
+  <material name="dark_grey">
+    <color rgba="0.3 0.3 0.3 1.0"/>
+  </material>
+
+  <material name="grey">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+
+  <material name="light_grey">
+    <color rgba="0.7 0.7 0.7 1.0"/>
+  </material>
+
+  <!-- Metallic materials -->
+  <material name="silver">
+    <color rgba="0.75 0.75 0.75 1.0"/>
+  </material>
+
+  <material name="gold">
+    <color rgba="1.0 0.843 0.0 1.0"/>
+  </material>
+
+  <material name="bronze">
+    <color rgba="0.804 0.498 0.196 1.0"/>
+  </material>
+
+  <!-- Robot-specific materials -->
+  <material name="robot_body">
+    <color rgba="0.8 0.8 0.8 1.0"/>
+  </material>
+
+  <material name="robot_joint">
+    <color rgba="0.2 0.2 0.2 1.0"/>
+  </material>
+
+  <!-- Transparent material -->
+  <material name="transparent">
+    <color rgba="1.0 1.0 1.0 0.3"/>
+  </material>
+
+  <!-- Macro for custom material with parameters -->
+  <xacro:macro name="custom_material" params="name r g b a:=1.0">
+    <material name="${name}">
+      <color rgba="${r} ${g} ${b} ${a}"/>
+    </material>
+  </xacro:macro>
+
+  <!-- Macro for material with texture -->
+  <xacro:macro name="textured_material" params="name texture_file">
+    <material name="${name}">
+      <texture filename="${texture_file}"/>
+    </material>
+  </xacro:macro>
+
+</robot>

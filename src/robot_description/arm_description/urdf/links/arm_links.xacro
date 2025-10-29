@@ -24,10 +24,7 @@
           filename="package://arm_description/meshes/visual/suport.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.82353 0.82353 1 1" />
-      </material>
+        name="transparent"/>
     </visual>
     <collision>
       <origin
@@ -102,10 +99,7 @@
           filename="package://arm_description/meshes/visual/umar1.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
-      </material>
+         name="transparent"/>
     </visual>
     <collision>
       <origin
