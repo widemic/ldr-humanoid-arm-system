@@ -5,18 +5,12 @@
     <xacro:include filename="$(find arm_description)/urdf/macros/materials.xacro" />
 
     <!-- Base link -->
-    <xacro:include filename="$(find arm_description)/urdf/links/base_link.xacro" />
+    <!-- <xacro:include filename="$(find arm_description)/urdf/links/base_link.xacro" /> -->
 
     <!-- Arm Links -->
-    <xacro:include filename="$(find arm_description)/urdf/links/upper_arm.xacro" />
-    <xacro:include filename="$(find arm_description)/urdf/links/forearm.xacro" />
-    <xacro:include filename="$(find arm_description)/urdf/links/wrist.xacro" />
-    <xacro:include filename="$(find arm_description)/urdf/links/end_effector.xacro" />
+    <xacro:include filename="$(find arm_description)/urdf/links/arm_links.xacro" />
 
     <!-- Arm Joints -->
-    <xacro:include filename="$(find arm_description)/urdf/joints/base_to_shoulder.xacro" />
-    <xacro:include filename="$(find arm_description)/urdf/joints/shoulder_to_elbow.xacro" />
-    <xacro:include filename="$(find arm_description)/urdf/joints/elbow_to_wrist.xacro" />
-    <xacro:include filename="$(find arm_description)/urdf/joints/wrist_to_ee.xacro" />
+    <xacro:include filename="$(find arm_description)/urdf/joints/arm_joints.xacro" />
 
 </robot>
