@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <joint name="shoulder_motor_mount_joint" type="fixed">
+        <origin
+            xyz="-0.3827 0 1.0987"
+            rpy="0.018231 0 0" />
+        <parent link="base_link" />
+        <child link="shoulder_motor_link" />
+        <axis
+            xyz="0 0 0" />
+    </joint>
+    <joint name="base_rotation_joint" type="revolute">
+        <origin
+            xyz="-0.0175 0 0"
+            rpy="0 0 0" />
+        <parent link="shoulder_motor_link" />
+        <child link="upper_arm_link" />
+        <axis
+            xyz="1 0 0" />
+        <limit
+            lower="-3.14"
+            upper="3.14"
+            effort="120"
+            velocity="3" />
+        <safety_controller
+            soft_upper_limit="3.14"
+            soft_lower_limit="-3.14"
+            k_velocity="0" />
+    </joint>
+    <joint name="shoulder_pitch_joint" type="revolute">
+        <origin
+            xyz="-0.0992 -0.0527 0"
+            rpy="0 0 0" />
+        <parent link="upper_arm_link" />
+        <child link="shoulder_pitch_motor_link" />
+        <axis
+            xyz="0 1 0" />
+        <limit
+            lower="-0.55"
+            upper="3.1"
+            effort="120"
+            velocity="3" />
+        <safety_controller
+            soft_upper_limit="3.1"
+            soft_lower_limit="-0.55"
+            k_velocity="0" />
+    </joint>
+    <joint name="forearm_mount_joint" type="fixed">
+        <origin
+            xyz="-0.016217 0.0397 -0.07576"
+            rpy="0 0.21056 0" />
+        <parent link="shoulder_pitch_motor_link" />
+        <child link="forearm_link" />
+        <axis
+            xyz="0 0 0" />
+        <limit
+            lower="-1.57"
+            upper="1.57"
+            effort="0"
+            velocity="0" />
+    </joint>
+    <joint name="elbow_motor_mount_joint" type="fixed">
+        <origin
+            xyz="0 0.002 -0.10002"
+            rpy="-0.017845 0 0.040355" />
+        <parent link="forearm_link" />
+        <child link="elbow_motor_link" />
+        <axis
+            xyz="0 0 0" />
+    </joint>
+    <joint name="elbow_pitch_joint" type="revolute">
+        <origin
+            xyz="0 0.00021413 -0.011998"
+            rpy="0.018231 -0.20981 -0.044159" />
+        <parent link="elbow_motor_link" />
+        <child link="elbow_flange_link" />
+        <axis
+            xyz="-0.20901 0 -0.97791" />
+        <limit
+            lower="-3.14"
+            upper="3.14"
+            effort="60"
+            velocity="1.6" />
+    </joint>
+    <joint name="wrist_base_mount_joint" type="fixed">
+        <origin
+            xyz="-0.0076289 0 -0.035694"
+            rpy="-0.0092227 0.21039 0.041266" />
+        <parent link="elbow_flange_link" />
+        <child link="wrist_base_link" />
+        <axis
+            xyz="0 0 0" />
+        <limit
+            lower="-3.14"
+            upper="3.14"
+            effort="60"
+            velocity="1.6" />
+    </joint>
+    <joint name="wrist_motor_mount_joint" type="fixed">
+        <origin
+            xyz="-0.0025 0.00085117 -0.047692"
+            rpy="0.017845 0 0" />
+        <parent link="wrist_base_link" />
+        <child link="wrist_motor_link" />
+        <axis
+            xyz="0 0 0" />
+    </joint>
+    <joint name="wrist_pitch_joint" type="revolute">
+        <origin
+            xyz="0 0 0"
+            rpy="-0.2706 0 0" />
+        <parent link="wrist_motor_link" />
+        <child link="wrist_pitch_link" />
+        <axis
+            xyz="-1 0 0" />
+        <limit
+            lower="-0.31"
+            upper="2.8"
+            effort="60"
+            velocity="1.6" />
+        <safety_controller
+            soft_upper_limit="2.8"
+            soft_lower_limit="-0.31"
+            k_velocity="0" />
+    </joint>
+    <joint name="wrist_assembly_joint" type="fixed">
+        <origin
+            xyz="0 0.17928 -0.010221"
+            rpy="0 0 0" />
+        <parent link="wrist_pitch_link" />
+        <child link="wrist_assembly_link" />
+        <axis
+            xyz="0 0 0" />
+    </joint>
+    <joint name="wrist_roll_motor_mount_joint" type="fixed">
+        <origin
+            xyz="0 0.12622 0.010221"
+            rpy="0 0 0" />
+        <parent link="wrist_assembly_link" />
+        <child link="wrist_roll_motor_link" />
+        <axis
+            xyz="0 0 0" />
+    </joint>
+    <joint name="wrist_roll_joint" type="revolute">
+        <origin
+            xyz="0 0.026284 0"
+            rpy="0 -0.012912 0" />
+        <parent link="wrist_roll_motor_link" />
+        <child link="end_effector_link" />
+        <axis
+            xyz="0 -1 0" />
+        <limit
+            lower="-3.14"
+            upper="3.14"
+            effort="17"
+            velocity="0.8" />
+        <safety_controller
+            soft_upper_limit="3.14"
+            soft_lower_limit="-3.14"
+            k_velocity="0" />
+    </joint>
+    <joint name="end_motor_mount_joint" type="fixed">
+        <origin
+            xyz="0 0.06534 0"
+            rpy="0.25218 0 0" />
+        <parent link="end_effector_link" />
+        <child link="end_motor_link" />
+        <axis
+            xyz="0 0 0" />
+    </joint>
+</robot>
