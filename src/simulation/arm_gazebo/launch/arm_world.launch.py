@@ -5,12 +5,12 @@ from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution
 
 def generate_launch_description():
-    pkg_gazebo_ros = FindPackageShare('gazebo_ros')
+    pkg_gazebo_ros = FindPackageShare('ros_gz_sim')
     pkg_arm_gazebo = FindPackageShare('arm_gazebo')
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([pkg_gazebo_ros, 'launch', 'gazebo.launch.py'])
+            PathJoinSubstitution([pkg_gazebo_ros, 'launch', 'ros_gz_sim.py'])
         ),
         launch_arguments={'world': PathJoinSubstitution([pkg_arm_gazebo, 'worlds', 'lab.world'])}.items()
     )

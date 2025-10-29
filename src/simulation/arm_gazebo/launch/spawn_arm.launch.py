@@ -1,6 +1,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, FindPackageShare
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -10,11 +11,11 @@ def generate_launch_description():
     use_gazebo = LaunchConfiguration('use_gazebo', default='true')
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
 
-    urdf = PathJoinSubstitution([pkg_arm_description, 'urdf', 'arm.xacro'])
+    urdf = PathJoinSubstitution([pkg_arm_description, 'urdf', 'arm.urdf.xacro'], 'use_sim:=true')
 
     # Spawn robot
     spawn_entity = Node(
-        package='gazebo_ros',
+        package='ros_gz_sim',
         executable='spawn_entity.py',
         arguments=[
             '-entity', 'arm',
