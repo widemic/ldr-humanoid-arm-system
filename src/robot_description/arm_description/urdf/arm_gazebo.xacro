@@ -4,22 +4,43 @@
     <!-- Bring in base structure -->
     <xacro:include filename="$(find arm_description)/urdf/arm_base.xacro" />
 
-    <!-- ros2_control interfaces -->
-    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro" />
-    <xacro:arm_ros2_control/> -->
+    <!-- ros2_control interfaces for Gazebo simulation -->
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </hardware>
+        <joint name="base_rotation_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="shoulder_pitch_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="elbow_pitch_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="wrist_pitch_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="wrist_roll_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+    </ros2_control>
 
-    <!-- Gazebo extensions -->
-    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/gazebo_extensions.xacro" />
-    <xacro:gazebo_joint_properties/> -->
-
-    <!-- Gazebo plugin -->
+    <!-- Gazebo Harmonic plugin for ROS 2 Jazzy -->
     <gazebo>
-        <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
-            <ros>
-                <namespace>/</namespace>
-                <remapping>joint_states:=/joint_states</remapping>
-            </ros>
-            <parameters>$(find arm_control)/config/ros2_control_sim.yaml</parameters>
+        <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <robot_param_node>robot_state_publisher</robot_param_node>
+            <parameters>$(find arm_gazebo)/config/controllers.yaml</parameters>
         </plugin>
     </gazebo>
 
