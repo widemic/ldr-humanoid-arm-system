@@ -1,21 +1,43 @@
-# control/arm_control/config/controllers.yaml
 controller_manager:
   ros__parameters:
-    update_rate: 100
+    update_rate: 100  # Hz
 
+    # Controller list
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-      joints:
-        - base_rotation_joint
-        - shoulder_pitch_joint
-        - elbow_pitch_joint
-        - wrist_pitch_joint
-        - wrist_roll_joint
-      command_interfaces:
-        - position
-      state_interfaces:
-        - position
-        - velocity
+
+
+# Joint State Broadcaster - publishes /joint_states
+joint_state_broadcaster:
+  ros__parameters:
+    publish_rate: 50.0
+
+
+# Arm Trajectory Controller - main interface for motion control
+arm_controller:
+  ros__parameters:
+    joints:
+      - base_rotation_joint
+      - shoulder_pitch_joint
+      - elbow_pitch_joint
+      - wrist_pitch_joint
+      - wrist_roll_joint
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    # Simple tolerances
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0  # No goal time constraint
+
+    # Allow external trajectory commands
+    allow_partial_joints_goal: false
+    allow_integration_in_goal_trajectories: true
