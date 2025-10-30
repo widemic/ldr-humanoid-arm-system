@@ -5,15 +5,15 @@ controller_manager:
     # Controller list
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-
+      publish_rate: 50.0
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
 
-# Joint State Broadcaster - publishes /joint_states
-joint_state_broadcaster:
-  ros__parameters:
-    publish_rate: 50.0
+# # Joint State Broadcaster - publishes /joint_states
+# joint_state_broadcaster:
+#   ros__parameters:
+#     publish_rate: 50.0
 
 
 # Arm Trajectory Controller - main interface for motion control
