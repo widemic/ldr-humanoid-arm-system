@@ -3,23 +3,50 @@
 <package format="3">
   <name>arm_control</name>
   <version>0.1.0</version>
-  <description>Controllers configuration for the arm using ros2_control</description>
-  <maintainer email="your.email@example.com">Your Name</maintainer>
+
+  <description>
+    Simple control package for the LDR Humanoid Arm System.
+
+    Provides a clean interface to control the arm in Gazebo from motion planning code.
+    No complex ROS2 control knowledge needed.
+
+    Features:
+    - Simple motion planner API (move_to, trajectories, predefined poses)
+    - Joint trajectory controller for smooth motion
+    - Easy Gazebo integration
+  </description>
+
+  <maintainer email="andrei.dragomir@example.com">Andrei Dragomir</maintainer>
   <license>MIT</license>
 
+  <url type="website">https://github.com/widemic/ldr-humanoid-arm-system</url>
+  <url type="bugtracker">https://github.com/widemic/ldr-humanoid-arm-system/issues</url>
+  <url type="repository">https://github.com/widemic/ldr-humanoid-arm-system</url>
+
+  <author>LDR Team</author>
+
+  <!-- Build tool dependencies -->
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <!-- Runtime dependencies - ros2_control framework -->
   <exec_depend>controller_manager</exec_depend>
+  <exec_depend>ros2_control</exec_depend>
+  <exec_depend>ros2_controllers</exec_depend>
+
+  <!-- Runtime dependencies - specific controllers -->
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>joint_trajectory_controller</exec_depend>
-  <exec_depend>robot_state_publisher</exec_depend>
-  <exec_depend>arm_description</exec_depend>
-  <exec_depend>arm_hardware</exec_depend>
-  <exec_depend>ros2_control</exec_depend>
-  <exec_depend>rclpy</exec_depend>
 
+  <!-- Runtime dependencies - launch and configuration -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <!-- Test dependencies -->
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_cmake_copyright</test_depend>
+  <test_depend>ament_cmake_lint_cmake</test_depend>
+  <test_depend>ament_cmake_xmllint</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
