@@ -5,6 +5,8 @@ from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory, get_package_prefix
 import os
+from launch_ros.actions import Node
+from launch.actions import TimerAction
 
 def generate_launch_description():
     # ROS 2 Jazzy uses Gazebo Harmonic (new Gazebo, formerly Ignition)
@@ -45,6 +47,7 @@ def generate_launch_description():
         )
     )
 
+    
     # Clock bridge - essential for simulation time
     clock_bridge = IncludeLaunchDescription(
         AnyLaunchDescriptionSource(
@@ -60,5 +63,5 @@ def generate_launch_description():
         world_arg,
         gazebo,
         clock_bridge,
-        spawn_arm
+        spawn_arm,
     ])

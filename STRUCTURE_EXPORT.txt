@@ -1,0 +1,257 @@
+LDR Humanoid Arm System - Complete Folder Structure Export
+============================================================
+
+Generated: 2025-10-30
+Repository: ldr-humanoid-arm-system
+
+ROOT: src/
+============
+
+📦 APPLICATIONS (3 packages - placeholders)
+   ├── arm_demos/
+   ├── bimanual_demos/
+   └── manipulation_library/
+
+🚀 BRINGUP (1 package)
+   └── arm_system_bringup/
+       ├── launch/moveit_demo.launch.py
+       └── launch/moveit_gazebo.launch.py
+
+🎮 CONTROL (4 packages) ⭐ REFACTORED
+   ├── arm_control/ [ACTIVE - Refactored with simple motion planner]
+   │   ├── Documentation:
+   │   │   ├── README.md                    (Usage guide)
+   │   │   ├── QUICK_START.md               (Quick reference)
+   │   │   ├── MOVEIT_INTEGRATION.md        (MoveIt2 integration)
+   │   │   └── REFACTOR_SUMMARY.md          (What changed)
+   │   ├── Config:
+   │   │   └── config/controllers.yaml      (Simple controller config)
+   │   ├── Launch:
+   │   │   ├── launch/control.launch.py     (Controllers only)
+   │   │   └── launch/sim.launch.py         (Complete simulation)
+   │   └── Scripts:
+   │       ├── scripts/motion_planner.py    (Simple motion planner API)
+   │       ├── scripts/example.py           (Usage examples)
+   │       └── scripts/test_simple.py       (Quick tests)
+   │
+   ├── dual_arm_control/ [placeholder]
+   ├── gripper_control/ [placeholder]
+   └── hand_control/ [placeholder]
+
+🔌 HARDWARE INTERFACE (3 packages - placeholders)
+   ├── arm_hardware/
+   ├── gripper_hardware/
+   └── hand_hardware/
+
+🧭 PLANNING (4 packages)
+   ├── arm_moveit_config/ [ACTIVE - MoveIt2 configuration]
+   │   ├── Config (10 files):
+   │   │   ├── config/arm_description.srdf
+   │   │   ├── config/arm_description.urdf.xacro
+   │   │   ├── config/arm_description.ros2_control.xacro
+   │   │   ├── config/initial_positions.yaml
+   │   │   ├── config/joint_limits.yaml
+   │   │   ├── config/kinematics.yaml
+   │   │   ├── config/moveit_controllers.yaml
+   │   │   ├── config/moveit.rviz
+   │   │   ├── config/pilz_cartesian_limits.yaml
+   │   │   └── config/ros2_controllers.yaml
+   │   └── Launch (8 files):
+   │       ├── launch/demo.launch.py
+   │       ├── launch/move_group.launch.py
+   │       ├── launch/moveit_rviz.launch.py
+   │       ├── launch/rsp.launch.py
+   │       ├── launch/setup_assistant.launch.py
+   │       ├── launch/spawn_controllers.launch.py
+   │       ├── launch/static_virtual_joint_tfs.launch.py
+   │       └── launch/warehouse_db.launch.py
+   │
+   ├── arm_gripper_moveit_config/ [placeholder]
+   ├── arm_hand_moveit_config/ [placeholder]
+   └── dual_arm_moveit_config/ [placeholder]
+
+🤖 ROBOT DESCRIPTION (4 packages)
+   ├── arm_description/ [ACTIVE - 5-DOF arm model]
+   │   ├── Meshes (28 STL files):
+   │   │   ├── meshes/collision/ (14 files)
+   │   │   │   ├── cot1.STL, cot2.STL, cot3.STL
+   │   │   │   ├── flansa .STL
+   │   │   │   ├── incheietura.STL
+   │   │   │   ├── pmotor1-6.STL (6 files)
+   │   │   │   ├── suport.STL
+   │   │   │   └── umar1.STL, umar2.STL
+   │   │   └── meshes/visual/ (14 files - same as collision)
+   │   │
+   │   ├── URDF/Xacro (9 files):
+   │   │   ├── urdf/arm.urdf.xacro              (Main entry)
+   │   │   ├── urdf/arm_base.xacro              (Base structure)
+   │   │   ├── urdf/arm_gazebo.xacro            (Gazebo config)
+   │   │   ├── urdf/arm_real.xacro              (Real hardware)
+   │   │   ├── urdf/humanoid_arm_5dof.urdf      (Static URDF)
+   │   │   ├── urdf/joints/arm_joints.xacro
+   │   │   ├── urdf/links/arm_links.xacro
+   │   │   ├── urdf/macros/gazebo_extensions.xacro
+   │   │   ├── urdf/macros/materials.xacro
+   │   │   └── urdf/macros/ros2_control.xacro
+   │   │
+   │   └── Launch (3 files):
+   │       ├── launch/display_arm.launch.py
+   │       └── launch/view_arm.launch.py
+   │
+   ├── dual_arm_description/ [placeholder]
+   ├── gripper_description/ [placeholder]
+   └── hand_description/ [placeholder]
+
+🌍 SIMULATION (1 package)
+   └── arm_gazebo/ [ACTIVE - Gazebo Harmonic]
+       ├── Config:
+       │   ├── config/controllers.yaml
+       │   └── config/gazebo_ros2_control.yaml (deprecated)
+       ├── Launch:
+       │   ├── launch/arm_world.launch.py
+       │   └── launch/spawn_arm.launch.py
+       └── Worlds:
+           └── worlds/lab.sdf
+
+🛠️ TOOLS (2 packages - placeholders)
+   ├── arm_gui_tools/
+   └── diagnostic_tools/
+
+============================================================
+SUMMARY STATISTICS
+============================================================
+
+Total Packages: 25
+├── Active/Implemented: 5
+│   ├── arm_control (refactored)
+│   ├── arm_moveit_config
+│   ├── arm_description
+│   ├── arm_gazebo
+│   └── arm_system_bringup
+└── Placeholders: 20
+
+File Counts:
+├── Python Scripts: 3 (motion_planner.py, example.py, test_simple.py)
+├── Launch Files: ~20+
+├── Config Files: ~15+
+├── URDF/Xacro Files: 9
+├── Mesh Files: 28 STL files (~4.6 MB)
+└── Documentation: 5 markdown files
+
+============================================================
+KEY FILES REFERENCE
+============================================================
+
+🎯 CONTROL & SIMULATION
+├── src/control/arm_control/scripts/motion_planner.py
+│   → Simple motion planner API (main interface)
+├── src/control/arm_control/launch/sim.launch.py
+│   → Complete simulation launcher
+├── src/control/arm_control/config/controllers.yaml
+│   → Controller configuration
+├── src/simulation/arm_gazebo/launch/arm_world.launch.py
+│   → Gazebo world launcher
+└── src/simulation/arm_gazebo/worlds/lab.sdf
+    → Simulation environment
+
+🎯 PLANNING (MoveIt2)
+├── src/planning/arm_moveit_config/launch/demo.launch.py
+│   → MoveIt2 interactive demo
+├── src/planning/arm_moveit_config/config/moveit_controllers.yaml
+│   → MoveIt controller interface
+└── src/planning/arm_moveit_config/config/kinematics.yaml
+    → IK solver settings
+
+🎯 ROBOT MODEL
+├── src/robot_description/arm_description/urdf/arm.urdf.xacro
+│   → Main robot model
+├── src/robot_description/arm_description/urdf/arm_gazebo.xacro
+│   → Gazebo-specific configuration
+└── src/robot_description/arm_description/urdf/macros/ros2_control.xacro
+    → ROS2 control interface
+
+🎯 DOCUMENTATION
+├── PROJECT_STRUCTURE.md
+│   → Complete detailed structure
+├── src/control/arm_control/README.md
+│   → Control usage guide
+├── src/control/arm_control/MOVEIT_INTEGRATION.md
+│   → MoveIt2 integration guide
+├── src/control/arm_control/QUICK_START.md
+│   → Quick reference
+└── src/control/arm_control/REFACTOR_SUMMARY.md
+    → Refactor details and rationale
+
+============================================================
+RECENT CHANGES (2025-10-30)
+============================================================
+
+✅ REFACTORED: src/control/arm_control/
+   - Removed all complex configuration files
+   - Created simple motion planner API (motion_planner.py)
+   - Simplified controller configuration (1 file instead of 3+)
+   - Added comprehensive documentation (4 markdown files)
+   - Created example scripts and tests
+   - Full MoveIt2 integration maintained
+
+Key Benefits:
+   ✓ Simple API: move_to(), trajectories, predefined poses
+   ✓ Clean interface: No ROS2 control expertise needed
+   ✓ MoveIt2 compatible: Works with existing planning stack
+   ✓ Easy integration: Simple import for planning code
+
+============================================================
+USAGE QUICK START
+============================================================
+
+1. Launch Simulation:
+   $ ros2 launch arm_control sim.launch.py
+
+2. Run Example:
+   $ ros2 run arm_control example.py
+
+3. Use with MoveIt2:
+   Terminal 1: $ ros2 launch arm_control sim.launch.py
+   Terminal 2: $ ros2 launch arm_moveit_config demo.launch.py
+
+4. Program Control:
+   from motion_planner import MotionPlanner
+   planner = MotionPlanner()
+   planner.move_to([0, 1, 0, 1, 0])
+
+============================================================
+ARCHITECTURE OVERVIEW
+============================================================
+
+Planning Layer:
+   ┌─────────────────┐     ┌──────────────────┐
+   │ Simple Motion   │     │   MoveIt2        │
+   │ Planner API     │     │   move_group     │
+   └────────┬────────┘     └────────┬─────────┘
+            │                       │
+            └───────────┬───────────┘
+                        ↓
+Control Layer:
+            ┌───────────────────────┐
+            │   arm_controller      │
+            │  (JointTrajectory)    │
+            └───────────┬───────────┘
+                        ↓
+Hardware Layer:
+            ┌───────────────────────┐
+            │   Gazebo Simulation   │
+            │  (gz_ros2_control)    │
+            └───────────────────────┘
+
+============================================================
+CONTACT & REPOSITORY
+============================================================
+
+Repository: https://github.com/widemic/ldr-humanoid-arm-system
+Issues: https://github.com/widemic/ldr-humanoid-arm-system/issues
+Maintainer: Andrei Dragomir
+License: MIT
+
+============================================================
+END OF STRUCTURE EXPORT
+============================================================
