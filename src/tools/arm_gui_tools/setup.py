@@ -19,6 +19,7 @@ setup(
             'joint_controller_gui = arm_gui_tools.joint_controller_gui:main',
             'trajectory_recorder_gui = arm_gui_tools.trajectory_recorder_gui:main',
             'motor_monitor_gui = arm_gui_tools.motor_monitor_gui:main',
+            'joint_monitor = arm_gui_tools.joint_monitor:main',
         ],
     },
 )

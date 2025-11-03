@@ -11,6 +11,13 @@ find_package(ament_cmake_python REQUIRED)
 # Install Python module
 ament_python_install_package(${PROJECT_NAME})
 
+# Install Python executables
+install(PROGRAMS
+  src/${PROJECT_NAME}/joint_monitor.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME joint_monitor
+)
+
 install(DIRECTORY ui/
   DESTINATION share/${PROJECT_NAME}/ui
 )
