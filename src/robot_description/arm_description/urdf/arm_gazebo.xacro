@@ -9,7 +9,7 @@
     <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro"/>
     <xacro:arm_ros2_control/>
 
-    <!-- Optional: Gazebo plugin for gazebo_ros2_control -->
+    <!-- Optional Gazebo plugin for gazebo_ros2_control -->
     <gazebo>
         <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
             <robot_param_node>robot_state_publisher</robot_param_node>
