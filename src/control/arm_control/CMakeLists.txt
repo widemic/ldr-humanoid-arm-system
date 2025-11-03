@@ -22,6 +22,7 @@ install(DIRECTORY launch/
 install(PROGRAMS
   scripts/motion_planner.py
   scripts/example.py
+  scripts/moveit_cartesian_example.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
