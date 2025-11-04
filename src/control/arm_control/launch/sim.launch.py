@@ -18,23 +18,13 @@ def generate_launch_description():
     """Launch complete simulation."""
 
     # Include Gazebo simulation (from arm_gazebo package)
+    # Note: arm_world.launch.py already includes spawn_arm.launch.py
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
                 FindPackageShare('arm_gazebo'),
                 'launch',
                 'arm_world.launch.py'
-            ])
-        ])
-    )
-
-    # Spawn arm robot
-    spawn_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('arm_gazebo'),
-                'launch',
-                'spawn_arm.launch.py'
             ])
         ])
     )
@@ -52,6 +42,5 @@ def generate_launch_description():
 
     return LaunchDescription([
         gazebo_launch,
-        spawn_launch,
         control_launch
     ])
