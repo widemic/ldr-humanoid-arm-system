@@ -8,7 +8,6 @@ from launch_ros.parameter_descriptions import ParameterValue
 def generate_launch_description():
     # Packages
     pkg_arm_description = FindPackageShare("arm_description")
-    pkg_arm_gazebo = FindPackageShare("arm_gazebo")
 
     # Launch arguments
     use_sim_time_arg = DeclareLaunchArgument(
@@ -33,34 +32,22 @@ def generate_launch_description():
         "robot_description": ParameterValue(robot_description_content, value_type=str)
     }
 
-    # Controller YAML
-    robot_controllers = PathJoinSubstitution(
-        [pkg_arm_gazebo, "config", "controllers.yaml"]
-    )
-
     # Robot State Publisher
-    robot_state_publisher = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        name="robot_state_publisher",
-        output="screen",
-        parameters=[robot_description, {"use_sim_time": use_sim_time}],
-    )
-
-    # Controller Manager
-    controller_manager = TimerAction(
-        period=5.0,  # 5 second delay for controller_manager
+    robot_state_publisher = TimerAction(
+        period=3.0,  # Wait 4 seconds, after spawn_entity completes
         actions=[Node(
-            package="controller_manager",
-            executable="ros2_control_node",
-            parameters=[robot_description, robot_controllers, {"use_sim_time": use_sim_time}],
+            package="robot_state_publisher",
+            executable="robot_state_publisher",
+            name="robot_state_publisher",
             output="screen",
+            parameters=[robot_description, {"use_sim_time": use_sim_time}],
         )]
     )
-    
+
     # Controller spawner nodes using timers
+    # Note: No separate ros2_control_node needed - Gazebo provides controller_manager via GazeboSimROS2ControlPlugin
     joint_state_broadcaster_node = TimerAction(
-        period=10.0,  # wait 10 seconds after launch
+        period=4.0,  # wait 8 seconds for Gazebo's controller_manager to be ready
         actions=[Node(
             package="controller_manager",
             executable="spawner",
@@ -70,7 +57,7 @@ def generate_launch_description():
     )
 
     arm_controller_node = TimerAction(
-        period=15.0,  # wait 15 seconds to ensure broadcaster is active
+        period=5.0,  # wait 10 seconds to ensure broadcaster is active
         actions=[Node(
             package="controller_manager",
             executable="spawner",
@@ -80,17 +67,63 @@ def generate_launch_description():
     )
 
     # Spawn robot in Gazebo
-    spawn_entity = Node(
-        package="ros_gz_sim",
-        executable="create",
-        arguments=[
-            "-name", "arm",
-            "-topic", "robot_description",
-            "-x", x_pos,
-            "-y", y_pos,
-            "-z", z_pos,
-        ],
-        output="screen",
+    spawn_entity = TimerAction(
+        period=1.0,  # Wait 3 seconds for Gazebo to initialize
+        actions=[Node(
+            package="ros_gz_sim",
+            executable="create",
+            arguments=[
+                "-name", "arm",
+                "-topic", "robot_description",
+                "-x", x_pos,
+                "-y", y_pos,
+                "-z", z_pos,
+            ],
+            output="screen",
+        )]
+    )
+
+    # Camera bridge - bridge Gazebo rgbd_camera topics to ROS 2
+    camera_bridge = TimerAction(
+        period=2.0,  # Wait 2 seconds for robot sensors to initialize
+        actions=[Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            arguments=[
+                # RGB image and camera info
+                "/camera/image@sensor_msgs/msg/Image[gz.msgs.Image",
+                "/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+                # Depth image and camera info
+                "/camera/depth_image@sensor_msgs/msg/Image[gz.msgs.Image",
+                "/camera/depth_camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+                # Point cloud
+                "/camera/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+                # Limit queue depth to prevent message flooding
+                "--ros-args",
+                "--param", "qos_overrides./camera/depth_image.publisher.depth:=1",
+                "--param", "qos_overrides./camera/image.publisher.depth:=1",
+            ],
+            parameters=[{"use_sim_time": use_sim_time}],
+            output="screen",
+            remappings=[
+                ("/camera/image", "/camera/color/image_raw"),
+                ("/camera/camera_info", "/camera/color/camera_info"),
+                ("/camera/depth_image", "/camera/depth/image_raw"),
+                ("/camera/depth_camera_info", "/camera/depth/camera_info"),
+            ],
+        )]
+    )
+
+    # Static transform to fix Gazebo's frame naming (arm/base_link/camera -> camera_link)
+    camera_frame_fix = TimerAction(
+        period=3.0,
+        actions=[Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            arguments=["0", "0", "0", "0", "0", "0", "camera_link", "arm/base_link/camera"],
+            parameters=[{"use_sim_time": use_sim_time}],
+            output="screen",
+        )]
     )
 
     return LaunchDescription([
@@ -99,8 +132,9 @@ def generate_launch_description():
 
         # Nodes
         robot_state_publisher,
-        controller_manager,
         joint_state_broadcaster_node,
         arm_controller_node,
         spawn_entity,
+        camera_bridge,
+        camera_frame_fix,
     ])
