@@ -1,0 +1,82 @@
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable 
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_prefix
+import os
+
+def generate_launch_description():
+    # Use PathJoinSubstitution instead of os.path.join
+    
+    gz_sim_resource_path = SetEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=[
+            PathJoinSubstitution([FindPackageShare('arm_description'), 'share']),
+            ':/opt/ros/jazzy/share'
+        ]
+    )
+    gazebo_model_path = SetEnvironmentVariable(
+        name='GAZEBO_MODEL_PATH',
+        value=PathJoinSubstitution([FindPackageShare('arm_description'), 'share'])
+    )
+    world = PathJoinSubstitution([
+        FindPackageShare("arm_gazebo"),
+        "worlds",
+        "lab.sdf"
+    ])
+    
+    install_dir = get_package_prefix('arm_description')
+
+    # Set GZ_SIM_RESOURCE_PATH to ROS workspace for package:// URI resolution
+    gz_resource_path = SetEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=os.path.join(install_dir, 'share')
+    )
+    
+    bridge_yaml = PathJoinSubstitution([
+        FindPackageShare('arm_gazebo'),
+        'config',
+        'bridge.yaml'
+    ])
+
+    pkg_ros_gz_sim = FindPackageShare("ros_gz_sim")
+    world_file = world
+    gz_server = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(
+        PathJoinSubstitution([
+            pkg_ros_gz_sim,
+            "launch",
+            "gz_sim.launch.py"
+        ])
+    ),
+    launch_arguments={
+        "gz_args": [world_file, " -r -s"],  # server mode without GUI, auto-run
+    }.items()
+    )
+    spawn_robot_node = Node(
+        package='ros_gz_sim',
+        executable='create',
+        name='spawn_robot',
+        arguments=['-topic', 'robot_description'],
+        output='screen'
+    )
+    # Launch ROS–Gazebo bridge
+    bridge = Node(
+            package='ros_gz_bridge',
+            executable='parameter_bridge',
+            name='gz_ros_bridge',
+            parameters=[{
+                'config_file': bridge_yaml
+            }],
+            output='screen'
+        )
+
+    return LaunchDescription([gz_resource_path, 
+                            #   gz_sim_resource_path,
+                            #   gazebo_model_path,
+                              gz_server, 
+                              bridge,
+                              spawn_robot_node, ])
+
