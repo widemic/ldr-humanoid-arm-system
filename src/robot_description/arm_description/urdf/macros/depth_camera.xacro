@@ -83,7 +83,7 @@
         <topic>${name}</topic>
         <enable_metrics>false</enable_metrics>
         <visualize>true</visualize>
-
+        <gz_frame_id>${name}_link</gz_frame_id>
         <camera name="${name}">
           <horizontal_fov>${horizontal_fov}</horizontal_fov>
 
