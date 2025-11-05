@@ -1,0 +1,410 @@
+# Robstride Motor Specifications and PID Parameters
+# Single source of truth for all motor specifications
+#
+# USAGE:
+# - This file is automatically loaded by xacro in URDF files
+# - max_torque and max_speed are used in joint limits
+# - Other parameters are for documentation and future hardware implementation
+#
+# TORQUE-SPEED TRADEOFF:
+# Real motors cannot deliver max torque at max speed simultaneously due to power limits.
+# Current implementation uses max values for both (conservative for simulation).
+#
+# ADVANCED IMPLEMENTATION OPTIONS (not currently implemented):
+#
+# 1. POWER LIMITING:
+#    - Add max_power (Watts) to each motor spec
+#    - Controller enforces: |torque * velocity| <= max_power
+#    - Example: commanded_torque = min(max_torque, max_power / abs(velocity))
+#
+# 2. TORQUE-SPEED CURVE:
+#    - Define piecewise linear curve: [(velocity, max_torque), ...]
+#    - Controller interpolates allowed torque based on current velocity
+#    - Example for Robstride 04:
+#      torque_speed_curve:
+#        - [0.0, 120.0]    # 0 rpm → 120 Nm
+#        - [11.2, 120.0]   # 107 rpm → 120 Nm
+#        - [20.94, 40.0]   # 200 rpm → 40 Nm
+#
+# 3. THERMAL MODEL:
+#    - Track I²R losses and mechanical losses
+#    - Reduce limits when temperature exceeds thresholds
+#    - Use thermal_time_constant for cooling rate
+#
+# 4. CONSERVATIVE APPROACH:
+#    - Use rated_torque and rated_speed instead of max values
+#    - Guarantees continuous operation without thermal issues
+#
+# For hardware implementation, these parameters will be essential:
+# - can_id: CAN bus address
+# - gear_ratio: For torque/velocity conversion
+# - encoder_resolution: For position feedback
+# - motor electrical constants: For advanced control (FOC, etc.)
+
+actuators:
+  base_rotation_joint:
+    motor:
+      type: "ROBSTRIDE 04"
+      manufacturer: "Robstride"
+      model: "ROBSTRIDE 04"
+      can_id: 0x01
+
+      # Physical specs
+      rated_voltage: 48.0  # V
+      rated_current: 27.0  # A (peak phase current)
+      peak_current: 90.0   # A (peak phase current)
+
+      # Mechanical specs
+      gear_ratio: 9.0
+      gear_efficiency: 0.85  # Estimated
+      motor_constant_kt: 2.1  # Nm/A (torque constant)
+      motor_constant_ke: 2.1  # V·s/rad (back-EMF constant, assuming Kt=Ke)
+      motor_resistance: 0.16    # Ohm (line resistance)
+      motor_inductance: 0.000211 # H (0.211 mH)
+      rotor_inertia: 0.000025   # kg·m² (estimated)
+
+      # Performance limits (at output shaft, after gearbox)
+      max_torque: 120.0      # Nm
+      rated_torque: 40.0     # Nm (continuous)
+      max_speed: 20.94       # rad/s (200 rpm)
+      rated_speed: 17.49     # rad/s (167 rpm)
+
+      # Encoder
+      encoder_type: "Dual Magnetic Absolute"
+      encoder_resolution: 16384  # 14-bit = 16384 counts per revolution
+      encoder_accuracy: 0.001    # rad (estimated)
+
+      # Dynamics
+      friction_viscous: 0.5     # Nm·s/rad (damping)
+      friction_coulomb: 2.0     # Nm (static friction)
+      backlash: 0.0005         # rad
+
+      # Thermal
+      thermal_time_constant: 900  # seconds (15 min)
+      max_temperature: 85.0       # °C
+
+      # Electromagnetic Brake (Virtual - for simulation)
+      has_brake: true              # Motor has electromagnetic brake
+      brake_holding_torque: 150.0  # Nm (higher than max motor torque for safety)
+      brake_engage_time: 0.05      # seconds (50ms to engage)
+      brake_release_time: 0.03     # seconds (30ms to release)
+      brake_power: 5.0             # Watts (power consumption when engaged)
+
+    # PID Controller Parameters (Position Control)
+    pid_position:
+      p: 150.0
+      i: 5.0
+      d: 8.0
+      i_clamp_min: -20.0
+      i_clamp_max: 20.0
+      antiwindup: true
+
+    # PID Controller Parameters (Velocity Control)
+    pid_velocity:
+      p: 8.0
+      i: 2.0
+      d: 0.5
+      i_clamp_min: -10.0
+      i_clamp_max: 10.0
+      antiwindup: true
+
+    # Feedforward gains
+    feedforward:
+      velocity: 0.1
+      acceleration: 0.05
+
+    # Communication
+    communication:
+      timeout_ms: 10
+      retry_attempts: 3
+      update_rate_hz: 1000
+
+  shoulder_pitch_joint:
+    motor:
+      type: "ROBSTRIDE 04"
+      manufacturer: "Robstride"
+      model: "ROBSTRIDE 04"
+      can_id: 0x02
+
+      rated_voltage: 48.0
+      rated_current: 27.0  # A (peak phase current)
+      peak_current: 90.0   # A (peak phase current)
+
+      gear_ratio: 9.0
+      gear_efficiency: 0.85  # Estimated
+      motor_constant_kt: 2.1  # Nm/A (torque constant)
+      motor_constant_ke: 2.1  # V·s/rad (back-EMF constant, assuming Kt=Ke)
+      motor_resistance: 0.16    # Ohm (line resistance)
+      motor_inductance: 0.000211 # H (0.211 mH)
+      rotor_inertia: 0.000025   # kg·m² (estimated)
+
+      max_torque: 120.0
+      rated_torque: 40.0     # Nm (continuous)
+      max_speed: 20.94       # rad/s (200 rpm)
+      rated_speed: 17.49     # rad/s (167 rpm)
+
+      encoder_type: "Dual Magnetic Absolute"
+      encoder_resolution: 16384  # 14-bit
+      encoder_accuracy: 0.001
+
+      friction_viscous: 0.6     # Higher due to gravity loading
+      friction_coulomb: 2.5
+      backlash: 0.0005
+
+      thermal_time_constant: 900
+      max_temperature: 85.0
+
+      # Electromagnetic Brake (Virtual - for simulation)
+      has_brake: true
+      brake_holding_torque: 150.0  # Nm (same as base motor)
+      brake_engage_time: 0.05      # seconds
+      brake_release_time: 0.03     # seconds
+      brake_power: 5.0             # Watts
+
+    pid_position:
+      p: 180.0  # Higher gain due to gravity
+      i: 8.0
+      d: 10.0
+      i_clamp_min: -25.0
+      i_clamp_max: 25.0
+      antiwindup: true
+
+    pid_velocity:
+      p: 10.0
+      i: 3.0
+      d: 0.8
+      i_clamp_min: -15.0
+      i_clamp_max: 15.0
+      antiwindup: true
+
+    feedforward:
+      velocity: 0.12
+      acceleration: 0.08
+      gravity_compensation: 1.0  # Enable gravity compensation
+
+    communication:
+      timeout_ms: 10
+      retry_attempts: 3
+      update_rate_hz: 1000
+
+  elbow_pitch_joint:
+    motor:
+      type: "ROBSTRIDE 03"
+      manufacturer: "Robstride"
+      model: "ROBSTRIDE 03"
+      can_id: 0x03
+
+      rated_voltage: 48.0
+      rated_current: 12.0  # A (peak phase current at rated load)
+      peak_current: 43.0   # A (maximum peak phase current)
+
+      gear_ratio: 9.0
+      gear_efficiency: 0.85  # Estimated
+      motor_constant_kt: 2.36  # Nm/A (torque constant)
+      motor_constant_ke: 2.36  # V·s/rad (back-EMF constant, assuming Kt=Ke)
+      motor_resistance: 0.39    # Ohm (terminal resistance)
+      motor_inductance: 0.000275 # H (0.275 mH)
+      rotor_inertia: 0.000015   # kg·m² (estimated)
+
+      max_torque: 60.0
+      rated_torque: 20.0
+      max_speed: 20.42       # rad/s (195 rpm no-load)
+      rated_speed: 18.85     # rad/s (180 rpm rated)
+
+      encoder_type: "Dual Magnetic Absolute"
+      encoder_resolution: 16384  # 14-bit
+      encoder_accuracy: 0.001
+
+      friction_viscous: 0.4
+      friction_coulomb: 1.5
+      backlash: 0.0005
+
+      thermal_time_constant: 720
+      max_temperature: 85.0
+
+      # Electromagnetic Brake (Virtual - for simulation)
+      has_brake: true
+      brake_holding_torque: 80.0   # Nm (slightly higher than max torque)
+      brake_engage_time: 0.05      # seconds
+      brake_release_time: 0.03     # seconds
+      brake_power: 3.0             # Watts (smaller motor)
+
+    pid_position:
+      p: 120.0
+      i: 6.0
+      d: 7.0
+      i_clamp_min: -18.0
+      i_clamp_max: 18.0
+      antiwindup: true
+
+    pid_velocity:
+      p: 7.0
+      i: 2.0
+      d: 0.4
+      i_clamp_min: -10.0
+      i_clamp_max: 10.0
+      antiwindup: true
+
+    feedforward:
+      velocity: 0.1
+      acceleration: 0.05
+      gravity_compensation: 0.5
+
+    communication:
+      timeout_ms: 10
+      retry_attempts: 3
+      update_rate_hz: 1000
+
+  wrist_pitch_joint:
+    motor:
+      type: "ROBSTRIDE 03"
+      manufacturer: "Robstride"
+      model: "ROBSTRIDE 03"
+      can_id: 0x04
+
+      rated_voltage: 48.0
+      rated_current: 12.0  # A (peak phase current at rated load)
+      peak_current: 43.0   # A (maximum peak phase current)
+
+      gear_ratio: 9.0
+      gear_efficiency: 0.85  # Estimated
+      motor_constant_kt: 2.36  # Nm/A (torque constant)
+      motor_constant_ke: 2.36  # V·s/rad (back-EMF constant, assuming Kt=Ke)
+      motor_resistance: 0.39    # Ohm (terminal resistance)
+      motor_inductance: 0.000275 # H (0.275 mH)
+      rotor_inertia: 0.000015   # kg·m² (estimated)
+
+      max_torque: 60.0
+      rated_torque: 20.0
+      max_speed: 20.42       # rad/s (195 rpm no-load)
+      rated_speed: 18.85     # rad/s (180 rpm rated)
+
+      encoder_type: "Dual Magnetic Absolute"
+      encoder_resolution: 16384  # 14-bit
+      encoder_accuracy: 0.001
+
+      friction_viscous: 0.35
+      friction_coulomb: 1.2
+      backlash: 0.0005
+
+      thermal_time_constant: 720
+      max_temperature: 85.0
+
+      # Electromagnetic Brake (Virtual - for simulation)
+      has_brake: true
+      brake_holding_torque: 80.0   # Nm (slightly higher than max torque)
+      brake_engage_time: 0.05      # seconds
+      brake_release_time: 0.03     # seconds
+      brake_power: 3.0             # Watts (smaller motor)
+
+    pid_position:
+      p: 100.0
+      i: 5.0
+      d: 6.0
+      i_clamp_min: -15.0
+      i_clamp_max: 15.0
+      antiwindup: true
+
+    pid_velocity:
+      p: 6.0
+      i: 1.5
+      d: 0.3
+      i_clamp_min: -8.0
+      i_clamp_max: 8.0
+      antiwindup: true
+
+    feedforward:
+      velocity: 0.08
+      acceleration: 0.04
+      gravity_compensation: 0.3
+
+    communication:
+      timeout_ms: 10
+      retry_attempts: 3
+      update_rate_hz: 1000
+
+  wrist_roll_joint:
+    motor:
+      type: "ROBSTRIDE 02"
+      manufacturer: "Robstride"
+      model: "ROBSTRIDE 02"
+      can_id: 0x05
+
+      rated_voltage: 48.0
+      rated_current: 7.0   # A (peak phase current at rated load)
+      peak_current: 23.0   # A (maximum peak phase current)
+
+      gear_ratio: 7.75
+      gear_efficiency: 0.85  # Estimated
+      motor_constant_kt: 1.22  # Nm/A (torque constant)
+      motor_constant_ke: 1.22  # V·s/rad (back-EMF constant, assuming Kt=Ke)
+      motor_resistance: 0.58    # Ohm (line resistance)
+      motor_inductance: 0.000263 # H (average of 187-339 µH range = 263 µH)
+      rotor_inertia: 0.000008   # kg·m² (estimated)
+
+      max_torque: 17.0
+      rated_torque: 6.0
+      max_speed: 42.94       # rad/s (410 rpm no-load)
+      rated_speed: 37.70     # rad/s (360 rpm rated)
+
+      encoder_type: "Dual Magnetic Absolute"
+      encoder_resolution: 16384  # 14-bit
+      encoder_accuracy: 0.001
+
+      friction_viscous: 0.25
+      friction_coulomb: 0.8
+      backlash: 0.0005
+
+      thermal_time_constant: 600
+      max_temperature: 85.0
+
+      # Electromagnetic Brake (Virtual - for simulation)
+      has_brake: true
+      brake_holding_torque: 25.0   # Nm (higher than max torque)
+      brake_engage_time: 0.04      # seconds (faster for small motor)
+      brake_release_time: 0.02     # seconds
+      brake_power: 2.0             # Watts (smallest motor)
+
+    pid_position:
+      p: 80.0
+      i: 4.0
+      d: 5.0
+      i_clamp_min: -12.0
+      i_clamp_max: 12.0
+      antiwindup: true
+
+    pid_velocity:
+      p: 5.0
+      i: 1.0
+      d: 0.2
+      i_clamp_min: -6.0
+      i_clamp_max: 6.0
+      antiwindup: true
+
+    feedforward:
+      velocity: 0.06
+      acceleration: 0.03
+
+    communication:
+      timeout_ms: 10
+      retry_attempts: 3
+      update_rate_hz: 1000
+
+# Global simulation parameters
+simulation:
+  update_rate_hz: 1000
+  position_tolerance: 0.001  # rad
+  velocity_tolerance: 0.01   # rad/s
+
+  # Physics simulation
+  integrator: "runge_kutta_4"
+  substeps: 4
+
+  # Noise simulation (for realism)
+  position_noise_stddev: 0.0001  # rad
+  velocity_noise_stddev: 0.001   # rad/s
+  current_noise_stddev: 0.05     # A
+
+  # Communication delays
+  command_delay_ms: 1.0
+  feedback_delay_ms: 0.5

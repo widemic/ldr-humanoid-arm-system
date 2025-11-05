@@ -13,19 +13,14 @@
     <!-- Depth Camera -->
     <xacro:include filename="$(find arm_description)/urdf/macros/depth_camera.xacro"/>
     <!-- Mount camera on base_link, 2m above the robot, rotated 90° left and tilted 15° down -->
-    <xacro:depth_camera
-        parent_link="base_link"
-        xyz="0.0 0.0 1"
-        rpy="0 ${pi/10} ${pi/2}"
-        name="camera"/>
+    <xacro:depth_camera parent_link="base_link" xyz="0.0 0.0 1" rpy="0 ${pi/10} ${pi/2}" name="camera"/>
 
     <!-- Gazebo plugins -->
     <gazebo>
-
         <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
             <robot_param_node>robot_state_publisher</robot_param_node>
             <parameters>$(find arm_gazebo)/config/controllers.yaml</parameters>
-
+        </plugin>
         <!-- Sensors plugin (required for cameras, depth sensors, etc.) -->
         <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
             <render_engine>ogre2</render_engine>
