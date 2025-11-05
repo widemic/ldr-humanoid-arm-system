@@ -8,7 +8,7 @@
     <!-- Load ros2_control macro -->
     <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro"/>
     <xacro:arm_ros2_control/>
-    <xacro:include filename="$(find arm_description)/urdf/macros/camera.xacro"/>
+    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/camera.xacro"/> -->
 
     <!-- Depth Camera -->
     <xacro:include filename="$(find arm_description)/urdf/macros/depth_camera.xacro"/>
@@ -21,13 +21,10 @@
 
     <!-- Gazebo plugins -->
     <gazebo>
-        <plugin name='gz::sim::systems::Sensors' filename='gz-sim-sensors-system'>     
-            <render_engine>ogre2</render_engine>
-        </plugin>
+
         <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
             <robot_param_node>robot_state_publisher</robot_param_node>
             <parameters>$(find arm_gazebo)/config/controllers.yaml</parameters>
-        </plugin>
 
         <!-- Sensors plugin (required for cameras, depth sensors, etc.) -->
         <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
