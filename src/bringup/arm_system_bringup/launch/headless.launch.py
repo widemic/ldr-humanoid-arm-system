@@ -52,7 +52,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "world",
             default_value=PathJoinSubstitution(
-                [FindPackageShare("arm_gazebo"), "worlds", "lab.sdf"]
+                [FindPackageShare("arm_gazebo"), "worlds", "lab2.sdf"]
             ),
             description="Path to Gazebo world file",
         )
