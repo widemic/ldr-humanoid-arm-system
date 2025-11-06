@@ -22,7 +22,9 @@ install(DIRECTORY launch/
 install(PROGRAMS
   scripts/motion_planner.py
   scripts/example.py
+  scripts/object_recognition_node.py
   scripts/moveit_cartesian_example.py
+  scripts/complete_depth_camera.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
