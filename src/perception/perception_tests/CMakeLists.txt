@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(arm_perception)
+project(perception_tests)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -31,30 +31,10 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Install Python scripts
 install(PROGRAMS
-<<<<<<< HEAD
-  scripts/object_recognition_node.py
+  scripts/external_camera_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
-=======
-  scripts/camera_viewer.py
-  scripts/depth_processor.py
-  scripts/point_cloud_processor.py
-  scripts/object_detector.py
-  scripts/object_pose_estimator.py
-  scripts/visual_servoing.py
-  scripts/pick_demo.py
-  scripts/detection_debug.py
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-# Install launch files
-install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}/
-)
-
->>>>>>> origin/dev/perception
 # Install config files
 install(DIRECTORY
   config
