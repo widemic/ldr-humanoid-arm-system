@@ -186,11 +186,11 @@ class GPUObjectRecognitionNode(Node):
                 # Configure backend for YOLOv4-tiny
                 if self.gpu_available:
                     net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-                    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+                    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA_FP16)
                     detector_type = "YOLOv4-tiny-GPU"
                 else:
                     net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-                    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+                    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU_FP16)
                     detector_type = "YOLOv4-tiny-CPU"
                 
                 # Load COCO class names
@@ -289,7 +289,7 @@ class GPUObjectRecognitionNode(Node):
             # - Normalize pixel values to 0-1 range
             # - Resize to 608x608 (YOLOv4 input size)
             # - Swap Red and Blue channels (OpenCV uses BGR, YOLO expects RGB)
-            blob = cv2.dnn.blobFromImage(image, 1/255.0, (608, 608), swapRB=True, crop=False)
+            blob = cv2.dnn.blobFromImage(image, 1/255.0, (416, 416), swapRB=True, crop=False)
             self.net.setInput(blob)
 
             # Get YOLO layer names
