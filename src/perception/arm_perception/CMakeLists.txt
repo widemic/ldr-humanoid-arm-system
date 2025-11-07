@@ -31,10 +31,30 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Install Python scripts
 install(PROGRAMS
+<<<<<<< HEAD
   scripts/object_recognition_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
+=======
+  scripts/camera_viewer.py
+  scripts/depth_processor.py
+  scripts/point_cloud_processor.py
+  scripts/object_detector.py
+  scripts/object_pose_estimator.py
+  scripts/visual_servoing.py
+  scripts/pick_demo.py
+  scripts/detection_debug.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+>>>>>>> origin/dev/perception
 # Install config files
 install(DIRECTORY
   config
