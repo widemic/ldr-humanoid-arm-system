@@ -25,6 +25,7 @@ import numpy as np
 import os
 import urllib.request
 
+from ament_index_python.packages import get_package_share_directory
 
 class GPUObjectRecognitionNode(Node):
     """
@@ -63,8 +64,8 @@ class GPUObjectRecognitionNode(Node):
             10
         )
         
-        # Base path for storing YOLO model files
-        self.base_path = '/home/alex/ldr-humanoid-arm-system'
+        # Config path for storing YOLO model files
+        self.base_path = os.path.join(get_package_share_directory('arm_perception'), 'config')
         
         # Configure computation device based on user preference
         self.setup_computation_device()
