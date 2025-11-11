@@ -1,171 +1,214 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <joint name="shoulder_motor_mount_joint" type="fixed">
-        <origin
-            xyz="-0.3827 0 1.0987"
-            rpy="0.018231 0 0" />
-        <parent link="base_link" />
-        <child link="shoulder_motor_link" />
-        <axis
-            xyz="0 0 0" />
+    <joint name="left_shoulder_pitch_rs04_actuator_fixture_link" type="fixed">
+        <origin xyz="0 0.382699999999936 1.45000000000145" rpy="-0.61079662163343 0 1.57079632679489" />
+        <parent link="base_fixture_link" />
+        <child link="left_shoulder_pitch_rs04_actuator" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="base_rotation_joint" type="revolute">
-        <origin
-            xyz="-0.0175 0 0"
-            rpy="0 0 0" />
-        <parent link="shoulder_motor_link" />
-        <child link="upper_arm_link" />
-        <axis
-            xyz="1 0 0" />
-        <limit
-            lower="-3.14"
-            upper="3.14"
-            effort="120"
-            velocity="3" />
-        <safety_controller
-            soft_upper_limit="3.14"
-            soft_lower_limit="-3.14"
-            k_velocity="0" />
+    <joint name="left_shoulder_pitch_rs04_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_pitch_rs04_actuator" />
+        <child link="left_shoulder_pitch_rs04_flange" />
+        <axis xyz="1 0 0" />
+        <limit lower="-3.14" upper="3.14" effort="120" velocity="3" />
+        <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
     </joint>
-    <joint name="shoulder_pitch_joint" type="revolute">
-        <origin
-            xyz="-0.0992 -0.0527 0"
-            rpy="0 0 0" />
-        <parent link="upper_arm_link" />
-        <child link="shoulder_pitch_motor_link" />
-        <axis
-            xyz="0 1 0" />
-        <limit
-            lower="-0.55"
-            upper="3.1"
-            effort="120"
-            velocity="3" />
-        <safety_controller
-            soft_upper_limit="3.1"
-            soft_lower_limit="-0.55"
-            k_velocity="0" />
+    <joint name="m5x22_screws_left_shoulder_pitch_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_pitch_rs04_flange" />
+        <child link="m5x22_screws_left_shoulder_pitch" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="forearm_mount_joint" type="fixed">
-        <origin
-            xyz="-0.016217 0.0397 -0.07576"
-            rpy="0 0.21056 0" />
-        <parent link="shoulder_pitch_motor_link" />
-        <child link="forearm_link" />
-        <axis
-            xyz="0 0 0" />
-        <limit
-            lower="-1.57"
-            upper="1.57"
-            effort="0"
-            velocity="0" />
+    <joint name="left_shoulder_pitch_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m5x22_screws_left_shoulder_pitch" />
+        <child link="left_shoulder_pitch" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="elbow_motor_mount_joint" type="fixed">
-        <origin
-            xyz="0 0.002 -0.10002"
-            rpy="-0.017845 0 0.040355" />
-        <parent link="forearm_link" />
-        <child link="elbow_motor_link" />
-        <axis
-            xyz="0 0 0" />
+    <joint name="m5x22_screws_left_shoulder_roll_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_pitch" />
+        <child link="m5x22_screws_left_shoulder_roll" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="elbow_pitch_joint" type="revolute">
-        <origin
-            xyz="0 0.00021413 -0.011998"
-            rpy="0.018231 -0.20981 -0.044159" />
-        <parent link="elbow_motor_link" />
-        <child link="elbow_flange_link" />
-        <axis
-            xyz="-0.20901 0 -0.97791" />
-        <limit
-            lower="-3.14"
-            upper="3.14"
-            effort="60"
-            velocity="1.6" />
+    <joint name="left_shoulder_roll_rs04_flange_joint" type="fixed">
+        <origin xyz="0.116775431275821 0.0487000000004332 -2.70558071411298E-05" rpy="0 0 3.14159265358979" />
+        <parent link="m5x22_screws_left_shoulder_roll" />
+        <child link="left_shoulder_roll_rs04_flange" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="wrist_base_mount_joint" type="fixed">
-        <origin
-            xyz="-0.0076289 0 -0.035694"
-            rpy="-0.0092227 0.21039 0.041266" />
-        <parent link="elbow_flange_link" />
-        <child link="wrist_base_link" />
-        <axis
-            xyz="0 0 0" />
-        <limit
-            lower="-3.14"
-            upper="3.14"
-            effort="60"
-            velocity="1.6" />
+    <joint name="left_shoulder_roll_rs04_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_roll_rs04_flange" />
+        <child link="left_shoulder_roll_rs04_actuator" />
+        <axis xyz="0 -1 0" />
+        <limit lower="-3.5" upper="0.6" effort="120" velocity="3" />
+        <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
     </joint>
-    <joint name="wrist_motor_mount_joint" type="fixed">
-        <origin
-            xyz="-0.0025 0.00085117 -0.047692"
-            rpy="0.017845 0 0" />
-        <parent link="wrist_base_link" />
-        <child link="wrist_motor_link" />
-        <axis
-            xyz="0 0 0" />
+    <joint name="m4x25_left_shoulder_screws_roll_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_roll_rs04_actuator" />
+        <child link="m4x25_left_shoulder_screws_roll" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="wrist_pitch_joint" type="revolute">
-        <origin
-            xyz="0 0 0"
-            rpy="-0.2706 0 0" />
-        <parent link="wrist_motor_link" />
-        <child link="wrist_pitch_link" />
-        <axis
-            xyz="-1 0 0" />
-        <limit
-            lower="-0.31"
-            upper="2.8"
-            effort="60"
-            velocity="1.6" />
-        <safety_controller
-            soft_upper_limit="2.8"
-            soft_lower_limit="-0.31"
-            k_velocity="0" />
+    <joint name="left_shoulde_roll_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m4x25_left_shoulder_screws_roll" />
+        <child link="left_shoulder_roll" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="wrist_assembly_joint" type="fixed">
-        <origin
-            xyz="0 0.17928 -0.010221"
-            rpy="0 0 0" />
-        <parent link="wrist_pitch_link" />
-        <child link="wrist_assembly_link" />
-        <axis
-            xyz="0 0 0" />
+    <joint name="m4x16_left_shoulder_yaw_screws_fixture_joint" type="fixed">
+        <origin xyz="-0.0219716026665047 0.037700000000231 -0.173578614834026" rpy="0.0571232457871902 0.112571265320765 0.47087557604578" />
+        <parent link="left_shoulder_roll" />
+        <child link="m4x16_left_shoulder_yaw_screws" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="wrist_roll_motor_mount_joint" type="fixed">
-        <origin
-            xyz="0 0.12622 0.010221"
-            rpy="0 0 0" />
-        <parent link="wrist_assembly_link" />
-        <child link="wrist_roll_motor_link" />
-        <axis
-            xyz="0 0 0" />
+    <joint name="left_shoulder_yaw_rs03_actuator_fixture_link" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m4x16_left_shoulder_yaw_screws" />
+        <child link="left_shoulder_yaw_rs03_actuator" />
+        <axis xyz="0 0 0" />
     </joint>
-    <joint name="wrist_roll_joint" type="revolute">
-        <origin
-            xyz="0 0.026284 0"
-            rpy="0 -0.012912 0" />
-        <parent link="wrist_roll_motor_link" />
-        <child link="end_effector_link" />
-        <axis
-            xyz="0 -1 0" />
-        <limit
-            lower="-3.14"
-            upper="3.14"
-            effort="17"
-            velocity="0.8" />
-        <safety_controller
-            soft_upper_limit="3.14"
-            soft_lower_limit="-3.14"
-            k_velocity="0" />
+    <joint name="left_shoulder_yaw_rs03_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_yaw_rs03_actuator" />
+        <child link="left_shoulder_yaw_rs03_flange" />
+        <axis xyz="0 0 1" />
+        <limit lower="-3.14" upper="3.14" effort="60" velocity="1.6" />
+        <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
     </joint>
-    <joint name="end_motor_mount_joint" type="fixed">
-        <origin
-            xyz="0 0.06534 0"
-            rpy="0.25218 0 0" />
-        <parent link="end_effector_link" />
-        <child link="end_motor_link" />
-        <axis
-            xyz="0 0 0" />
+    <joint name="left_shoulder_yaw_shaft_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_yaw_rs03_flange" />
+        <child link="left_shoulder_yaw_shaft" />
+        <axis xyz="0 0 0" />
+        <limit lower="0" upper="0" effort="0" velocity="0" />
+    </joint>
+    <joint name="left_shoulder_yaw_flange_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_yaw_shaft" />
+        <child link="left_shoulder_yaw_flange" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="1220_m4x16_left_shoulder_yaw_screws_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_shoulder_yaw_flange" />
+        <child link="1220_m4x16_left_shoulder_yaw_screws" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="m4x25_left_shoulder_yaw_screws_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="1220_m4x16_left_shoulder_yaw_screws" />
+        <child link="m4x25_left_shoulder_yaw_screws" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_shoulder_yaw_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m4x25_left_shoulder_yaw_screws" />
+        <child link="left_shoulder_yaw" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="m4x16_eft_elbow_screws_fixture_joint" type="fixed">
+        <origin xyz="0 0 -0.0987000004167595" rpy="0 0 2.02959481544726" />
+        <parent link="left_shoulder_yaw" />
+        <child link="m4x16_eft_elbow_screws" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_elbow_rs03_actuator_ficture_link" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m4x16_eft_elbow_screws" />
+        <child link="left_elbow_rs03_actuator" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_elbow_rs03_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_elbow_rs03_actuator" />
+        <child link="left_elbow_rs03_flange" />
+        <axis xyz="0.442871169532447 0.896585259301625 0" />
+        <limit lower="-1.3" upper="1.9" effort="60" velocity="1.6" />
+        <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
+    </joint>
+    <joint name="left_elbow_shaft_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_elbow_rs03_flange" />
+        <child link="left_elbow_shaft" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="m4x25_left_elbow_screws_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_elbow_shaft" />
+        <child link="m4x25_left_elbow_screws" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_elbow_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m4x25_left_elbow_screws" />
+        <child link="left_elbow" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="m3x20_left_wrist_screws_fixture_joint" type="fixed">
+        <origin xyz="0.0370688771049235 -0.0244446769789257 -0.15848929336033" rpy="-1.29963611177836 0 -2.02959481544726" />
+        <parent link="left_elbow" />
+        <child link="m3x20_left_wrist_screws" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_wrist_actuator_fixture_link" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m3x20_left_wrist_screws" />
+        <child link="left_wrist_actuator" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_wrist_rs02_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_wrist_actuator" />
+        <child link="left_wrist_rs02_flange" />
+        <axis xyz="0 1 0" />
+        <limit lower="-3.14" upper="3.14" effort="17" velocity="0.8" />
+        <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
+    </joint>
+    <joint name="m4x20_left_wrist_screws_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_wrist_rs02_flange" />
+        <child link="m4x20_left_wrist_screws" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_wrist_shaft_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m4x20_left_wrist_screws" />
+        <child link="left_wrist_shaft" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_wrist_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_wrist_shaft" />
+        <child link="left_wrist" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="m3x16_left_hand_screws_fixture_joint" type="fixed">
+        <origin xyz="0 0.0944999999998815 0" rpy="0.644848119833412 0.444064009162365 0" />
+        <parent link="left_wrist" />
+        <child link="m3x16_left_hand_screws" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_hand_rs02_fixture_link" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="m3x16_left_hand_screws" />
+        <child link="left_hand_rs02" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <joint name="left_hand_rs02_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_hand_rs02" />
+        <child link="left_hand_rs02_flange" />
+        <axis xyz="0.999999999999999 0 0" />
+        <limit lower="-1.5" upper="1.7" effort="17" velocity="0.8" />
+        <safety_controller soft_upper_limit="1.7" soft_lower_limit="-1.5" k_velocity="0" />
+    </joint>
+    <joint name="left_hand_fixture_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="left_hand_rs02_flange" />
+        <child link="left_hand" />
+        <axis xyz="0 0 0" />
     </joint>
 </robot>
