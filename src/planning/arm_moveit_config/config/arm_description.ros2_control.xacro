@@ -8,41 +8,50 @@
                 <!-- By default, set up controllers for simulation. This won't work on real hardware -->
                 <plugin>mock_components/GenericSystem</plugin>
             </hardware>
-            <joint name="base_rotation_joint">
+            <joint name="left_shoulder_pitch_rs04_joint">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['base_rotation_joint']}</param>
+                  <param name="initial_value">${initial_positions['left_shoulder_pitch_rs04_joint']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="shoulder_pitch_joint">
+            <joint name="left_shoulder_roll_rs04_joint">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['shoulder_pitch_joint']}</param>
+                  <param name="initial_value">${initial_positions['left_shoulder_roll_rs04_joint']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="elbow_pitch_joint">
+            <joint name="left_shoulder_yaw_rs03_joint">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['elbow_pitch_joint']}</param>
+                  <param name="initial_value">${initial_positions['left_shoulder_yaw_rs03_joint']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="wrist_pitch_joint">
+            <joint name="left_elbow_rs03_joint">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['wrist_pitch_joint']}</param>
+                  <param name="initial_value">${initial_positions['left_elbow_rs03_joint']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="wrist_roll_joint">
+            <joint name="left_wrist_rs02_joint">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['wrist_roll_joint']}</param>
+                  <param name="initial_value">${initial_positions['left_wrist_rs02_joint']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
+            <joint name="left_hand_rs02_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['left_hand_rs02_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            
+
 
         </ros2_control>
     </xacro:macro>

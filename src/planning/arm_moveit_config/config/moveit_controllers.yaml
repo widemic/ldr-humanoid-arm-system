@@ -11,8 +11,9 @@ moveit_simple_controller_manager:
     action_ns: follow_joint_trajectory
     default: true
     joints:
-      - base_rotation_joint
-      - shoulder_pitch_joint
-      - elbow_pitch_joint
-      - wrist_pitch_joint
-      - wrist_roll_joint
+      - left_shoulder_pitch_rs04_joint
+      - left_shoulder_roll_rs04_joint
+      - left_shoulder_yaw_rs03_joint
+      - left_elbow_rs03_joint
+      - left_wrist_rs02_joint
+      - left_hand_rs02_joint

@@ -12,17 +12,17 @@
     <group name="arm">
         <joint name="virtual_joint"/>
         <joint name="shoulder_motor_mount_joint"/>
-        <joint name="base_rotation_joint"/>
-        <joint name="shoulder_pitch_joint"/>
+        <joint name="left_shoulder_pitch_rs04_joint"/>
+        <joint name="left_shoulder_roll_rs04_joint"/>
         <joint name="forearm_mount_joint"/>
         <joint name="elbow_motor_mount_joint"/>
-        <joint name="elbow_pitch_joint"/>
+        <joint name="left_shoulder_yaw_rs03_joint"/>
         <joint name="wrist_base_mount_joint"/>
         <joint name="wrist_motor_mount_joint"/>
-        <joint name="wrist_pitch_joint"/>
+        <joint name="left_elbow_rs03_joint"/>
         <joint name="wrist_assembly_joint"/>
         <joint name="wrist_roll_motor_mount_joint"/>
-        <joint name="wrist_roll_joint"/>
+        <joint name="left_wrist_rs02_joint"/>
         <joint name="end_motor_mount_joint"/>
     </group>
 
@@ -31,11 +31,11 @@
 
     <!--GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'-->
     <group_state name="home" group="arm">
-        <joint name="base_rotation_joint" value="-0"/>
-        <joint name="elbow_pitch_joint" value="0"/>
-        <joint name="shoulder_pitch_joint" value="-0"/>
-        <joint name="wrist_pitch_joint" value="1.288"/>
-        <joint name="wrist_roll_joint" value="0"/>
+        <joint name="left_shoulder_pitch_rs04_joint" value="-0"/>
+        <joint name="left_shoulder_yaw_rs03_joint" value="0"/>
+        <joint name="left_shoulder_roll_rs04_joint" value="-0"/>
+        <joint name="left_elbow_rs03_joint" value="1.288"/>
+        <joint name="left_wrist_rs02_joint" value="0"/>
     </group_state>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
     <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="base_link"/>
