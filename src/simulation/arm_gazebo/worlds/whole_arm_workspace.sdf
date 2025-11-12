@@ -1,0 +1,492 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <world name="whole_arm_manipulation_workspace">
+
+    <!-- Physics -->
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- Plugins -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+
+    <!-- Lighting -->
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- Ground Plane -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Workbench/Table -->
+    <model name="workbench">
+      <static>true</static>
+      <pose>0.6 0 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.2 1.5 0.8</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.2 1.5 0.8</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.4 0.3 1</ambient>
+            <diffuse>0.5 0.4 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Large Button 1 (Red) -->
+    <model name="button_red">
+      <pose>0.6 0.3 0.85 0 0 0</pose>
+      <link name="button_base">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.1 0.1 1</ambient>
+            <diffuse>0.8 0.1 0.1 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0001</ixx>
+            <iyy>0.0001</iyy>
+            <izz>0.0001</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="button_joint" type="prismatic">
+        <parent>world</parent>
+        <child>button_base</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-0.02</lower>
+            <upper>0</upper>
+          </limit>
+          <dynamics>
+            <damping>5.0</damping>
+            <spring_stiffness>100.0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+    </model>
+
+    <!-- Large Button 2 (Green) -->
+    <model name="button_green">
+      <pose>0.6 -0.3 0.85 0 0 0</pose>
+      <link name="button_base">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.1 0.8 0.1 1</ambient>
+            <diffuse>0.1 0.8 0.1 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0001</ixx>
+            <iyy>0.0001</iyy>
+            <izz>0.0001</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="button_joint" type="prismatic">
+        <parent>world</parent>
+        <child>button_base</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-0.02</lower>
+            <upper>0</upper>
+          </limit>
+          <dynamics>
+            <damping>5.0</damping>
+            <spring_stiffness>100.0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+    </model>
+
+    <!-- Lever/Switch -->
+    <model name="lever">
+      <pose>0.3 0.5 0.9 0 0 0</pose>
+      <link name="lever_base">
+        <pose>0 0 0 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.05 0.05 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.05 0.05 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1</ambient>
+            <diffuse>0.3 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+        </inertial>
+      </link>
+      <link name="lever_arm">
+        <pose>0 0 0.15 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.015</radius>
+              <length>0.25</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.015</radius>
+              <length>0.25</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.9 0.1 0.1 1</ambient>
+            <diffuse>0.9 0.1 0.1 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+      </link>
+      <joint name="lever_base_joint" type="fixed">
+        <parent>world</parent>
+        <child>lever_base</child>
+      </joint>
+      <joint name="lever_joint" type="revolute">
+        <parent>lever_base</parent>
+        <child>lever_arm</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>-0.785</lower>
+            <upper>0.785</upper>
+          </limit>
+          <dynamics>
+            <damping>0.5</damping>
+            <friction>0.1</friction>
+          </dynamics>
+        </axis>
+      </joint>
+    </model>
+
+    <!-- Valve Wheel -->
+    <model name="valve">
+      <pose>0.9 0.5 0.9 0 1.57 0</pose>
+      <link name="valve_base">
+        <pose>0 0 0 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.03</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.03</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.5 0.5 0.5 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.3</mass>
+        </inertial>
+      </link>
+      <link name="valve_wheel">
+        <pose>0 0 0.08 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.12</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.12</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.1 0.1 0.8 1</ambient>
+            <diffuse>0.1 0.1 0.8 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.002</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="valve_base_joint" type="fixed">
+        <parent>world</parent>
+        <child>valve_base</child>
+      </joint>
+      <joint name="valve_joint" type="revolute">
+        <parent>valve_base</parent>
+        <child>valve_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-10000</lower>
+            <upper>10000</upper>
+          </limit>
+          <dynamics>
+            <damping>0.3</damping>
+            <friction>0.2</friction>
+          </dynamics>
+        </axis>
+      </joint>
+    </model>
+
+    <!-- Sliding Door -->
+    <model name="sliding_door">
+      <pose>0.6 -0.7 0.9 0 0 0</pose>
+      <link name="door_frame">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5 0.05 0.6</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5 0.05 0.6</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.7 0.7 1</ambient>
+            <diffuse>0.7 0.7 0.7 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>2.0</mass>
+        </inertial>
+      </link>
+      <joint name="door_slide_joint" type="prismatic">
+        <parent>world</parent>
+        <child>door_frame</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>0</lower>
+            <upper>0.4</upper>
+          </limit>
+          <dynamics>
+            <damping>2.0</damping>
+            <friction>1.0</friction>
+          </dynamics>
+        </axis>
+      </joint>
+    </model>
+
+    <!-- Drawer -->
+    <model name="drawer">
+      <pose>0.3 -0.5 0.9 0 0 0</pose>
+      <link name="drawer_cabinet">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.3 0.4 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.3 0.4 0.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.4 0.2 1</ambient>
+            <diffuse>0.6 0.4 0.2 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>3.0</mass>
+        </inertial>
+      </link>
+      <link name="drawer_front">
+        <pose>0 0.22 0 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.28 0.04 0.18</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.28 0.04 0.18</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.3 0.1 1</ambient>
+            <diffuse>0.5 0.3 0.1 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.5</mass>
+        </inertial>
+      </link>
+      <joint name="drawer_cabinet_joint" type="fixed">
+        <parent>world</parent>
+        <child>drawer_cabinet</child>
+      </joint>
+      <joint name="drawer_slide_joint" type="prismatic">
+        <parent>drawer_cabinet</parent>
+        <child>drawer_front</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+          <limit>
+            <lower>0</lower>
+            <upper>0.25</upper>
+          </limit>
+          <dynamics>
+            <damping>1.5</damping>
+            <friction>0.8</friction>
+          </dynamics>
+        </axis>
+      </joint>
+    </model>
+
+    <!-- Target markers -->
+    <model name="target_sphere_1">
+      <static>true</static>
+      <pose>0.6 0.3 0.95 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.03</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1 0 0 0.5</ambient>
+            <diffuse>1 0 0 0.5</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="target_sphere_2">
+      <static>true</static>
+      <pose>0.6 -0.3 0.95 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.03</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 1 0 0.5</ambient>
+            <diffuse>0 1 0 0.5</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
