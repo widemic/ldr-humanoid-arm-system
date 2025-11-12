@@ -29,7 +29,7 @@ def generate_launch_description():
     # Declare arguments
     use_sim_arg = DeclareLaunchArgument(
         'use_sim',
-        default_value='true',
+        default_value='false',
         description='Use simulation (gazebo) or real robot configuration for URDF variant'
     )
 

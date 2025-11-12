@@ -42,7 +42,7 @@
 # - motor electrical constants: For advanced control (FOC, etc.)
 
 actuators:
-  base_rotation_joint:
+  left_shoulder_pitch_rs04_joint:
     motor:
       type: "ROBSTRIDE 04"
       manufacturer: "Robstride"
@@ -119,7 +119,7 @@ actuators:
       retry_attempts: 3
       update_rate_hz: 1000
 
-  shoulder_pitch_joint:
+  left_shoulder_roll_rs04_joint:
     motor:
       type: "ROBSTRIDE 04"
       manufacturer: "Robstride"
@@ -187,7 +187,7 @@ actuators:
       retry_attempts: 3
       update_rate_hz: 1000
 
-  elbow_pitch_joint:
+  left_shoulder_yaw_rs03_joint:
     motor:
       type: "ROBSTRIDE 03"
       manufacturer: "Robstride"
@@ -255,7 +255,7 @@ actuators:
       retry_attempts: 3
       update_rate_hz: 1000
 
-  wrist_pitch_joint:
+  left_elbow_rs03_joint:
     motor:
       type: "ROBSTRIDE 03"
       manufacturer: "Robstride"
@@ -323,7 +323,7 @@ actuators:
       retry_attempts: 3
       update_rate_hz: 1000
 
-  wrist_roll_joint:
+  left_wrist_rs02_joint:
     motor:
       type: "ROBSTRIDE 02"
       manufacturer: "Robstride"
