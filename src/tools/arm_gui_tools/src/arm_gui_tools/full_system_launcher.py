@@ -116,7 +116,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
             return
         self._branding_label = label
 
-        image_path = self._resolve_ui_path(Path('images') / 'love_death_robots.png')
+        image_path = self._resolve_ui_path(Path('images') / 'image.jpg')
         if image_path:
             pixmap = QtGui.QPixmap(str(image_path))
             if not pixmap.isNull():
