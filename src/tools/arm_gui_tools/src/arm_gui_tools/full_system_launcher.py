@@ -2,6 +2,7 @@
 """PyQt5 GUI with per-tool start/stop buttons for the full system, Gazebo, RViz, and rqt_image_view."""
 
 import os
+import shlex
 import signal
 import subprocess
 import sys
@@ -11,7 +12,7 @@ from pathlib import Path
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 
-LAUNCH_CMD = 'ros2 launch arm_system_bringup full_system.launch.py'
+FULL_SYSTEM_BASE_CMD = 'ros2 launch arm_system_bringup full_system.launch.py'
 IMAGE_VIEW_CMD = 'ros2 run image_tools showimage --ros-args -r image:=/camera/color/image_raw'
 GAZEBO_CMD = 'gz sim -g'
 RVIZ_CMD = 'rviz2'
@@ -31,14 +32,17 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self._set_branding_image()
 
         self.command_line = self.findChild(QtWidgets.QLineEdit, 'line_command')
-        if self.command_line:
-            self.command_line.setText(LAUNCH_CMD)
 
         self._setup_script = None
         self.tools = {}
+        self._world_combo = None
+        self._current_world_path = ''
+
+        self._setup_world_selector()
+        self._update_launch_command()
         self._register_tool(
             name='system',
-            command=LAUNCH_CMD,
+            command=self._build_launch_command(),
             start_button='button_system_start',
             stop_button='button_system_stop',
             status_label='label_system_status',
@@ -153,6 +157,114 @@ class LauncherWindow(QtWidgets.QMainWindow):
         ):
             self._update_branding_pixmap()
         return super().eventFilter(watched, event)
+
+    def _setup_world_selector(self):
+        """Create a combo box that lists available Gazebo world files."""
+        group_box = self.findChild(QtWidgets.QGroupBox, 'group_processes')
+        grid_layout = group_box.layout() if group_box else None
+        if not isinstance(grid_layout, QtWidgets.QGridLayout):
+            return
+
+        label = QtWidgets.QLabel('Simulation World', self)
+        label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+
+        combo = QtWidgets.QComboBox(self)
+        combo.setObjectName('combo_simulation_world')
+        combo.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        combo.currentIndexChanged.connect(self._on_world_selection_changed)
+
+        row = grid_layout.rowCount()
+        grid_layout.addWidget(label, row, 0)
+        grid_layout.addWidget(combo, row, 1, 1, 3)
+
+        self._world_combo = combo
+        self._populate_world_selector()
+
+    def _populate_world_selector(self):
+        """Fill the combo box with *.sdf files from arm_gazebo/worlds."""
+        if self._world_combo is None:
+            return
+
+        worlds = self._discover_world_files()
+        combo = self._world_combo
+        combo.blockSignals(True)
+        combo.clear()
+
+        if not worlds:
+            combo.addItem('No .sdf worlds found', '')
+            combo.setEnabled(False)
+            self._current_world_path = ''
+        else:
+            combo.setEnabled(True)
+            for sdf_path in worlds:
+                combo.addItem(sdf_path.name, str(sdf_path))
+            combo.setCurrentIndex(0)
+            self._current_world_path = str(worlds[0])
+
+        combo.blockSignals(False)
+        self._update_launch_command()
+
+    def _discover_world_files(self):
+        """Return a sorted list of available world files."""
+        directories = []
+        try:
+            from ament_index_python.packages import get_package_share_directory
+
+            directories.append(Path(get_package_share_directory('arm_gazebo')) / 'worlds')
+        except Exception:
+            pass
+
+        repo_worlds = self._locate_repo_worlds_dir()
+        if repo_worlds:
+            directories.append(repo_worlds)
+
+        worlds = []
+        seen = set()
+        for directory in directories:
+            if not directory or not directory.exists():
+                continue
+            for sdf in sorted(directory.glob('*.sdf')):
+                resolved = str(sdf.resolve())
+                if resolved in seen:
+                    continue
+                seen.add(resolved)
+                worlds.append(Path(resolved))
+
+        return worlds
+
+    @staticmethod
+    def _locate_repo_worlds_dir():
+        """Search upwards for the workspace source tree and worlds folder."""
+        current = Path(__file__).resolve()
+        for parent in [current, *current.parents]:
+            candidate = parent / 'src' / 'simulation' / 'arm_gazebo' / 'worlds'
+            if candidate.exists():
+                return candidate
+        return None
+
+    def _on_world_selection_changed(self, index):
+        """Store the newly selected world path and refresh the launch command."""
+        if self._world_combo is None or index < 0:
+            return
+        world_path = self._world_combo.itemData(index) or ''
+        self._current_world_path = world_path
+        self._update_launch_command()
+
+    def _build_launch_command(self):
+        """Produce the ros2 launch command with the selected world argument."""
+        command = FULL_SYSTEM_BASE_CMD
+        if self._current_world_path:
+            command = f"{command} simulation_world:={shlex.quote(self._current_world_path)}"
+        return command
+
+    def _update_launch_command(self):
+        """Synchronize the displayed launch command and tool entry."""
+        command = self._build_launch_command()
+        if self.command_line:
+            self.command_line.setText(command)
+        system_tool = self.tools.get('system')
+        if system_tool:
+            system_tool['command'] = command
 
     def _register_tool(self, name, command, start_button, stop_button, status_label):
         start_btn = self._require_widget(QtWidgets.QPushButton, start_button)
