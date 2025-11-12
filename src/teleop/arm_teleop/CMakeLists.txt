@@ -7,9 +7,37 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
+find_package(control_msgs REQUIRED)
+
+add_executable(joint_teleop_node src/joint_teleop_node.cpp)
+ament_target_dependencies(
+  joint_teleop_node
+  rclcpp
+  rclcpp_action
+  sensor_msgs
+  trajectory_msgs
+  control_msgs
+)
+ 
+install(TARGETS joint_teleop_node
+  DESTINATION lib/${PROJECT_NAME})
+
+install(
+  PROGRAMS
+    scripts/keyboard_teleop.py
+    scripts/gui_teleop.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
