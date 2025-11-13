@@ -8,6 +8,7 @@ Publishes `sensor_msgs/msg/JointState` commands that are consumed by the
 
 from __future__ import annotations
 
+import subprocess
 import sys
 import threading
 from typing import List, Optional
@@ -191,6 +192,7 @@ class TeleopWindow(QtWidgets.QMainWindow):
         self.executor.add_node(self.node)
 
         self._step = 0.600
+        self._backend_process: Optional[subprocess.Popen] = None
 
         self._build_ui()
         self._connect_signals()
@@ -256,8 +258,10 @@ class TeleopWindow(QtWidgets.QMainWindow):
         utility_layout = QtWidgets.QHBoxLayout(utility_widget)
         self.capture_btn = QtWidgets.QPushButton("Capture current state")
         self.resend_btn = QtWidgets.QPushButton("Hold / resend target")
+        self.backend_btn = QtWidgets.QPushButton("Start Joint Teleop Backend")
         utility_layout.addWidget(self.capture_btn)
         utility_layout.addWidget(self.resend_btn)
+        utility_layout.addWidget(self.backend_btn)
         layout.addWidget(utility_widget)
 
         self.status_label = QtWidgets.QLabel("Status: starting...")
@@ -274,6 +278,7 @@ class TeleopWindow(QtWidgets.QMainWindow):
 
         self.capture_btn.clicked.connect(self.node.send_capture)
         self.resend_btn.clicked.connect(self.node.send_resend)
+        self.backend_btn.clicked.connect(self._toggle_backend)
         self.step_spin.valueChanged.connect(self._update_step)
 
     def _start_timers(self) -> None:
@@ -306,9 +311,69 @@ class TeleopWindow(QtWidgets.QMainWindow):
         if pose:
             self.node.send_pose(pose)
 
+    def _toggle_backend(self) -> None:
+        if self._is_backend_running():
+            self._stop_backend()
+        else:
+            self._start_backend()
+        self._update_backend_button()
+
+    def _start_backend(self) -> None:
+        if self._is_backend_running():
+            return
+        try:
+            self._backend_process = subprocess.Popen(
+                ["ros2", "run", "arm_teleop", "joint_teleop_node"]
+            )
+        except FileNotFoundError:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "ros2 not found",
+                "Could not locate the 'ros2' executable. Ensure the ROS 2 environment is sourced.",
+            )
+            self._backend_process = None
+        except Exception as exc:  # pragma: no cover - defensive
+            QtWidgets.QMessageBox.critical(
+                self, "Failed to launch", f"Failed to start joint_teleop_node:\n{exc}"
+            )
+            self._backend_process = None
+
+    def _stop_backend(self) -> None:
+        if not self._backend_process:
+            return
+        if self._backend_process.poll() is None:
+            self._backend_process.terminate()
+            try:
+                self._backend_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self._backend_process.kill()
+            except Exception:
+                self._backend_process.kill()
+        self._backend_process = None
+
+    def _is_backend_running(self) -> bool:
+        return (
+            self._backend_process is not None
+            and self._backend_process.poll() is None
+        )
+
+    def _update_backend_button(self) -> None:
+        if not hasattr(self, "backend_btn"):
+            return
+        running = self._is_backend_running()
+        text = (
+            "Stop Joint Teleop Backend"
+            if running
+            else "Start Joint Teleop Backend"
+        )
+        self.backend_btn.setText(text)
+
     def _spin_ros(self) -> None:
         self.executor.spin_once(timeout_sec=0.0)
-        self.status_label.setText(f"Status: {self.node.get_status()}")
+        backend_state = "running" if self._is_backend_running() else "stopped"
+        self.status_label.setText(
+            f"Status: {self.node.get_status()} | Backend: {backend_state}"
+        )
 
     def _refresh_joint_labels(self) -> None:
         current = self.node.get_joint_values()
@@ -325,10 +390,12 @@ class TeleopWindow(QtWidgets.QMainWindow):
                 else "---.---"
             )
             label.setText(f"cur: {cur}   tgt: {tgt}")
+        self._update_backend_button()
 
     def closeEvent(self, event) -> None:
         self.ros_timer.stop()
         self.ui_timer.stop()
+        self._stop_backend()
         self.executor.remove_node(self.node)
         self.node.destroy_node()
         super().closeEvent(event)
