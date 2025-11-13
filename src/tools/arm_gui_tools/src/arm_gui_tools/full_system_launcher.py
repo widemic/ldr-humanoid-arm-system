@@ -15,7 +15,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 FULL_SYSTEM_BASE_CMD = 'ros2 launch arm_system_bringup full_system.launch.py'
 IMAGE_VIEW_CMD = 'ros2 run image_tools showimage --ros-args -r image:=/camera/color/image_raw'
 GAZEBO_CMD = 'gz sim -g'
-RVIZ_CMD = 'rviz2'
+RVIZ_CMD = 'rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/config/deep_camera.rviz'
 MOVEIT_CMD = 'ros2 launch arm_moveit_config demo.launch.py'
 OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
 

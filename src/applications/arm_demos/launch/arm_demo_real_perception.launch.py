@@ -56,7 +56,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='camera_to_base_tf',
-            arguments=['0', '-5.0', '1.0', '0.0', '0.0', '-1.57', 'base_link', 'camera_link'],
+            arguments=['0', '-5.0', '1.0', '0.0', '0.0', '-1.57', 'base_fixture_link', 'camera_link'],
             output='screen'
         ),
         
@@ -104,23 +104,23 @@ def generate_launch_description():
             ]
         ),
         
-        # 5. RViz
-        TimerAction(
-            period=LaunchConfiguration('rviz_delay'),
-            actions=[
-                Node(
-                    package='rviz2',
-                    executable='rviz2',
-                    name='rviz2',
-                    output='screen',
-                    arguments=['-d', os.path.join(arm_perception_dir, 'config', 'deep_real_camera.rviz')],
-                    parameters=[{'use_sim_time': False}]
-                )
-            ]
-        ),
+        # # 5. RViz
+        # TimerAction(
+        #     period=LaunchConfiguration('rviz_delay'),
+        #     actions=[
+        #         Node(
+        #             package='rviz2',
+        #             executable='rviz2',
+        #             name='rviz2',
+        #             output='screen',
+        #             arguments=['-d', os.path.join(arm_perception_dir, 'config', 'deep_real_camera.rviz')],
+        #             parameters=[{'use_sim_time': False}]
+        #         )
+        #     ]
+        # ),
         
         # Logs
         launch.actions.LogInfo(msg="=== Arm Description + External Camera Demo ==="),
-        launch.actions.LogInfo(msg="Added static transform from base_link to camera_link"),
-        launch.actions.LogInfo(msg="PointCloud should now be visible in RViz with base_link fixed frame"),
+        launch.actions.LogInfo(msg="Added static transform from base_fixture_link to camera_link"),
+        launch.actions.LogInfo(msg="PointCloud should now be visible in RViz with base_fixture_link fixed frame"),
     ])

@@ -53,11 +53,20 @@ def generate_launch_description():
         "gz_args": [world_file, " -r -s"],  # server mode without GUI, auto-run
     }.items()
     )
+    
     spawn_robot_node = Node(
         package='ros_gz_sim',
         executable='create',
         name='spawn_robot',
-        arguments=['-topic', 'robot_description'],
+        arguments=[
+            "-name", "arm",
+            '-topic', 'robot_description',
+            # rotate robot along Z by 90 deg
+            '-x', '0.0',
+            '-y', '0.0',
+            '-z', '0.0',
+            '-Y', '1.5708'  # 90 degrees in radians
+            ],
         output='screen'
     )
     # Launch ROS–Gazebo bridge
