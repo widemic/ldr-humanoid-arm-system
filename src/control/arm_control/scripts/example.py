@@ -25,33 +25,37 @@ def main():
         # Example 1: Move to predefined poses
         print("\n=== Example 1: Predefined Poses ===")
 
+        print("Moving to home position...")
+        planner.home()
+        time.sleep(1.0)
+        
         print("Moving to ready position...")
         planner.ready()
         time.sleep(1.0)
 
-        print("Moving home...")
-        planner.home()
+        print("Moving vertical...")
+        planner.vertical()
         time.sleep(1.0)
 
         # Example 2: Move to specific joint positions
-        print("\n=== Example 2: Custom Positions ===")
+        # print("\n=== Example 2: Custom Positions ===")
 
-        print("Moving to custom position...")
-        planner.move_to([0.5, 1.0, -0.5, 1.2, 0.3], duration=3.0)
-        time.sleep(1.0)
-
-        print("Moving to another position...")
-        planner.move_to([-0.5, 0.8, 0.5, 1.5, -0.3], duration=3.0)
-        time.sleep(1.0)
+        # print("Moving to custom position...")
+        # planner.move_to([0.5, 1.0, -0.5, 1.2, 0.3, 0.0], duration=3.0)
+        # time.sleep(1.0)
+    
+        # print("Moving to another position...")
+        # planner.move_to([-0.5, 0.8, 0.5, 1.5, -0.3, 0.0], duration=3.0)
+        # time.sleep(1.0)
 
         # Example 3: Execute a trajectory with multiple waypoints
         print("\n=== Example 3: Multi-Point Trajectory ===")
 
         waypoints = [
-            ([0.0, 0.5, 0.0, 0.5, 0.0], 2.0),   # First waypoint at t=2s
-            ([0.5, 1.0, -0.5, 1.0, 0.5], 4.0),  # Second at t=4s
-            ([0.0, 1.5, 0.0, 1.5, 0.0], 6.0),   # Third at t=6s
-            ([0.0, 0.0, 0.0, 0.0, 0.0], 8.0),   # Home at t=8s
+            ([0.66, 0.1, -0.35, 0.0, -1.75, 0.1], 2.0),   # First waypoint at t=2s
+            ([0.73, -1.07, 1.30, -1.30, -0.25, 1.0], 4.0),  # Second at t=4s
+            # ([0.0, 1.5, 0.0, 1.5, 0.0, 0.0], 6.0),   # Third at t=6s
+            # ([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 8.0),   # Home at t=8s
         ]
 
         print("Executing smooth trajectory...")

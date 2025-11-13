@@ -26,9 +26,9 @@ class MotionPlanner(Node):
 
     # Predefined poses
     POSES = {
-        'home': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        'ready': [0.0, 1.0, 0.0, 1.0, 0.0, 0.0],
-        'vertical': [0.0, 1.57, 0.0, 1.57, 0.0, 0.0],
+        'home': [0.65, 0.12, -0.43, 0.26, -0.45, 0.0],
+        'ready': [0.65, 0.12, -0.43, -0.26, -0.45, 0.7],
+        'vertical': [0.56, -2.8, 0.43, 0.0, 1.0, 0.1],
     }
 
     def __init__(self):
@@ -200,6 +200,10 @@ class MotionPlanner(Node):
     def ready(self):
         """Move to ready position."""
         return self.move_to(self.POSES['ready'])
+
+    def vertical(self):
+        """Move to vertical position."""
+        return self.move_to(self.POSES['vertical'])
 
 
 def main():
