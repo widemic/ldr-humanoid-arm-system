@@ -31,6 +31,7 @@ install(
   PROGRAMS
     scripts/keyboard_teleop.py
     scripts/gui_teleop.py
+    scripts/joystick_teleop.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

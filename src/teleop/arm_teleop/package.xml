@@ -17,6 +17,7 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>builtin_interfaces</exec_depend>
   <exec_depend>python3-pyqt5</exec_depend>
+  <exec_depend>joy</exec_depend>
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rclcpp_action</exec_depend>
   
