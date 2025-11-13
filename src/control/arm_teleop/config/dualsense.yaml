@@ -1,0 +1,47 @@
+dualsense_teleop:
+  ros__parameters:
+    # Axes (verify with joy_inspector)
+    axes.lx: 0
+    axes.ly: 1
+    axes.rx: 3
+    axes.ry: 4
+    axes.l2: 2
+    axes.r2: 5
+
+    # Buttons
+    buttons.cross: 0
+    buttons.circle: 1
+    buttons.square: 2
+    buttons.triangle: 3
+    buttons.l1: 4
+    buttons.r1: 5
+    buttons.share: 8
+    buttons.options: 9
+    buttons.l3: 10
+    buttons.r3: 11
+    buttons.ps: 12
+    buttons.touch: 13
+
+    # Teleop mapping
+    deadman: r1
+    mode_toggle: circle
+    slow_mode: square
+    estop_button: ps
+
+    # Scales
+    cartesian.linear: 0.4
+    cartesian.angular: 0.8
+    joint.vel: 0.7
+    joint.names:
+      - left_shoulder_pitch_rs04_joint
+      - left_shoulder_roll_rs04_joint
+      - left_shoulder_yaw_rs03_joint
+      - left_elbow_rs03_joint
+      - left_wrist_rs02_joint
+      - left_hand_rs02_joint
+
+    # Frames / misc
+    command_frame: base_fixture_link
+    watchdog_ms: 120
+    r2_increases_scale: true
+    l2_decreases_scale: true

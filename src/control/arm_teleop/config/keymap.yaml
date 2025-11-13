@@ -1,0 +1,23 @@
+# Minimal keyboard bindings (WASD + QE + RF)
+bindings:
+forward: w
+back: s
+left: a
+right: d
+up: r
+down: f
+yaw_left: q
+yaw_right: e
+pitch_up: i
+pitch_down: k
+roll_left: j
+roll_right: l
+deadman: space
+slow_mode: shift
+mode_toggle: m
+estop: x
+scales:
+linear: 0.25
+angular: 0.6
+watchdog_ms: 120
+command_frame: base_link

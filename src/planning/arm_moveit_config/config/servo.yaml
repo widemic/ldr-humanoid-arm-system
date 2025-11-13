@@ -1,0 +1,41 @@
+moveit_servo:
+  ros__parameters:
+    planning_frame: base_fixture_link
+    robot_link_command_frame: base_fixture_link
+
+    # REQUIRED:
+    move_group_name: arm    # <-- must match your SRDF group name
+
+    command_in_type: geometry_msgs/TwistStamped
+    cartesian_command_in_topic: moveit_servo/delta_twist_cmds
+    joint_command_in_type: control_msgs/JointJog
+    joint_topic: moveit_servo/delta_joint_cmds
+
+    command_out_type: trajectory_msgs/JointTrajectory
+    publish_joint_commands: true
+    publish_period: 0.01
+    low_latency_mode: true
+    use_gazebo: false
+    allow_joint_state_projection: true
+
+    linear_scale: 1.0
+    rotational_scale: 1.0
+
+    collision_check_rate: 50.0
+    collision_check_ros_params: true
+    halt_all_joints_in_collision: true
+    num_outgoing_halt_msgs_to_publish: 4.0
+
+    # Singularity handling: allow some margin before hard-stopping
+    lower_singularity_threshold: 40.0
+    hard_stop_singularity_threshold: 20.0
+    singularity_step_cooldown: 2.0
+
+    linear_vel_limit: 0.5
+    linear_acceleration_limit: 1.0
+    rotational_vel_limit: 1.2
+    rotational_acceleration_limit: 2.0
+
+    use_incoming_cmd_vel_filter: true
+    incoming_cmd_vel_filter_coef: 10.0
+    verbose: false
