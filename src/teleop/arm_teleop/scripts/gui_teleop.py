@@ -193,6 +193,7 @@ class TeleopWindow(QtWidgets.QMainWindow):
 
         self._step = 0.600
         self._backend_process: Optional[subprocess.Popen] = None
+        self._joystick_launch_process: Optional[subprocess.Popen] = None
 
         self._build_ui()
         self._connect_signals()
@@ -259,9 +260,13 @@ class TeleopWindow(QtWidgets.QMainWindow):
         self.capture_btn = QtWidgets.QPushButton("Capture current state")
         self.resend_btn = QtWidgets.QPushButton("Hold / resend target")
         self.backend_btn = QtWidgets.QPushButton("Start Joint Teleop Backend")
+        self.joystick_launch_btn = QtWidgets.QPushButton(
+            "Start Joystick Teleop Launch"
+        )
         utility_layout.addWidget(self.capture_btn)
         utility_layout.addWidget(self.resend_btn)
         utility_layout.addWidget(self.backend_btn)
+        utility_layout.addWidget(self.joystick_launch_btn)
         layout.addWidget(utility_widget)
 
         self.status_label = QtWidgets.QLabel("Status: starting...")
@@ -279,6 +284,7 @@ class TeleopWindow(QtWidgets.QMainWindow):
         self.capture_btn.clicked.connect(self.node.send_capture)
         self.resend_btn.clicked.connect(self.node.send_resend)
         self.backend_btn.clicked.connect(self._toggle_backend)
+        self.joystick_launch_btn.clicked.connect(self._toggle_joystick_launch)
         self.step_spin.valueChanged.connect(self._update_step)
 
     def _start_timers(self) -> None:
@@ -317,6 +323,13 @@ class TeleopWindow(QtWidgets.QMainWindow):
         else:
             self._start_backend()
         self._update_backend_button()
+
+    def _toggle_joystick_launch(self) -> None:
+        if self._is_joystick_launch_running():
+            self._stop_joystick_launch()
+        else:
+            self._start_joystick_launch()
+        self._update_joystick_button()
 
     def _start_backend(self) -> None:
         if self._is_backend_running():
@@ -368,11 +381,66 @@ class TeleopWindow(QtWidgets.QMainWindow):
         )
         self.backend_btn.setText(text)
 
+    def _start_joystick_launch(self) -> None:
+        if self._is_joystick_launch_running():
+            return
+        try:
+            self._joystick_launch_process = subprocess.Popen(
+                ["ros2", "launch", "arm_teleop", "joystick_teleop.launch.py"]
+            )
+        except FileNotFoundError:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "ros2 not found",
+                "Could not locate the 'ros2' executable. Ensure the ROS 2 environment is sourced.",
+            )
+            self._joystick_launch_process = None
+        except Exception as exc:  # pragma: no cover - defensive
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Failed to launch",
+                f"Failed to start joystick_teleop launch:\n{exc}",
+            )
+            self._joystick_launch_process = None
+
+    def _stop_joystick_launch(self) -> None:
+        process = self._joystick_launch_process
+        if not process:
+            return
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+            except Exception:
+                process.kill()
+        self._joystick_launch_process = None
+
+    def _is_joystick_launch_running(self) -> bool:
+        return (
+            self._joystick_launch_process is not None
+            and self._joystick_launch_process.poll() is None
+        )
+
+    def _update_joystick_button(self) -> None:
+        if not hasattr(self, "joystick_launch_btn"):
+            return
+        running = self._is_joystick_launch_running()
+        text = (
+            "Stop Joystick Teleop Launch"
+            if running
+            else "Start Joystick Teleop Launch"
+        )
+        self.joystick_launch_btn.setText(text)
+
     def _spin_ros(self) -> None:
         self.executor.spin_once(timeout_sec=0.0)
         backend_state = "running" if self._is_backend_running() else "stopped"
         self.status_label.setText(
-            f"Status: {self.node.get_status()} | Backend: {backend_state}"
+            "Status: "
+            f"{self.node.get_status()} | Backend: {backend_state} | Joystick launch: "
+            f"{'running' if self._is_joystick_launch_running() else 'stopped'}"
         )
 
     def _refresh_joint_labels(self) -> None:
@@ -391,11 +459,13 @@ class TeleopWindow(QtWidgets.QMainWindow):
             )
             label.setText(f"cur: {cur}   tgt: {tgt}")
         self._update_backend_button()
+        self._update_joystick_button()
 
     def closeEvent(self, event) -> None:
         self.ros_timer.stop()
         self.ui_timer.stop()
         self._stop_backend()
+        self._stop_joystick_launch()
         self.executor.remove_node(self.node)
         self.node.destroy_node()
         super().closeEvent(event)
