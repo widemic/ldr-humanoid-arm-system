@@ -108,7 +108,7 @@
     <include>
       <uri>model://OfficeChairGrey</uri>
       <name>OfficeChairGrey</name>
-      <pose>0.6 2.0 0.0 0 0 -0.51</pose>
+      <pose>0.6 2.0 0.0 0 0.0 -0.78</pose>
     </include>
     <light name='sun' type='directional'>
       <pose>0 0 10 0 0 0</pose>
