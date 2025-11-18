@@ -2,7 +2,7 @@
 """
 YOLO Model Download Utility
 
-Downloads and verifies YOLOv4 and YOLOv4-tiny model files.
+Downloads and verifies YOLOv4, YOLOv4-tiny, and YOLOv8 model files.
 Can be run standalone or imported as a module.
 """
 
@@ -15,7 +15,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 class YOLOModelDownloader:
-    """Handles downloading and verification of YOLO model files."""
+    """Handles downloading and verification of YOLO model files (v4 and v8)."""
 
     def __init__(self, config_path: str = None, logger=None):
         """
@@ -178,12 +178,36 @@ class YOLOModelDownloader:
 
         return weights_ok, config_ok, names_ok
 
-    def ensure_all_files(self, include_tiny: bool = True) -> bool:
+    def ensure_yolov8_model(self, model_name: str = 'yolov8n') -> bool:
+        """
+        Check and download YOLOv8 model.
+
+        Args:
+            model_name: Model variant (yolov8n, yolov8s, yolov8m, yolov8l, yolov8x)
+
+        Returns:
+            True if model is available
+        """
+        model_file = f"{model_name}.pt"
+        model_path = os.path.join(self.base_path, model_file)
+
+        if os.path.exists(model_path):
+            file_size = os.path.getsize(model_path)
+            self.log_info(f"✓ {model_name} exists ({file_size:,} bytes)")
+            return True
+
+        # YOLOv8 will auto-download when loaded by ultralytics
+        self.log_info(f"✗ {model_name} not found")
+        self.log_info(f"  Will be auto-downloaded to {model_path} on first use")
+        return False
+
+    def ensure_all_files(self, include_tiny: bool = True, include_yolov8: bool = True) -> bool:
         """
         Ensure all required YOLO model files are present.
 
         Args:
             include_tiny: Also check/download YOLOv4-tiny files
+            include_yolov8: Also check YOLOv8 model
 
         Returns:
             True if all files are available
@@ -218,10 +242,22 @@ class YOLOModelDownloader:
             self.log_info("YOLOv4-tiny disabled in config")
             tiny_ready = False
 
+        # Check YOLOv8
+        yolov8_ready = False
+        if include_yolov8 and self.config.get('yolov8', {}).get('enabled', True):
+            model_name = self.config.get('yolov8', {}).get('model_name', 'yolov8n')
+            yolov8_ready = self.ensure_yolov8_model(model_name)
+
+            if yolov8_ready:
+                self.log_info(f"✓ {model_name} model ready")
+        else:
+            if not include_yolov8:
+                self.log_info("YOLOv8 check skipped")
+
         self.log_info("=" * 60)
 
         # Return True if at least one model is ready
-        return yolov4_ready or tiny_ready
+        return yolov4_ready or tiny_ready or yolov8_ready
 
 
 def main():

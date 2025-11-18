@@ -40,7 +40,6 @@ install(PROGRAMS
 install(FILES
   scripts/config_loader.py
   scripts/download_yolo_models.py
-  scripts/download_yolov8_models.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
