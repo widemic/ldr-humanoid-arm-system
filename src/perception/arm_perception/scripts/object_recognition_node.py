@@ -32,12 +32,13 @@ class ObjectRecognitionNode(Node):
         # CV Bridge for image conversion
         self.bridge = CvBridge()
 
-        # Subscribe to camera
+        # Subscribe to camera with minimal queue (reduce lag)
+        # Queue size = 1: Always process the LATEST frame, drop old ones
         self.subscription = self.create_subscription(
             Image,
             self.cfg.topics.camera_input,
             self.image_callback,
-            10
+            1  # Minimal queue for lowest latency
         )
 
         # Publish processed images
@@ -64,6 +65,9 @@ class ObjectRecognitionNode(Node):
         self.frame_count = 0
         self.fps = 0.0
         self.last_time = cv2.getTickCount()
+
+        # Lag reduction: Skip frames if still processing
+        self.processing = False
 
         self.get_logger().info(f'Object Recognition started - {self.detector_type}')
         self.get_logger().info(f'Device: {"GPU" if self.gpu_available else "CPU"}')
@@ -255,7 +259,12 @@ class ObjectRecognitionNode(Node):
 
     def image_callback(self, msg):
         """Process incoming camera images."""
+        # Skip frame if still processing previous one (reduce lag)
+        if self.processing:
+            return
+
         try:
+            self.processing = True
             self.frame_count += 1
             self.calculate_fps()
 
@@ -281,6 +290,9 @@ class ObjectRecognitionNode(Node):
 
         except Exception as e:
             self.get_logger().error(f'Error: {str(e)}')
+        finally:
+            # Always release processing lock
+            self.processing = False
 
     def process_image(self, image):
         """Detect objects and draw bounding boxes."""
