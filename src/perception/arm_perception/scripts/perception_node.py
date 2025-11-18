@@ -58,15 +58,15 @@ class PerceptionNode(Node):
         self.declare_parameter('camera_topic', '/camera/depth/points')
         self.declare_parameter('target_frame', 'base_fixture_link')
         self.declare_parameter('plane_distance_threshold', 0.01)  # 1cm for RANSAC plane fitting
-        self.declare_parameter('cluster_tolerance', 0.02)  # 2cm for clustering
-        self.declare_parameter('min_cluster_size', 50)  # Minimum points per cluster
-        self.declare_parameter('max_cluster_size', 5000)  # Maximum points per cluster
+        self.declare_parameter('cluster_tolerance', 0.05)  # 5cm for clustering (increased for better grouping)
+        self.declare_parameter('min_cluster_size', 200)  # Minimum points per cluster (increased to filter noise)
+        self.declare_parameter('max_cluster_size', 10000)  # Maximum points per cluster
         self.declare_parameter('cylinder_radius_min', 0.01)  # 1cm minimum cylinder radius
         self.declare_parameter('cylinder_radius_max', 0.15)  # 15cm maximum cylinder radius
-        self.declare_parameter('min_object_height', 0.02)  # 2cm minimum object height
+        self.declare_parameter('min_object_height', 0.03)  # 3cm minimum object height (balanced filtering)
         self.declare_parameter('processing_rate', 1.0)  # Hz - how often to process
         self.declare_parameter('point_downsample_factor', 4)  # Downsample every Nth point for speed
-        self.declare_parameter('z_min', -0.5)  # Minimum Z in target frame
+        self.declare_parameter('z_min', 0.0)  # Minimum Z in target frame (10cm above ground - filters floor)
         self.declare_parameter('z_max', 1.5)  # Maximum Z in target frame
 
         # Get parameters
@@ -88,9 +88,9 @@ class PerceptionNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        # QoS profile matching camera publisher
+        # QoS profile matching Gazebo camera publisher (RELIABLE)
         qos_profile = QoSProfile(
-            reliability=ReliabilityPolicy.BEST_EFFORT,
+            reliability=ReliabilityPolicy.RELIABLE,
             history=HistoryPolicy.KEEP_LAST,
             depth=1,
             durability=DurabilityPolicy.VOLATILE
@@ -368,7 +368,7 @@ class PerceptionNode(Node):
             return []
 
     def detect_shape(self, cluster):
-        """Detect geometric shape (cylinder or box) from point cluster"""
+        """Detect geometric shape (cylinder or box) from point cluster with improved algorithms"""
         if len(cluster) < 10:
             return None
 
@@ -383,33 +383,97 @@ class PerceptionNode(Node):
         if height < self.min_height:
             return None
 
-        # Compute 2D projection (x, y) properties
+        # Filter out very small objects (likely noise) - minimum footprint area
+        footprint_area = dimensions[0] * dimensions[1]
+        if footprint_area < 0.001:  # Less than 1 square cm
+            return None
+
+        # Filter out objects that are too thin (likely edges/artifacts)
+        min_dimension = min(dimensions[0], dimensions[1])
+        if min_dimension < 0.02:  # Less than 2cm in any horizontal direction
+            return None
+
+        # Compute 2D projection (x, y) properties for better shape analysis
         xy_points = cluster[:, :2]
         xy_center = np.mean(xy_points, axis=0)
 
-        # Compute distances from centroid
+        # Method 1: Radial distance analysis (improved)
         distances = np.linalg.norm(xy_points - xy_center, axis=1)
         mean_distance = np.mean(distances)
         std_distance = np.std(distances)
-
-        # Heuristic: if distances are consistent, likely a cylinder
-        # If standard deviation is small relative to mean, it's circular
         circularity_ratio = std_distance / (mean_distance + 1e-6)
 
-        if circularity_ratio < 0.3 and self.cylinder_radius_min < mean_distance < self.cylinder_radius_max:
-            # Detected as cylinder
+        # Method 2: Aspect ratio analysis
+        width = dimensions[0]
+        depth = dimensions[1]
+        aspect_ratio = min(width, depth) / (max(width, depth) + 1e-6)
+
+        # Method 3: Convex hull area vs circle area (requires scipy)
+        try:
+            from scipy.spatial import ConvexHull
+            if len(xy_points) >= 4:
+                hull = ConvexHull(xy_points)
+                hull_area = hull.volume  # In 2D, volume is area
+                circle_area = np.pi * (mean_distance ** 2)
+                area_ratio = hull_area / (circle_area + 1e-6)
+            else:
+                area_ratio = 1.0
+        except:
+            area_ratio = 1.0
+
+        # Method 4: Moment of inertia (shape elongation)
+        centered_xy = xy_points - xy_center
+        cov_matrix = np.cov(centered_xy.T)
+        eigenvalues = np.linalg.eigvalsh(cov_matrix)
+        elongation = np.sqrt(eigenvalues[1]) / (np.sqrt(eigenvalues[0]) + 1e-6)
+
+        # Decision logic: Multiple criteria for better cylinder detection
+        is_circular_by_stddev = circularity_ratio < 0.25  # Tighter threshold
+        is_circular_by_aspect = aspect_ratio > 0.7  # Nearly square footprint
+        is_circular_by_area = 0.7 < area_ratio < 1.3  # Area close to circle
+        is_not_elongated = elongation < 2.0  # Not too stretched
+        is_valid_radius = self.cylinder_radius_min < mean_distance < self.cylinder_radius_max
+
+        # Cylinder score: more criteria met = more likely cylinder
+        cylinder_score = sum([
+            is_circular_by_stddev,
+            is_circular_by_aspect,
+            is_circular_by_area,
+            is_not_elongated,
+            is_valid_radius
+        ])
+
+        # Detect as cylinder if at least 3 out of 5 criteria are met
+        if cylinder_score >= 3:
+            # Refine cylinder parameters
+            # Use median distance for more robust radius estimation
+            radius = np.median(distances)
+
+            # Use bottom of bounding box as base (more stable for grasping)
+            position = [xy_center[0], xy_center[1], min_coords[2] + height / 2.0]
+
             return {
                 'type': 'cylinder',
-                'position': [center[0], center[1], center[2]],
-                'radius': mean_distance,
-                'height': height
+                'position': position,
+                'radius': radius,
+                'height': height,
+                'confidence': cylinder_score / 5.0  # Normalized confidence
             }
         else:
             # Detected as box
+            # Refine box dimensions to be slightly larger for collision safety
+            padding = 0.01  # 1cm padding
+            safe_dimensions = [
+                dimensions[0] + padding,
+                dimensions[1] + padding,
+                dimensions[2] + padding
+            ]
+
             return {
                 'type': 'box',
                 'position': [center[0], center[1], center[2]],
-                'dimensions': [dimensions[0], dimensions[1], dimensions[2]]
+                'dimensions': safe_dimensions,
+                'confidence': (5 - cylinder_score) / 5.0  # Inverse confidence
             }
 
     def publish_collision_objects(self, detected_objects):
