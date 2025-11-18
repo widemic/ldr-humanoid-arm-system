@@ -103,11 +103,19 @@ class ObjectRecognitionNode(Node):
             raise RuntimeError(f"Unsupported model type: {model_type}")
 
     def load_yolov8(self):
-        """Load YOLOv8 model using ultralytics."""
+        """Load YOLOv8 model using ultralytics (GPU required)."""
         try:
             from ultralytics import YOLO
+            import torch
 
-            self.get_logger().info("Loading YOLOv8...")
+            self.get_logger().info("Loading YOLOv8 (GPU mode)...")
+
+            # Verify GPU availability for YOLOv8
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    "YOLOv8 requires GPU but CUDA is not available. "
+                    "Please check your PyTorch/CUDA installation or use YOLOv4 (CPU) instead."
+                )
 
             # Get model configuration
             model_name = self.cfg.yolov8.model_name
@@ -124,12 +132,15 @@ class ObjectRecognitionNode(Node):
                 self.get_logger().info(f"Auto-downloading {model_name}...")
                 model = YOLO(model_file)
 
-            # Move model to GPU if available
-            if self.gpu_available:
-                model.to(self.device_str)
-                detector_type = f"YOLOv8-{model_name.upper()}-GPU"
-            else:
-                detector_type = f"YOLOv8-{model_name.upper()}-CPU"
+            # Force GPU mode
+            device_id = getattr(self.cfg.device, 'device_id', 0)
+            device_str = f'cuda:{device_id}'
+            model.to(device_str)
+            detector_type = f"YOLOv8-{model_name.upper()}-GPU"
+
+            self.get_logger().info(f"YOLOv8 using GPU: {torch.cuda.get_device_name(device_id)}")
+            self.get_logger().info(f"CUDA version: {torch.version.cuda}")
+            self.get_logger().info(f"FP16 mode: {'Enabled' if self.cfg.yolov8.half else 'Disabled'}")
 
             # Get class names
             classes = model.names  # Dict: {0: 'person', 1: 'bicycle', ...}
@@ -145,7 +156,7 @@ class ObjectRecognitionNode(Node):
             raise
 
     def load_yolov4(self):
-        """Load YOLOv4 model using OpenCV DNN (legacy fallback)."""
+        """Load YOLOv4 model using OpenCV DNN (CPU only - no CUDA support)."""
         try:
             from download_yolo_models import YOLOModelDownloader
 
@@ -156,24 +167,23 @@ class ObjectRecognitionNode(Node):
             )
             downloader.ensure_all_files(include_tiny=True)
 
-            # Get file paths
-            weights_path = os.path.join(self.base_path, self.cfg.yolov4.files.weights)
-            config_path = os.path.join(self.base_path, self.cfg.yolov4.files.config)
-            names_path = os.path.join(self.base_path, self.cfg.yolov4.files.names)
+            # Get file paths - access directly from ModelFilesConfig attributes
+            weights_path = os.path.join(self.base_path, self.cfg.yolov4.weights)
+            config_path = os.path.join(self.base_path, self.cfg.yolov4.config)
+            names_path = os.path.join(self.base_path, self.cfg.yolov4.names)
 
             # Load network
             if os.path.exists(weights_path) and os.path.exists(config_path):
-                self.get_logger().info("Loading YOLOv4...")
+                self.get_logger().info("Loading YOLOv4 (CPU mode)...")
                 net = cv2.dnn.readNetFromDarknet(config_path, weights_path)
 
-                if self.gpu_available:
-                    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-                    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
-                    detector_type = "YOLOv4-GPU"
-                else:
-                    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-                    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-                    detector_type = "YOLOv4-CPU"
+                # Force CPU backend (OpenCV CUDA backend not available)
+                net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+                net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+                detector_type = "YOLOv4-CPU"
+
+                self.get_logger().info("YOLOv4 using CPU (OpenCV DNN backend)")
+                self.get_logger().warning("YOLOv4 cannot use GPU - OpenCV not compiled with CUDA")
 
                 # Load class names
                 with open(names_path, 'r') as f:

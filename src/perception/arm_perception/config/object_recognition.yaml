@@ -41,7 +41,7 @@ detection:
 
 # YOLOv4 model files (Legacy - fallback option)
 yolov4:
-  enabled: false  # Disabled by default (use YOLOv8 instead)
+  enabled: true  # Enable for YOLOv4 usage
   files:
     weights: "yolov4.weights"
     config: "yolov4.cfg"
