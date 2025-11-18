@@ -17,6 +17,11 @@ IMAGE_VIEW_CMD = 'ros2 run image_tools showimage --ros-args -r image:=/camera/co
 GAZEBO_CMD = 'gz sim -g'
 RVIZ_CMD = 'rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/config/deep_camera.rviz'
 MOVEIT_CMD = 'ros2 launch arm_moveit_config demo.launch.py'
+OCTOMAP_CMD = (
+    'ros2 launch arm_system_bringup octomap_server.launch.py '
+    'use_sim_time:=true pointcloud_topic:=/camera/depth/points '
+    'frame_id:=base_fixture_link base_frame_id:=base_fixture_link'
+)
 OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
 
 
@@ -74,6 +79,13 @@ class LauncherWindow(QtWidgets.QMainWindow):
             start_button='button_moveit_start',
             stop_button='button_moveit_stop',
             status_label='label_moveit_status',
+        )
+        self._register_tool(
+            name='octomap',
+            command=OCTOMAP_CMD,
+            start_button='button_octomap_start',
+            stop_button='button_octomap_stop',
+            status_label='label_octomap_status',
         )
         self._register_tool(
             name='object_detection',

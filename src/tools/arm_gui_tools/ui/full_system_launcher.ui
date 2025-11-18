@@ -254,21 +254,21 @@
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QLabel" name="label_object_detection_name">
+        <widget class="QLabel" name="label_octomap_name">
          <property name="text">
-          <string>Object Detection</string>
+          <string>OctoMap Server</string>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QPushButton" name="button_object_detection_start">
+        <widget class="QPushButton" name="button_octomap_start">
          <property name="text">
           <string>Start</string>
          </property>
         </widget>
        </item>
        <item row="5" column="2">
-        <widget class="QPushButton" name="button_object_detection_stop">
+        <widget class="QPushButton" name="button_octomap_stop">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -278,6 +278,37 @@
         </widget>
        </item>
        <item row="5" column="3">
+        <widget class="QLabel" name="label_octomap_status">
+         <property name="text">
+          <string>Idle</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_object_detection_name">
+         <property name="text">
+          <string>Object Detection</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QPushButton" name="button_object_detection_start">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="2">
+        <widget class="QPushButton" name="button_object_detection_stop">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="3">
         <widget class="QLabel" name="label_object_detection_status">
          <property name="text">
           <string>Idle</string>
