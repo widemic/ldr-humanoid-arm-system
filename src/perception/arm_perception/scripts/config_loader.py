@@ -17,6 +17,7 @@ from typing import List, Tuple, Optional
 class DeviceConfig:
     """Device configuration (GPU/CPU)."""
     use_gpu: bool
+    device_id: int = 0
 
 
 @dataclass
@@ -45,6 +46,26 @@ class ModelFilesConfig:
     weights_url: str
     config_url: str
     names_url: str
+
+
+@dataclass
+class ModelSelectionConfig:
+    """Model selection configuration."""
+    type: str = "yolov8"
+
+
+@dataclass
+class YOLOv8Config:
+    """YOLOv8 model configuration."""
+    enabled: bool
+    model_name: str
+    model_file: str
+    imgsz: int
+    conf: float
+    iou: float
+    max_det: int
+    half: bool
+    verbose: bool
 
 
 @dataclass
@@ -125,7 +146,9 @@ class ObjectRecognitionConfig:
     """Complete object recognition configuration."""
     device: DeviceConfig
     topics: TopicsConfig
+    model: ModelSelectionConfig
     detection: DetectionConfig
+    yolov8: YOLOv8Config
     yolov4: ModelFilesConfig
     yolov4_tiny: ModelFilesConfig
     performance: PerformanceConfig
@@ -177,7 +200,30 @@ class ConfigLoader:
         """Parse device configuration."""
         device = data.get('device', {})
         return DeviceConfig(
-            use_gpu=device.get('use_gpu', False)
+            use_gpu=device.get('use_gpu', False),
+            device_id=device.get('device_id', 0)
+        )
+
+    def _parse_model_selection(self, data: dict) -> ModelSelectionConfig:
+        """Parse model selection configuration."""
+        model = data.get('model', {})
+        return ModelSelectionConfig(
+            type=model.get('type', 'yolov8')
+        )
+
+    def _parse_yolov8(self, data: dict) -> YOLOv8Config:
+        """Parse YOLOv8 configuration."""
+        yolov8 = data.get('yolov8', {})
+        return YOLOv8Config(
+            enabled=yolov8.get('enabled', True),
+            model_name=yolov8.get('model_name', 'yolov8n'),
+            model_file=yolov8.get('model_file', 'yolov8n.pt'),
+            imgsz=yolov8.get('imgsz', 640),
+            conf=yolov8.get('conf', 0.3),
+            iou=yolov8.get('iou', 0.4),
+            max_det=yolov8.get('max_det', 300),
+            half=yolov8.get('half', True),
+            verbose=yolov8.get('verbose', False)
         )
 
     def _parse_topics(self, data: dict) -> TopicsConfig:
@@ -308,7 +354,9 @@ class ConfigLoader:
         return ObjectRecognitionConfig(
             device=self._parse_device(main_data),
             topics=self._parse_topics(main_data),
+            model=self._parse_model_selection(main_data),
             detection=self._parse_detection(main_data),
+            yolov8=self._parse_yolov8(main_data),
             yolov4=self._parse_model_files(main_data, 'yolov4'),
             yolov4_tiny=self._parse_model_files(main_data, 'yolov4_tiny'),
             performance=self._parse_performance(main_data),
