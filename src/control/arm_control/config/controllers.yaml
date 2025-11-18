@@ -26,8 +26,6 @@ arm_controller:
       - left_elbow_rs03
       - left_wrist_rs02
       - left_hand_rs02
-      - left_palm_right_finger
-      - left_palm_left_finger
 
     command_interfaces:
       - position

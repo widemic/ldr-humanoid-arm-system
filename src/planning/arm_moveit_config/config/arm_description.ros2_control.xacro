@@ -50,17 +50,17 @@
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="left_palm_right_finger">
-                <command_interface name="position"/>
-                <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_palm_right_finger']}</param>
-                </state_interface>
-                <state_interface name="velocity"/>
-            </joint>
             <joint name="left_palm_left_finger">
                 <command_interface name="position"/>
                 <state_interface name="position">
                   <param name="initial_value">${initial_positions['left_palm_left_finger']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="left_palm_right_finger">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['left_palm_right_finger']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
