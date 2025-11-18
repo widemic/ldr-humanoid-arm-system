@@ -121,16 +121,24 @@ class ObjectRecognitionNode(Node):
             model_name = self.cfg.yolov8.model_name
             model_file = self.cfg.yolov8.model_file
 
-            # Try to load from config directory first
+            # Set download location to config directory
             model_path = os.path.join(self.base_path, model_file)
 
             if os.path.exists(model_path):
                 self.get_logger().info(f"Loading model from: {model_path}")
                 model = YOLO(model_path)
             else:
-                # Auto-download from ultralytics
-                self.get_logger().info(f"Auto-downloading {model_name}...")
-                model = YOLO(model_file)
+                # Download to config directory
+                self.get_logger().info(f"Downloading {model_name} to {self.base_path}...")
+
+                # Temporarily change working directory to force download location
+                original_dir = os.getcwd()
+                try:
+                    os.chdir(self.base_path)
+                    model = YOLO(model_file)  # Downloads to current directory
+                    self.get_logger().info(f"✓ Model saved to: {model_path}")
+                finally:
+                    os.chdir(original_dir)
 
             # Force GPU mode
             device_id = getattr(self.cfg.device, 'device_id', 0)

@@ -13,7 +13,7 @@ topics:
 
 # Model selection
 model:
-  type: "yolov4"  # Options: "yolov8", "yolov4"
+  type: "yolov8"  # Options: "yolov8", "yolov4"
 
 # YOLOv8 Configuration (Recommended - fastest with GPU)
 yolov8:
