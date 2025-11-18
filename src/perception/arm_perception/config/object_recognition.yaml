@@ -1,0 +1,58 @@
+# Object Recognition Configuration
+# Model files, detection parameters, and ROS topics
+
+# Computation device
+device:
+  use_gpu: true  # Set to true for GPU acceleration
+
+# ROS Topics
+topics:
+  camera_input: "/camera/color/image_raw"
+  processed_output: "/camera/color/processed_image"
+
+# Detection parameters
+detection:
+  confidence_threshold: 0.3  # Minimum confidence for detection
+  nms_threshold: 0.4         # Non-Maximum Suppression threshold
+  min_box_size: 10           # Minimum box width/height in pixels
+  input_size: 416            # YOLO input size (416x416)
+
+# YOLOv4 model files
+yolov4:
+  enabled: true
+  files:
+    weights: "yolov4.weights"
+    config: "yolov4.cfg"
+    names: "coco.names"
+
+  download_urls:
+    weights: "https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights"
+    config: "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4.cfg"
+    names: "https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names"
+
+  file_sizes:
+    weights: "245MB"
+    config: "12KB"
+    names: "625B"
+
+# YOLOv4-tiny model files (fallback)
+yolov4_tiny:
+  enabled: true
+  files:
+    weights: "yolov4-tiny.weights"
+    config: "yolov4-tiny.cfg"
+    names: "coco.names"
+
+  download_urls:
+    weights: "https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-tiny.weights"
+    config: "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-tiny.cfg"
+    names: "https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names"
+
+  file_sizes:
+    weights: "23MB"
+    config: "3KB"
+    names: "625B"
+
+# Performance settings
+performance:
+  fps_update_interval: 1.0  # Update FPS every N seconds
