@@ -208,7 +208,7 @@ class PerceptionNode(Node):
             self.get_logger().error(f'Error processing point cloud: {e}', throttle_duration_sec=5.0)
 
     def transform_pointcloud(self, pc_msg):
-        """Transform point cloud to target frame"""
+        """Transform point cloud to target frame using fast NumPy matrix operations"""
         try:
             # If already in target frame, return as-is
             if pc_msg.header.frame_id == self.target_frame:
@@ -222,36 +222,35 @@ class PerceptionNode(Node):
                 timeout=rclpy.duration.Duration(seconds=0.5)
             )
 
-            # Workaround for tf2_sensor_msgs PointCloud2 field dtype issues:
-            # Extract points, transform them manually, then recreate PointCloud2
+            # Extract all points at once (fast)
             points_list = []
             for point in pc2.read_points(pc_msg, field_names=("x", "y", "z"), skip_nans=True):
-                # Transform each point using the transform
-                x_in = point[0]
-                y_in = point[1]
-                z_in = point[2]
-
-                # Apply translation and rotation
-                t = transform.transform.translation
-                r = transform.transform.rotation
-
-                # Convert quaternion to rotation matrix (simplified for efficiency)
-                # Using direct transformation instead of full matrix multiplication
-                from geometry_msgs.msg import PointStamped
-                pt_in = PointStamped()
-                pt_in.header = pc_msg.header
-                pt_in.point.x = x_in
-                pt_in.point.y = y_in
-                pt_in.point.z = z_in
-
-                # Transform point
-                import tf2_geometry_msgs
-                pt_out = tf2_geometry_msgs.do_transform_point(pt_in, transform)
-
-                points_list.append([pt_out.point.x, pt_out.point.y, pt_out.point.z])
+                points_list.append([point[0], point[1], point[2]])
 
             if not points_list:
                 return None
+
+            # Convert to NumPy array for vectorized operations
+            points = np.array(points_list, dtype=np.float32)
+
+            # Extract translation and rotation from transform
+            t = transform.transform.translation
+            r = transform.transform.rotation
+
+            # Convert quaternion to rotation matrix (vectorized)
+            # Quaternion: [x, y, z, w]
+            qx, qy, qz, qw = r.x, r.y, r.z, r.w
+
+            # Rotation matrix from quaternion (standard formula)
+            R = np.array([
+                [1 - 2*(qy**2 + qz**2), 2*(qx*qy - qz*qw), 2*(qx*qz + qy*qw)],
+                [2*(qx*qy + qz*qw), 1 - 2*(qx**2 + qz**2), 2*(qy*qz - qx*qw)],
+                [2*(qx*qz - qy*qw), 2*(qy*qz + qx*qw), 1 - 2*(qx**2 + qy**2)]
+            ], dtype=np.float32)
+
+            # Apply transformation: p' = R*p + t (vectorized for all points)
+            # points shape: (N, 3), R shape: (3, 3)
+            transformed_points = np.dot(points, R.T) + np.array([t.x, t.y, t.z], dtype=np.float32)
 
             # Create new PointCloud2 message with transformed points
             import struct
@@ -261,7 +260,7 @@ class PerceptionNode(Node):
             transformed_pc.header.stamp = pc_msg.header.stamp
             transformed_pc.header.frame_id = self.target_frame
             transformed_pc.height = 1
-            transformed_pc.width = len(points_list)
+            transformed_pc.width = len(transformed_points)
             transformed_pc.fields = [
                 PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
                 PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
@@ -269,14 +268,11 @@ class PerceptionNode(Node):
             ]
             transformed_pc.is_bigendian = False
             transformed_pc.point_step = 12
-            transformed_pc.row_step = transformed_pc.point_step * len(points_list)
+            transformed_pc.row_step = transformed_pc.point_step * len(transformed_points)
             transformed_pc.is_dense = True
 
-            # Pack points into binary data
-            buffer = []
-            for pt in points_list:
-                buffer.append(struct.pack('fff', pt[0], pt[1], pt[2]))
-            transformed_pc.data = b''.join(buffer)
+            # Pack points into binary data (vectorized with tobytes)
+            transformed_pc.data = transformed_points.astype(np.float32).tobytes()
 
             return transformed_pc
 
