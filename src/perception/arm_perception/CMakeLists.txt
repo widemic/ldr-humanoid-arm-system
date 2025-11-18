@@ -31,12 +31,19 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python scripts
 install(PROGRAMS
   scripts/object_recognition_node.py
+  scripts/perception_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
 # Install config files
 install(DIRECTORY
   config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# Install launch files
+install(DIRECTORY
+  launch
   DESTINATION share/${PROJECT_NAME}/
 )
 
