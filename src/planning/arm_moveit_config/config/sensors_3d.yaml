@@ -11,6 +11,7 @@ depth_camera:
   point_subsample: 1
   padding_offset: 0.03
   padding_scale: 4.0
+  max_update_rate: 1.0
 
   # Plumbing
   filtered_cloud_topic: filtered_cloud

@@ -63,7 +63,7 @@ Visualization Manager:
         Reliability Policy: Reliable
       Value: true
   Global Options:
-    Fixed Frame: map
+    Fixed Frame: base_fixture_link
   Tools:
     - Class: rviz_default_plugins/Interact
     - Class: rviz_default_plugins/MoveCamera
