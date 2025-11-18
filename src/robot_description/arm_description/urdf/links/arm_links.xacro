@@ -374,7 +374,7 @@
       </geometry>
     </collision>
   </link>
-  <link name="left_hand_rs02">
+  <link name="left_hand_rs02_actuator">
     <inertial>
       <origin xyz="-0.023014 2.2389E-07 3.2595E-07" rpy="0 0 0" />
       <mass value="0.38" />
@@ -462,7 +462,7 @@
       </geometry>
     </collision>
   </link>
-  <link name="left_palm_right_finger">
+  <link name="left_palm_right_finger_link">
     <inertial>
       <origin xyz="0.021797 0.050369 1.1072E-11" rpy="0 0 0" />
       <mass value="0.02913" />
@@ -484,7 +484,7 @@
       </geometry>
     </collision>
   </link>
-  <link name="left_palm_left_finger">
+  <link name="left_palm_left_finger_link">
     <inertial>
       <origin xyz="-0.017013 0.050369 1.1072E-11" rpy="0 0 0" />
       <mass value="0.02913" />

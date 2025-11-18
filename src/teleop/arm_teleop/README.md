@@ -35,12 +35,12 @@ Key bindings:
 
 | Motion (joint) | Increase | Decrease |
 | -------------- | -------- | -------- |
-| Base up/down (`left_shoulder_pitch_rs04_joint`) | `q` | `a` |
-| Shoulder forward/back (`left_shoulder_roll_rs04_joint`) | `w` | `s` |
-| Shoulder rotate out/in (`left_shoulder_yaw_rs03_joint`) | `e` | `d` |
-| Elbow bend/extend (`left_elbow_rs03_joint`) | `r` | `f` |
-| Wrist up/down (`left_wrist_rs02_joint`) | `t` | `g` |
-| Hand rotate (`left_hand_rs02_joint`) | `y` | `u` |
+| Base up/down (`left_shoulder_pitch_rs04`) | `q` | `a` |
+| Shoulder forward/back (`left_shoulder_roll_rs04`) | `w` | `s` |
+| Shoulder rotate out/in (`left_shoulder_yaw_rs03`) | `e` | `d` |
+| Elbow bend/extend (`left_elbow_rs03`) | `r` | `f` |
+| Wrist up/down (`left_wrist_rs02`) | `t` | `g` |
+| Hand rotate (`left_hand_rs02`) | `y` | `u` |
 
 Additional shortcuts:
 - `1` / `2` / `3`: move to `home`, `ready`, or `vertical`.
@@ -95,12 +95,12 @@ Default bindings (Xbox-style layout):
 
 | Joint | Axis | Notes |
 | ----- | ---- | ----- |
-| Base up/down (`left_shoulder_pitch_rs04_joint`) | Axis 1 (left stick vertical) | Positive pulls the arm up |
-| Shoulder forward/back (`left_shoulder_roll_rs04_joint`) | Axis 0 (left stick horizontal) | Positive moves forward |
-| Shoulder rotate out/in (`left_shoulder_yaw_rs03_joint`) | Axis 3 (right stick horizontal) | Positive rotates outward |
-| Elbow bend/extend (`left_elbow_rs03_joint`) | Axis 4 (right stick vertical) | Positive bends the elbow |
-| Wrist up/down (`left_wrist_rs02_joint`) | Axis 2 | Requires a centered trigger |
-| Hand rotate (`left_hand_rs02_joint`) | Axis 5 | Requires a centered trigger |
+| Base up/down (`left_shoulder_pitch_rs04`) | Axis 1 (left stick vertical) | Positive pulls the arm up |
+| Shoulder forward/back (`left_shoulder_roll_rs04`) | Axis 0 (left stick horizontal) | Positive moves forward |
+| Shoulder rotate out/in (`left_shoulder_yaw_rs03`) | Axis 3 (right stick horizontal) | Positive rotates outward |
+| Elbow bend/extend (`left_elbow_rs03`) | Axis 4 (right stick vertical) | Positive bends the elbow |
+| Wrist up/down (`left_wrist_rs02`) | Axis 2 | Requires a centered trigger |
+| Hand rotate (`left_hand_rs02`) | Axis 5 | Requires a centered trigger |
 
 Buttons:
 - `A` (0): hold position (re-send the target)

@@ -20,7 +20,7 @@
         <child link="left_shoulder_pitch" />
         <axis xyz="0 0 0" />
     </joint>
-    <joint name="left_shoulder_roll_rs04_flange" type="fixed">
+    <joint name="left_shoulder_roll_rs04_flange_fixture" type="fixed">
         <origin xyz="0.11678 0.0487 -2.7056E-05" rpy="0 0 3.1416" />
         <parent link="left_shoulder_pitch" />
         <child link="left_shoulder_roll_rs04_flange" />
@@ -109,12 +109,12 @@
     <joint name="left_hand_rs02_fixture_link" type="fixed">
         <origin xyz="0 0.0945 0" rpy="0.64485 0.44406 0" />
         <parent link="left_wrist" />
-        <child link="left_hand_rs02" />
+        <child link="left_hand_rs02_actuator" />
         <axis xyz="0 0 0" />
     </joint>
     <joint name="left_hand_rs02" type="revolute">
         <origin xyz="0 0 0" rpy="0 0 0" />
-        <parent link="left_hand_rs02" />
+        <parent link="left_hand_rs02_actuator" />
         <child link="left_hand_rs02_flange" />
         <axis xyz="1 0 0" />
         <limit lower="-1.5" upper="1.7" effort="17" velocity="0.8" />
@@ -135,7 +135,7 @@
     <joint name="left_palm_right_finger" type="prismatic">
         <origin xyz="0 0 0" rpy="0 0 0" />
         <parent link="left_palm" />
-        <child link="left_palm_right_finger" />
+        <child link="left_palm_right_finger_link" />
         <axis xyz="-1 0 0" />
         <limit lower="-0.033" upper="0.00026" effort="0" velocity="0" />
         <safety_controller soft_upper_limit="0.00026" soft_lower_limit="-0.033" k_velocity="0" />
@@ -143,7 +143,7 @@
     <joint name="left_palm_left_finger" type="prismatic">
         <origin xyz="0 0 0" rpy="0 0 0" />
         <parent link="left_palm" />
-        <child link="left_palm_left_finger" />
+        <child link="left_palm_left_finger_link" />
         <axis xyz="-1 0 0" />
         <limit lower="-0.0041" upper="0.033" effort="0" velocity="0" />
         <safety_controller soft_upper_limit="0.033" soft_lower_limit="-0.0041" k_velocity="0" />

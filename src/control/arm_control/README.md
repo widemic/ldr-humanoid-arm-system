@@ -57,11 +57,11 @@ rclpy.shutdown()
 ## Joint Order
 
 The 5 joints are (in order):
-1. `left_shoulder_pitch_rs04_joint` - Base rotation (roll)
-2. `left_shoulder_roll_rs04_joint` - Shoulder pitch
-3. `left_shoulder_yaw_rs03_joint` - Elbow pitch
-4. `left_elbow_rs03_joint` - Wrist pitch
-5. `left_wrist_rs02_joint` - Wrist roll
+1. `left_shoulder_pitch_rs04` - Base rotation (roll)
+2. `left_shoulder_roll_rs04` - Shoulder pitch
+3. `left_shoulder_yaw_rs03` - Elbow pitch
+4. `left_elbow_rs03` - Wrist pitch
+5. `left_wrist_rs02` - Wrist roll
 
 ## Files
 

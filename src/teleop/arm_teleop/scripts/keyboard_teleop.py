@@ -78,12 +78,12 @@ class KeyboardTeleop(Node):
     """Publish JointState commands based on keyboard input."""
 
     JOINT_NAMES = [
-        "left_shoulder_pitch_rs04_joint",
-        "left_shoulder_roll_rs04_joint",
-        "left_shoulder_yaw_rs03_joint",
-        "left_elbow_rs03_joint",
-        "left_wrist_rs02_joint",
-        "left_hand_rs02_joint",
+        "left_shoulder_pitch_rs04",
+        "left_shoulder_roll_rs04",
+        "left_shoulder_yaw_rs03",
+        "left_elbow_rs03",
+        "left_wrist_rs02",
+        "left_hand_rs02",
     ]
     JOINT_LABELS = [
         "Base up/down",

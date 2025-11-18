@@ -36,12 +36,14 @@ class MotionPlanner(Node):
 
         # 5-DOF arm joints
         self.joints = [
-            'left_shoulder_pitch_rs04_joint',
-            'left_shoulder_roll_rs04_joint',
-            'left_shoulder_yaw_rs03_joint',
-            'left_elbow_rs03_joint',
-            'left_wrist_rs02_joint',
-            'left_hand_rs02_joint'
+            'left_shoulder_pitch_rs04',
+            'left_shoulder_roll_rs04',
+            'left_shoulder_yaw_rs03',
+            'left_elbow_rs03',
+            'left_wrist_rs02',
+            'left_hand_rs02',
+            'left_palm_right_finger',
+            'left_palm_left_finger',
         ]
 
         # Action client
