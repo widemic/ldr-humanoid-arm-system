@@ -12,7 +12,7 @@
 
     Usage:
       <xacro:depth_camera
-        parent_link="base_fixture_link"
+        parent_link="base_link"
         xyz="0 0 0.15"
         rpy="0 0 0"
         name="camera"/>

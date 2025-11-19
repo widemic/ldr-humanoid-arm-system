@@ -70,7 +70,7 @@ def generate_launch_description():
             moveit_config.to_dict(),
             {"use_sim_time": use_sim_time},
             {
-                "octomap_frame": "base_fixture_link",
+                "octomap_frame": "base_link",
                 "octomap_resolution": 0.05,
                 "max_range": 5.0,
             },

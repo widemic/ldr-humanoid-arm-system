@@ -4,7 +4,7 @@ perception_node:
     camera_topic: "/camera/depth/points"
 
     # Target frame for all detections
-    target_frame: "base_fixture_link"
+    target_frame: "base_link"
 
     # NOTE: Objects are continuously tracked and updated
     # - Old objects are removed before adding new detections (prevents duplicates)

@@ -148,7 +148,7 @@ def generate_launch_description():
             {"use_sim_time": True},
             {"publish_monitored_planning_scene": True},
             {
-                "octomap_frame": "base_fixture_link",
+                "octomap_frame": "base_link",
                 "octomap_resolution": 0.05,
                 "max_range": 5.0,
             },

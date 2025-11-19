@@ -32,7 +32,7 @@ class PlanningSceneUpdater(Node):
         # Declare parameters
         self.declare_parameter('use_sim_time', True)
         self.declare_parameter('update_rate', 5.0)  # Hz
-        self.declare_parameter('octomap_frame', 'base_fixture_link')
+        self.declare_parameter('octomap_frame', 'base_link')
         self.declare_parameter('use_binary_octomap', True)
         self.declare_parameter('clear_scene_on_update', True)  # Clear old collision objects
 

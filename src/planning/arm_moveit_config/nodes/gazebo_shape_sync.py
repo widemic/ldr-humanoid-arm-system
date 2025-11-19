@@ -10,7 +10,7 @@ Usage:
   ros2 run arm_moveit_config gazebo_shape_sync.py
 
 Key parameters:
-  - frame_id: planning frame to anchor collision objects (defaults to base_fixture_link)
+  - frame_id: planning frame to anchor collision objects (defaults to base_link)
   - model_shapes_yaml: YAML dictionary mapping model names -> shape definitions
         model_shapes_yaml: |
           box: {type: box, size: [0.3, 0.3, 0.3]}
@@ -45,7 +45,7 @@ class GazeboShapeSync(Node):
         roscpp_initialize([])
 
         self.frame_id = (
-            self.declare_parameter("frame_id", "base_fixture_link")
+            self.declare_parameter("frame_id", "base_link")
             .get_parameter_value()
             .string_value
         )

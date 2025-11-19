@@ -42,7 +42,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "frame_id",
-            default_value="base_fixture_link",
+            default_value="base_link",
             description="Reference frame for OctoMap"
         ),
         DeclareLaunchArgument(

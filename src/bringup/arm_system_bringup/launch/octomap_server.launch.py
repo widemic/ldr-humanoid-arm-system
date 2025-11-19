@@ -15,13 +15,13 @@ def generate_launch_description():
 
     frame_id_arg = DeclareLaunchArgument(
         "frame_id",
-        default_value="base_fixture_link",
+        default_value="base_link",
         description="Fixed frame used for the OctoMap."
     )
 
     base_frame_id_arg = DeclareLaunchArgument(
         "base_frame_id",
-        default_value="base_fixture_link",
+        default_value="base_link",
         description="Robot base frame for TF lookups."
     )
 

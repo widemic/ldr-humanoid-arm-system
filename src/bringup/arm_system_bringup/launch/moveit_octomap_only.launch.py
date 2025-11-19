@@ -84,11 +84,11 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"resolution": 0.05},
-            {"frame_id": "base_fixture_link"},
+            {"frame_id": "base_link"},
             {"sensor_model/max_range": 5.0},
             {"sensor_model/min_range": 0.1},
             {"filter_ground": False},
-            {"base_frame_id": "base_fixture_link"},
+            {"base_frame_id": "base_link"},
             {"height_map": False},
             {"colored_map": True},
             {"color/r": 0.0},

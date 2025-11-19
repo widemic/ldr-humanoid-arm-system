@@ -12,7 +12,7 @@ addison's mycobot_ros2 perception pipeline.
 
 Workflow:
 1. Subscribe to camera point cloud (/camera/depth/points)
-2. Transform to robot base frame (base_fixture_link)
+2. Transform to robot base frame (base_link)
 3. Segment support plane (table/surface) using RANSAC
 4. Cluster remaining points
 5. Detect geometric primitives (cylinders, boxes)
@@ -56,7 +56,7 @@ class PerceptionNode(Node):
 
         # Parameters
         self.declare_parameter('camera_topic', '/camera/depth/points')
-        self.declare_parameter('target_frame', 'base_fixture_link')
+        self.declare_parameter('target_frame', 'base_link')
         self.declare_parameter('plane_distance_threshold', 0.01)  # 1cm for RANSAC plane fitting
         self.declare_parameter('cluster_tolerance', 0.05)  # 5cm for clustering (increased for better grouping)
         self.declare_parameter('min_cluster_size', 200)  # Minimum points per cluster (increased to filter noise)

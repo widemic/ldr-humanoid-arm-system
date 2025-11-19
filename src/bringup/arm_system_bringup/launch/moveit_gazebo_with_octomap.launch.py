@@ -74,8 +74,8 @@ def generate_launch_description():
                 launch_arguments={
                     "use_sim_time": "true",
                     "pointcloud_topic": "/camera/depth/points",
-                    "frame_id": "base_fixture_link",
-                    "base_frame_id": "base_fixture_link",
+                    "frame_id": "base_link",
+                    "base_frame_id": "base_link",
                     "use_color_octomap": "true",
                 }.items(),
             )

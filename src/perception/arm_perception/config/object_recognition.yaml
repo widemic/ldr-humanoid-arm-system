@@ -8,8 +8,8 @@ device:
 
 # ROS Topics
 topics:
-  camera_input: "/external/camera/color/image_raw"
-  processed_output: "/external/camera/color/processed_image"
+  camera_input: "/camera/color/image_raw"
+  processed_output: "/camera/color/processed_image"
 
 # Model selection
 model:

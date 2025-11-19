@@ -53,7 +53,7 @@ class DynamicObjectTracker(Node):
         self.declare_parameter('max_tracking_distance', 0.3)  # 30cm max movement between frames
         self.declare_parameter('object_timeout', 2.0)  # Remove objects not seen for 2s
         self.declare_parameter('min_object_height', 0.02)  # 2cm minimum height
-        self.declare_parameter('reference_frame', 'base_fixture_link')
+        self.declare_parameter('reference_frame', 'base_link')
 
         # Get parameters
         self.min_cluster_size = self.get_parameter('min_cluster_size').value
