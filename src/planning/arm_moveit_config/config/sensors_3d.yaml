@@ -1,8 +1,31 @@
 sensors:
-  - default_sensor
-  - kinect_depthimage
-default_sensor:
-  far_clipping_plane_distance: 5.0
+  - depth_camera
+
+depth_camera:
+  # Use the depth point cloud so MoveIt builds an OctoMap matching the octomap_server input
+  sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+  point_cloud_topic: /camera/depth/points
+
+  # Map quality / performance tuning (optimized for real-time updates)
+  max_range: 5.0
+  point_subsample: 1           # Use all points (1 = no subsampling) for accuracy
+  padding_offset: 0.05         # 5cm padding around obstacles for safety
+  padding_scale: 1.0           # Linear padding scale
+  max_update_rate: 5.0         # Increase from 1.0 to 5.0 Hz for faster updates
+
+  # Point cloud filtering to reduce noise and improve quality
+  point_cloud_min_z: -2.0      # Minimum Z height (meters)
+  point_cloud_max_z: 5.0       # Maximum Z height (meters)
+
+  # Free space detection - CRITICAL for clearing moved objects
+  # When enabled, raycasting marks voxels between camera and obstacle as FREE
+  # This allows OctoMap to detect when objects move away
+  publish_free_space: true     # Publish free space markers for visualization
+
+  # Shape mask filtering (optional - removes robot body from perception)
+  filter_by_shape: false       # Set to true to filter robot links
+
+  # Plumbing
   filtered_cloud_topic: filtered_cloud
   image_topic: /camera/depth/image_raw
   max_update_rate: 1.0

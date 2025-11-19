@@ -1,0 +1,33 @@
+perception_node:
+  ros__parameters:
+    # Camera topic
+    camera_topic: "/camera/depth/points"
+
+    # Target frame for all detections
+    target_frame: "base_fixture_link"
+
+    # NOTE: Objects are continuously tracked and updated
+    # - Old objects are removed before adding new detections (prevents duplicates)
+    # - Objects automatically update position when moved
+    # - Processing happens at 'processing_rate' Hz
+
+    # Plane segmentation (RANSAC)
+    plane_distance_threshold: 0.01  # 1cm tolerance for plane fitting
+
+    # Clustering parameters (DBSCAN)
+    cluster_tolerance: 0.05         # 5cm - increased for better object grouping
+    min_cluster_size: 200           # Minimum points per cluster (filters noise effectively)
+    max_cluster_size: 10000         # Maximum points per object
+
+    # Shape detection parameters
+    cylinder_radius_min: 0.01       # 1cm minimum radius
+    cylinder_radius_max: 0.15       # 15cm maximum radius
+    min_object_height: 0.03         # 3cm minimum object height (balanced filtering)
+
+    # Processing rate
+    processing_rate: 1.0            # Process point cloud at 1 Hz
+    point_downsample_factor: 4      # Downsample by taking every 4th point (speeds up by ~16x)
+
+    # Z-axis filtering (relative to target_frame)
+    z_min: 0.0                      # 10cm above ground - filters floor
+    z_max: 1.5                      # Maximum detection height

@@ -80,6 +80,7 @@ def generate_launch_description():
             publish_robot_description_semantic=True,
             publish_planning_scene=True,
         )
+        .sensors_3d(file_path="config/sensors_3d.yaml")
         .joint_limits(file_path="config/joint_limits.yaml")
         .to_moveit_configs()
     )
@@ -146,6 +147,11 @@ def generate_launch_description():
             moveit_config.to_dict(),
             {"use_sim_time": True},
             {"publish_monitored_planning_scene": True},
+            {
+                "octomap_frame": "base_fixture_link",
+                "octomap_resolution": 0.05,
+                "max_range": 5.0,
+            },
         ],
         arguments=["--ros-args", "--log-level", log_level],
     )

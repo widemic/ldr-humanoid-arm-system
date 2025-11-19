@@ -31,6 +31,9 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python scripts (ROS nodes)
 install(PROGRAMS
   scripts/object_recognition_node.py
+  scripts/perception_node.py
+  scripts/planning_scene_updater.py
+  scripts/dynamic_object_tracker.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -45,6 +48,12 @@ install(FILES
 # Install config files
 install(DIRECTORY
   config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# Install launch files
+install(DIRECTORY
+  launch
   DESTINATION share/${PROJECT_NAME}/
 )
 
