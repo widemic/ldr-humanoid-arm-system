@@ -34,6 +34,7 @@ install(PROGRAMS
   scripts/perception_node.py
   scripts/planning_scene_updater.py
   scripts/dynamic_object_tracker.py
+  scripts/test_environment_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
