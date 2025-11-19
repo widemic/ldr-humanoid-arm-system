@@ -22,6 +22,31 @@ from std_msgs.msg import Header
 class TestEnvironmentPublisher(Node):
     """Publishes test objects (table + cylinder) to MoveIt planning scene"""
 
+    # ========== CONFIGURATION PARAMETERS ==========
+
+    # Table dimensions (X, Y, Z in meters)
+    TABLE_LENGTH = 0.8      # Front-to-back dimension
+    TABLE_WIDTH = 0.6       # Left-to-right dimension
+    TABLE_THICKNESS = 0.02  # Height/thickness
+
+    # Table position (center of table)
+    TABLE_X = -0.5           # Distance from robot base
+    TABLE_Y = 0.5           # Lateral position (centered)
+    TABLE_Z = 1.0           # Height of table center
+
+    # Cylinder dimensions
+    CYLINDER_RADIUS = 0.03  # Radius (3cm)
+    CYLINDER_HEIGHT = 0.15  # Height (15cm)
+
+    # Cylinder position on table (X, Y relative to table center)
+    CYLINDER_OFFSET_X = 0.0 # X offset from table center (0 = centered)
+    CYLINDER_OFFSET_Y = 0.0 # Y offset from table center (0 = centered)
+
+    # Reference frame
+    FRAME_ID = 'base_link'
+
+    # ==============================================
+
     def __init__(self):
         super().__init__('test_environment_publisher')
 
@@ -48,10 +73,22 @@ class TestEnvironmentPublisher(Node):
         """Initial publish with logging"""
         self.publish_test_environment()
         if not self.logged_initial:
+            # Calculate cylinder position for logging
+            table_top_z = self.TABLE_Z + (self.TABLE_THICKNESS / 2.0)
+            cyl_z = table_top_z + (self.CYLINDER_HEIGHT / 2.0)
+            cyl_x = self.TABLE_X + self.CYLINDER_OFFSET_X
+            cyl_y = self.TABLE_Y + self.CYLINDER_OFFSET_Y
+
             self.get_logger().info('✅ Test environment published successfully!')
             self.get_logger().info('Objects:')
-            self.get_logger().info('  - Table: 0.8m x 0.6m x 0.02m at (0.5, 0.0, 0.4)')
-            self.get_logger().info('  - Cylinder: radius=0.03m, height=0.15m at (0.5, 0.0, 0.485)')
+            self.get_logger().info(
+                f'  - Table: {self.TABLE_LENGTH}m x {self.TABLE_WIDTH}m x {self.TABLE_THICKNESS}m '
+                f'at ({self.TABLE_X}, {self.TABLE_Y}, {self.TABLE_Z})'
+            )
+            self.get_logger().info(
+                f'  - Cylinder: radius={self.CYLINDER_RADIUS}m, height={self.CYLINDER_HEIGHT}m '
+                f'at ({cyl_x:.3f}, {cyl_y:.3f}, {cyl_z:.3f})'
+            )
             self.logged_initial = True
 
     def publish_test_environment(self):
@@ -66,22 +103,22 @@ class TestEnvironmentPublisher(Node):
         """Publish a table as a box"""
         table = CollisionObject()
         table.header = Header()
-        table.header.frame_id = 'base_link'
+        table.header.frame_id = self.FRAME_ID
         table.header.stamp = self.get_clock().now().to_msg()
 
         table.id = 'test_table'
         table.operation = CollisionObject.ADD
 
-        # Table dimensions (0.8m x 0.6m x 0.02m thick)
+        # Table dimensions from class variables
         box = SolidPrimitive()
         box.type = SolidPrimitive.BOX
-        box.dimensions = [0.8, 0.6, 0.02]  # X, Y, Z (length, width, thickness)
+        box.dimensions = [self.TABLE_LENGTH, self.TABLE_WIDTH, self.TABLE_THICKNESS]
 
-        # Table position (50cm in front, at 40cm height, centered)
+        # Table position from class variables
         pose = Pose()
-        pose.position.x = 0.5   # 50cm in front of robot
-        pose.position.y = 0.0   # Centered
-        pose.position.z = 0.4   # 40cm height (top surface at 41cm)
+        pose.position.x = self.TABLE_X
+        pose.position.y = self.TABLE_Y
+        pose.position.z = self.TABLE_Z
         pose.orientation.w = 1.0  # No rotation
 
         table.primitives.append(box)
@@ -90,28 +127,32 @@ class TestEnvironmentPublisher(Node):
         self.collision_pub.publish(table)
 
     def publish_cylinder(self):
-        """Publish a cylinder object to grasp"""
+        """Publish a cylinder object to grasp (automatically positioned on table)"""
         cylinder = CollisionObject()
         cylinder.header = Header()
-        cylinder.header.frame_id = 'base_link'
+        cylinder.header.frame_id = self.FRAME_ID
         cylinder.header.stamp = self.get_clock().now().to_msg()
 
         cylinder.id = 'test_cylinder'
         cylinder.operation = CollisionObject.ADD
 
-        # Cylinder dimensions (radius=3cm, height=15cm - typical can size)
+        # Cylinder dimensions from class variables
         cyl = SolidPrimitive()
         cyl.type = SolidPrimitive.CYLINDER
-        cyl.dimensions = [0.15, 0.03]  # [height, radius]
+        cyl.dimensions = [self.CYLINDER_HEIGHT, self.CYLINDER_RADIUS]
 
-        # Cylinder position (on top of table, centered)
-        # Table top is at z=0.4 + 0.01 = 0.41m
-        # Cylinder center at 0.41 + 0.15/2 = 0.485m
+        # Calculate cylinder position:
+        # 1. Table top Z = TABLE_Z + TABLE_THICKNESS/2
+        # 2. Cylinder center Z = table_top_z + CYLINDER_HEIGHT/2
+        # 3. X, Y = TABLE position + offsets
+        table_top_z = self.TABLE_Z + (self.TABLE_THICKNESS / 2.0)
+        cylinder_z = table_top_z + (self.CYLINDER_HEIGHT / 2.0)
+
         pose = Pose()
-        pose.position.x = 0.5      # Same X as table (on table)
-        pose.position.y = 0.0      # Centered on table
-        pose.position.z = 0.485    # Standing on table (0.41 + 0.075)
-        pose.orientation.w = 1.0   # Upright
+        pose.position.x = self.TABLE_X + self.CYLINDER_OFFSET_X
+        pose.position.y = self.TABLE_Y + self.CYLINDER_OFFSET_Y
+        pose.position.z = cylinder_z
+        pose.orientation.w = 1.0  # Upright orientation
 
         cylinder.primitives.append(cyl)
         cylinder.primitive_poses.append(pose)
@@ -123,7 +164,7 @@ class TestEnvironmentPublisher(Node):
         for obj_id in ['test_table', 'test_cylinder']:
             remove_obj = CollisionObject()
             remove_obj.header = Header()
-            remove_obj.header.frame_id = 'base_link'
+            remove_obj.header.frame_id = self.FRAME_ID
             remove_obj.header.stamp = self.get_clock().now().to_msg()
             remove_obj.id = obj_id
             remove_obj.operation = CollisionObject.REMOVE
