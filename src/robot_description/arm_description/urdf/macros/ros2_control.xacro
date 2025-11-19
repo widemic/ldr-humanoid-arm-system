@@ -36,16 +36,13 @@
                 <state_interface name="position" />
                 <state_interface name="velocity" />
             </joint>
+            <!-- Gripper: Only control the main joint, left finger mimics automatically -->
             <joint name="left_palm_right_finger">
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
             </joint>
-            <joint name="left_palm_left_finger">
-                <command_interface name="position" />
-                <state_interface name="position" />
-                <state_interface name="velocity" />
-            </joint>
+            <!-- left_palm_left_finger is a mimic joint, controlled automatically by Gazebo -->
         </ros2_control>
     </xacro:macro>
 </robot>
