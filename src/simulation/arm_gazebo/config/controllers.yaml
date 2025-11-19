@@ -11,11 +11,12 @@ controller_manager:
 arm_controller:
   ros__parameters:
     joints:
-      - base_rotation_joint
-      - shoulder_pitch_joint
-      - elbow_pitch_joint
-      - wrist_pitch_joint
-      - wrist_roll_joint
+      - left_shoulder_pitch_rs04
+      - left_shoulder_roll_rs04
+      - left_shoulder_yaw_rs03
+      - left_elbow_rs03
+      - left_wrist_rs02
+      - left_hand_rs02
     command_interfaces:
       - position
     state_interfaces:

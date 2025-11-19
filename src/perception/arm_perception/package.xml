@@ -19,7 +19,6 @@
   <depend>visualization_msgs</depend>
 
   <!-- Computer vision dependencies -->
-  <depend>cv_bridge</depend>
   <depend>image_transport</depend>
   <depend>image_geometry</depend>
 

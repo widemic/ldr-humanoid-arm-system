@@ -43,11 +43,12 @@ class JointMonitorGUI(QtWidgets.QMainWindow):
 
     # Joint name mapping to progress bars
     JOINT_MAPPING = {
-        'base_rotation_joint': 'progress_base',
-        'shoulder_pitch_joint': 'progress_shoulder',
-        'elbow_pitch_joint': 'progress_elbow',
-        'wrist_pitch_joint': 'progress_wrist_pitch',
-        'wrist_roll_joint': 'progress_wrist_roll',
+        'left_shoulder_pitch_rs04': 'progress_base',
+        'left_shoulder_roll_rs04': 'progress_shoulder',
+        'left_shoulder_yaw_rs03': 'progress_elbow',
+        'left_elbow_rs03': 'progress_wrist_pitch',
+        'left_wrist_rs02': 'progress_wrist_roll',
+        'left_hand_rs02': 'progress_hand',
     }
 
     def __init__(self):

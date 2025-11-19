@@ -18,6 +18,12 @@ install(PROGRAMS
   RENAME joint_monitor
 )
 
+install(PROGRAMS
+  src/${PROJECT_NAME}/full_system_launcher.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME full_system_launcher
+)
+
 install(DIRECTORY ui/
   DESTINATION share/${PROJECT_NAME}/ui
 )

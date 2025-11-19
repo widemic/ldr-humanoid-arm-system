@@ -1,8 +1,11 @@
 # Default initial positions for arm_description's ros2_control fake system
 
 initial_positions:
-  base_rotation_joint: 0.0
-  elbow_pitch_joint: 0.0
-  shoulder_pitch_joint: 0.0
-  wrist_pitch_joint: 0.0
-  wrist_roll_joint: 0.0
+  left_elbow_rs03: 0.0
+  left_hand_rs02: 0.0
+  left_palm_left_finger: 0.0
+  left_palm_right_finger: 0.0
+  left_shoulder_pitch_rs04: 0.0
+  left_shoulder_roll_rs04: 0.0
+  left_shoulder_yaw_rs03: 0.0
+  left_wrist_rs02: 0.0
