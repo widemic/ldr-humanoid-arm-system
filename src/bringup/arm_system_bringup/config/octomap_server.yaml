@@ -13,22 +13,25 @@ octomap_server:
 
     # Sensor model (probability updates)
     sensor_model/max_range: 5.0
-    sensor_model/hit: 0.7
-    sensor_model/miss: 0.4
-    sensor_model/min: 0.12
-    sensor_model/max: 0.97
+    sensor_model/hit: 0.7        # Probability increase when obstacle detected
+    sensor_model/miss: 0.4       # Probability decrease when FREE space detected
+    sensor_model/min: 0.12       # Minimum occupancy probability (clamping)
+    sensor_model/max: 0.97       # Maximum occupancy probability (clamping)
 
     # Point cloud filtering to reduce processing load
     pointcloud_min_z: -2.0
     pointcloud_max_z: 5.0
     filter_ground_plane: false
 
-    # Filters and publication
-    filter_speckles: true
-    publish_free_space: true
-    latch: false
+    # Filters and publication - CRITICAL for dynamic scenes
+    filter_speckles: true        # Remove isolated voxels (noise)
+    publish_free_space: true     # MUST be true to clear moved objects
+    latch: false                 # Don't latch - allow updates
     use_height_map: false
     compress_map: false
+
+    # Incremental 2D projection (optional for faster updates)
+    incremental_2D_projection: true
 
     # Color visualization (requires color_octomap_server_node)
     colored_map: true           # Enable colored voxel visualization
