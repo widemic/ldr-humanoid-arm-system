@@ -127,6 +127,10 @@ class PerceptionNode(Node):
         # Latest point cloud storage
         self.latest_pc = None
         self.object_id_counter = 0
+        self.current_object_ids = []  # Track current objects for deletion
+
+        # Clear any existing detected objects from planning scene on startup
+        self.startup_timer = self.create_timer(1.0, self.clear_all_objects_once)
 
         self.get_logger().info(f'Perception node started!')
         self.get_logger().info(f'Subscribing to: {self.camera_topic}')
@@ -135,6 +139,24 @@ class PerceptionNode(Node):
 
         if not SKLEARN_AVAILABLE:
             self.get_logger().warn('sklearn not available - using simplified algorithms')
+
+    def clear_all_objects_once(self):
+        """Clear all detected objects from planning scene (called once on startup)"""
+        # Remove objects with common prefixes that might exist from previous runs
+        for i in range(100):  # Clear up to 100 potential old objects
+            for obj_type in ['cylinder', 'box']:
+                remove_obj = CollisionObject()
+                remove_obj.header.frame_id = self.target_frame
+                remove_obj.header.stamp = self.get_clock().now().to_msg()
+                remove_obj.id = f"detected_{obj_type}_{i}"
+                remove_obj.operation = CollisionObject.REMOVE
+                self.collision_pub.publish(remove_obj)
+
+        self.get_logger().info('Cleared existing objects from planning scene')
+
+        # Cancel the timer after first execution (one-shot behavior)
+        self.startup_timer.cancel()
+        self.startup_timer = None
 
     def pointcloud_callback(self, msg):
         """Store latest point cloud for processing"""
@@ -189,7 +211,7 @@ class PerceptionNode(Node):
 
             # 3. Detect shapes in each cluster
             detected_objects = []
-            for idx, cluster in enumerate(clusters):
+            for cluster in clusters:
                 shape_info = self.detect_shape(cluster)
                 if shape_info:
                     detected_objects.append(shape_info)
@@ -253,7 +275,6 @@ class PerceptionNode(Node):
             transformed_points = np.dot(points, R.T) + np.array([t.x, t.y, t.z], dtype=np.float32)
 
             # Create new PointCloud2 message with transformed points
-            import struct
             from sensor_msgs.msg import PointField
 
             transformed_pc = PointCloud2()
@@ -478,14 +499,27 @@ class PerceptionNode(Node):
 
     def publish_collision_objects(self, detected_objects):
         """Publish detected objects as MoveIt collision objects"""
-        for obj_info in detected_objects:
+        # Step 1: Remove all previously detected objects
+        for old_id in self.current_object_ids:
+            remove_obj = CollisionObject()
+            remove_obj.header.frame_id = self.target_frame
+            remove_obj.header.stamp = self.get_clock().now().to_msg()
+            remove_obj.id = old_id
+            remove_obj.operation = CollisionObject.REMOVE
+            self.collision_pub.publish(remove_obj)
+
+        # Clear the old ID list
+        self.current_object_ids = []
+
+        # Step 2: Add newly detected objects
+        for idx, obj_info in enumerate(detected_objects):
             collision_obj = CollisionObject()
             collision_obj.header.frame_id = self.target_frame
             collision_obj.header.stamp = self.get_clock().now().to_msg()
 
-            # Unique ID
-            self.object_id_counter += 1
-            collision_obj.id = f"{obj_info['type']}_{self.object_id_counter}"
+            # Use consistent IDs based on detection order (obj_0, obj_1, ...)
+            collision_obj.id = f"detected_{obj_info['type']}_{idx}"
+            self.current_object_ids.append(collision_obj.id)
 
             # Operation: ADD
             collision_obj.operation = CollisionObject.ADD

@@ -6,6 +6,11 @@ perception_node:
     # Target frame for all detections
     target_frame: "base_fixture_link"
 
+    # NOTE: Objects are continuously tracked and updated
+    # - Old objects are removed before adding new detections (prevents duplicates)
+    # - Objects automatically update position when moved
+    # - Processing happens at 'processing_rate' Hz
+
     # Plane segmentation (RANSAC)
     plane_distance_threshold: 0.01  # 1cm tolerance for plane fitting
 
