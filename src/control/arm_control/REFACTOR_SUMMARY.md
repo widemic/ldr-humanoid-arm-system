@@ -198,12 +198,12 @@ Moving to [0.0, 0.0, 0.0, 0.0, 0.0]
 
 | Index | Joint Name | Type | Description |
 |-------|------------|------|-------------|
-| 0 | left_shoulder_pitch_rs04_joint | Roll | Base rotation |
-| 1 | left_shoulder_roll_rs04_joint | Pitch | Shoulder |
-| 2 | left_shoulder_yaw_rs03_joint | Pitch | Elbow |
-| 3 | left_elbow_rs03_joint | Pitch | Wrist |
-| 4 | left_wrist_rs02_joint | Roll | Wrist rotation |
-| 5 | left_hand_rs02_joint | Roll |
+| 0 | left_shoulder_pitch_rs04 | Roll | Base rotation |
+| 1 | left_shoulder_roll_rs04 | Pitch | Shoulder |
+| 2 | left_shoulder_yaw_rs03 | Pitch | Elbow |
+| 3 | left_elbow_rs03 | Pitch | Wrist |
+| 4 | left_wrist_rs02 | Roll | Wrist rotation |
+| 5 | left_hand_rs02 | Roll |
 
 ## Predefined Poses
 

@@ -38,17 +38,17 @@ controller_manager:
     arm_controller:
       type: position_controllers/JointTrajectoryController
       joints:
-        - left_shoulder_pitch_rs04_joint
-        - left_shoulder_roll_rs04_joint
-        - left_shoulder_yaw_rs03_joint
-        - left_elbow_rs03_joint
-        - left_wrist_rs02_joint
+        - left_shoulder_pitch_rs04
+        - left_shoulder_roll_rs04
+        - left_shoulder_yaw_rs03
+        - left_elbow_rs03
+        - left_wrist_rs02
       gains:
-        left_shoulder_pitch_rs04_joint: {p: 100.0, d: 1.0}
-        left_shoulder_roll_rs04_joint: {p: 100.0, d: 1.0}
-        left_shoulder_yaw_rs03_joint: {p: 100.0, d: 1.0}
-        left_elbow_rs03_joint: {p: 50.0, d: 0.5}
-        left_wrist_rs02_joint: {p: 50.0, d: 0.5}
+        left_shoulder_pitch_rs04: {p: 100.0, d: 1.0}
+        left_shoulder_roll_rs04: {p: 100.0, d: 1.0}
+        left_shoulder_yaw_rs03: {p: 100.0, d: 1.0}
+        left_elbow_rs03: {p: 50.0, d: 0.5}
+        left_wrist_rs02: {p: 50.0, d: 0.5}
 
 ---------simulation/arm_gazebo/config/controllers.yaml
 controller_manager:
@@ -60,11 +60,11 @@ controller_manager:
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
       joints:
-        - left_shoulder_pitch_rs04_joint
-        - left_shoulder_roll_rs04_joint
-        - left_shoulder_yaw_rs03_joint
-        - left_elbow_rs03_joint
-        - left_wrist_rs02_joint
+        - left_shoulder_pitch_rs04
+        - left_shoulder_roll_rs04
+        - left_shoulder_yaw_rs03
+        - left_elbow_rs03
+        - left_wrist_rs02
       command_interfaces:
         - position
       state_interfaces:

@@ -16,11 +16,11 @@ This package contains the complete robot description for the humanoid arm, inclu
 
 | Joint | Type | Range | Max Effort | Max Velocity |
 |-------|------|-------|------------|--------------|
-| **left_shoulder_pitch_rs04_joint** (roll) | Revolute | ±180° (±3.14 rad) | 120 Nm | 3.0 rad/s |
-| **left_shoulder_roll_rs04_joint** | Revolute | -31.5° to 177.6° (-0.55 to 3.1 rad) | 120 Nm | 3.0 rad/s |
-| **left_shoulder_yaw_rs03_joint** | Revolute | ±180° (±3.14 rad) | 60 Nm | 1.6 rad/s |
-| **left_elbow_rs03_joint** | Revolute | -17.8° to 160.4° (-0.31 to 2.8 rad) | 60 Nm | 1.6 rad/s |
-| **left_wrist_rs02_joint** | Revolute | ±180° (±3.14 rad) | 17 Nm | 0.8 rad/s |
+| **left_shoulder_pitch_rs04** (roll) | Revolute | ±180° (±3.14 rad) | 120 Nm | 3.0 rad/s |
+| **left_shoulder_roll_rs04** | Revolute | -31.5° to 177.6° (-0.55 to 3.1 rad) | 120 Nm | 3.0 rad/s |
+| **left_shoulder_yaw_rs03** | Revolute | ±180° (±3.14 rad) | 60 Nm | 1.6 rad/s |
+| **left_elbow_rs03** | Revolute | -17.8° to 160.4° (-0.31 to 2.8 rad) | 60 Nm | 1.6 rad/s |
+| **left_wrist_rs02** | Revolute | ±180° (±3.14 rad) | 17 Nm | 0.8 rad/s |
 
 ### Physical Properties
 

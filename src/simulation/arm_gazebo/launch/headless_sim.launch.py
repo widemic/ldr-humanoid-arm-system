@@ -65,7 +65,7 @@ def generate_launch_description():
             '-x', '0.0',
             '-y', '0.0',
             '-z', '0.0',
-            '-Y', '1.5708'  # 90 degrees in radians
+            '-Y', '0.0'  # 90 degrees in radians
             ],
         output='screen'
     )
