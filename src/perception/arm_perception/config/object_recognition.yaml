@@ -1,0 +1,80 @@
+# Object Recognition Configuration
+# Model files, detection parameters, and ROS topics
+
+# Computation device
+device:
+  use_gpu: true  # Set to true for GPU acceleration (CUDA)
+  device_id: 0   # GPU device ID (0 for first GPU)
+
+# ROS Topics
+topics:
+  camera_input: "/external/camera/color/image_raw"
+  processed_output: "/external/camera/color/processed_image"
+
+# Model selection
+model:
+  type: "yolov8"  # Options: "yolov8", "yolov4"
+
+# YOLOv8 Configuration (Recommended - fastest with GPU)
+yolov8:
+  enabled: true
+  model_name: "yolov8n"  # Options: yolov8n (fastest), yolov8s, yolov8m, yolov8l, yolov8x (most accurate)
+  # Model sizes: n=6.3MB, s=22MB, m=52MB, l=87MB, x=136MB
+  # Speed (RTX 5070): n≈60fps, s≈45fps, m≈30fps, l≈20fps, x≈15fps
+
+  model_file: "yolov8n.pt"  # Auto-downloaded by ultralytics if not present
+
+  # Inference settings
+  imgsz: 640          # Input image size (320, 416, 640)
+  conf: 0.3           # Confidence threshold
+  iou: 0.4            # NMS IoU threshold
+  max_det: 300        # Maximum detections per image
+  half: true          # Use FP16 precision (faster on modern GPUs)
+  verbose: false      # Suppress ultralytics verbose output
+
+# Detection parameters (for both YOLOv8 and YOLOv4)
+detection:
+  confidence_threshold: 0.3  # Minimum confidence for detection
+  nms_threshold: 0.4         # Non-Maximum Suppression threshold
+  min_box_size: 10           # Minimum box width/height in pixels
+  input_size: 640            # YOLO input size (640x640 for YOLOv8, 416x416 for YOLOv4)
+
+# YOLOv4 model files (Legacy - fallback option)
+yolov4:
+  enabled: true  # Enable for YOLOv4 usage
+  files:
+    weights: "yolov4.weights"
+    config: "yolov4.cfg"
+    names: "coco.names"
+
+  download_urls:
+    weights: "https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights"
+    config: "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4.cfg"
+    names: "https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names"
+
+  file_sizes:
+    weights: "245MB"
+    config: "12KB"
+    names: "625B"
+
+# YOLOv4-tiny model files (Legacy - fallback)
+yolov4_tiny:
+  enabled: false  # Disabled by default
+  files:
+    weights: "yolov4-tiny.weights"
+    config: "yolov4-tiny.cfg"
+    names: "coco.names"
+
+  download_urls:
+    weights: "https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-tiny.weights"
+    config: "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-tiny.cfg"
+    names: "https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names"
+
+  file_sizes:
+    weights: "23MB"
+    config: "3KB"
+    names: "625B"
+
+# Performance settings
+performance:
+  fps_update_interval: 1.0  # Update FPS every N seconds

@@ -27,5 +27,22 @@ depth_camera:
 
   # Plumbing
   filtered_cloud_topic: filtered_cloud
-  ns: octomap_point_cloud_updater
-  queue_size: 10               # Increased from 5 to handle faster updates
+  image_topic: /camera/depth/image_raw
+  max_update_rate: 1.0
+  near_clipping_plane_distance: 0.3
+  padding_offset: 0.03
+  padding_scale: 4.0
+  queue_size: 5
+  sensor_plugin: occupancy_map_monitor/DepthImageOctomapUpdater
+  shadow_threshold: 0.2
+kinect_depthimage:
+  far_clipping_plane_distance: 5.0
+  filtered_cloud_topic: filtered_cloud
+  image_topic: /head_mount_kinect/depth_registered/image_raw
+  max_update_rate: 1.0
+  near_clipping_plane_distance: 0.3
+  padding_offset: 0.03
+  padding_scale: 4.0
+  queue_size: 5
+  sensor_plugin: occupancy_map_monitor/DepthImageOctomapUpdater
+  shadow_threshold: 0.2

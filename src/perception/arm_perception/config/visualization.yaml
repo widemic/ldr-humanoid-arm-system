@@ -1,0 +1,76 @@
+# Visualization Configuration for Object Recognition
+# All OpenCV drawing parameters
+
+# Window settings
+window:
+  show: true                    # Display OpenCV window
+  title: "Object Recognition - Press Q to quit"
+
+# What to show
+show_center_point: true         # Show center point of detections
+show_coordinates: true          # Show (x,y) coordinates
+show_fps: true                  # Show FPS counter
+show_device_info: true          # Show GPU/CPU info
+show_object_count: true         # Show number of detected objects
+show_quit_message: true         # Show "Press Q to quit" message
+
+# OpenCV drawing parameters
+drawing:
+  # Bounding box
+  box_thickness: 2              # Thickness of bounding box lines
+
+  # Label background
+  label_font: 0                 # cv2.FONT_HERSHEY_SIMPLEX
+  label_font_scale: 0.6
+  label_font_thickness: 2
+  label_text_color: [255, 255, 255]  # White text
+  label_padding: 10             # Padding above bounding box
+
+  # Center point
+  center_point_radius: 4
+  center_point_filled: true     # -1 for filled, positive for outline
+
+  # Coordinates text
+  coords_font_scale: 0.4
+  coords_font_thickness: 1
+  coords_offset_y: 15           # Pixels below bounding box
+
+  # Info overlay (FPS, object count, device)
+  info_font: 0                  # cv2.FONT_HERSHEY_SIMPLEX
+  info_fps_scale: 0.7
+  info_fps_thickness: 2
+  info_fps_color: [0, 255, 0]  # Green
+  info_fps_position: [10, 30]
+
+  info_count_scale: 0.7
+  info_count_thickness: 2
+  info_count_color: [0, 255, 0]  # Green
+  info_count_position: [10, 60]
+
+  info_device_scale: 0.5
+  info_device_thickness: 1
+  info_device_color: [255, 255, 255]  # White
+  info_device_position: [10, 90]
+
+  info_quit_scale: 0.6
+  info_quit_thickness: 2
+  info_quit_color: [255, 255, 255]  # White
+  info_quit_offset_bottom: 10   # Pixels from bottom
+
+# Color palette for different object classes (BGR format)
+colors:
+  - [255, 0, 0]      # Blue
+  - [0, 255, 0]      # Green
+  - [0, 0, 255]      # Red
+  - [255, 255, 0]    # Cyan
+  - [255, 0, 255]    # Magenta
+  - [0, 255, 255]    # Yellow
+  - [255, 165, 0]    # Orange
+  - [128, 0, 128]    # Purple
+  - [255, 192, 203]  # Pink
+  - [0, 128, 128]    # Teal
+  - [128, 128, 0]    # Olive
+  - [128, 0, 0]      # Maroon
+  - [0, 0, 128]      # Navy
+  - [0, 128, 0]      # Dark Green
+  - [200, 200, 200]  # Light Gray

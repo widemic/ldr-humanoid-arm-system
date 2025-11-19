@@ -28,12 +28,20 @@ find_package(std_srvs REQUIRED)
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
-# Install Python scripts
+# Install Python scripts (ROS nodes)
 install(PROGRAMS
   scripts/object_recognition_node.py
   scripts/perception_node.py
   scripts/planning_scene_updater.py
   scripts/dynamic_object_tracker.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install utility modules (not executable as ROS nodes)
+# These are Python libraries imported by other scripts:
+install(FILES
+  scripts/config_loader.py
+  scripts/download_yolo_models.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

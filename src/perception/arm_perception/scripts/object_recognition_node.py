@@ -1,19 +1,9 @@
 #!/usr/bin/env python3
-
 """
-GPU/CPU Object Recognition Node for ROS 2
-==========================================
+Object Recognition Node for ROS 2
 
-This node performs real-time object detection using YOLOv4 models with configurable
-GPU or CPU computation. It can automatically download YOLOv4 weights and configuration
-files if they are not present.
-
-Features:
-- Configurable GPU/CPU computation
-- Automatic model downloading
-- Real-time object detection with bounding boxes
-- Performance monitoring (FPS)
-- ROS 2 image topic subscription and publishing
+Real-time object detection using YOLOv8 (recommended) or YOLOv4 with GPU/CPU support.
+Subscribes to camera images, detects objects, and publishes annotated results.
 """
 
 import rclpy
@@ -23,338 +13,337 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import os
-import urllib.request
+import warnings
 
 from ament_index_python.packages import get_package_share_directory
+from config_loader import load_config
 
-class GPUObjectRecognitionNode(Node):
-    """
-    ROS 2 Node for object recognition with configurable GPU/CPU computation.
-    
-    This node subscribes to a camera image topic, performs object detection
-    using YOLOv4 models, and publishes the processed images with bounding boxes.
-    The computation device (GPU or CPU) can be configured at initialization.
-    """
-    
+# Suppress ultralytics verbose output
+warnings.filterwarnings('ignore')
+os.environ['YOLO_VERBOSE'] = 'False'
+
+
+class ObjectRecognitionNode(Node):
+    """ROS 2 Node for YOLO-based object detection with GPU/CPU support."""
+
     def __init__(self):
-        """Initialize the object recognition node with configurable computation device."""
         super().__init__('object_recognition_node')
-        
-        # ========== CONFIGURATION SECTION ==========
-        # Set USE_GPU = True to use GPU acceleration (if available)
-        # Set USE_GPU = False to use CPU only
-        self.USE_GPU = False  # Change this value to switch between GPU/CPU
-        # ========== END CONFIGURATION ==========
-        
-        # Initialize CV bridge for ROS 2 - OpenCV image conversion
+
+        # Load configuration from YAML files
+        self.base_path = os.path.join(get_package_share_directory('arm_perception'), 'config')
+        self.cfg = load_config(self.base_path, logger=self.get_logger())
+
+        # CV Bridge for image conversion
         self.bridge = CvBridge()
-        
-        # Subscribe to camera image topic
+
+        # Subscribe to camera with minimal queue (reduce lag)
+        # Queue size = 1: Always process the LATEST frame, drop old ones
         self.subscription = self.create_subscription(
             Image,
-            '/camera/color/image_raw',  # Input camera topic
-            self.image_callback,        # Callback function for processing
-            10                          # Queue size
+            self.cfg.topics.camera_input,
+            self.image_callback,
+            1  # Minimal queue for lowest latency
         )
-        
-        # Publisher for processed images with detection results
+
+        # Publish processed images
         self.processed_image_pub = self.create_publisher(
-            Image, 
-            '/camera/color/processed_image',  # Output topic for processed images
+            Image,
+            self.cfg.topics.processed_output,
             10
         )
-        
-        # Config path for storing YOLO model files
-        self.base_path = os.path.join(get_package_share_directory('arm_perception'), 'config')
-        
-        # Configure computation device based on user preference
-        self.setup_computation_device()
-        
-        # Load the appropriate model (YOLOv4 or YOLOv4-tiny) for the selected device
-        self.net, self.classes, self.detector_type = self.load_model()
-        
-        # Performance tracking variables
-        self.frame_count = 0           # Count of processed frames
-        self.detection_count = 0       # Total objects detected
-        self.fps = 0                   # Current frames per second
-        self.last_time = cv2.getTickCount()  # Timer for FPS calculation
-        
-        # Log initialization status
-        self.get_logger().info(f'Object Recognition started - Using {self.detector_type}')
-        self.get_logger().info(f'Computation device: {"GPU" if self.gpu_available else "CPU"}')
-    
-    def setup_computation_device(self):
-        """
-        Configure the computation device based on user preference.
-        
-        If USE_GPU is True and CUDA is available, configure for GPU computation.
-        Otherwise, fall back to CPU computation with appropriate logging.
-        """
-        self.gpu_available = False  # Initialize as CPU mode
-        
-        if self.USE_GPU:
-            try:
-                # Check if CUDA devices are available
-                cuda_devices = cv2.cuda.getCudaEnabledDeviceCount()
-                if cuda_devices > 0:
-                    self.get_logger().info(f'Found {cuda_devices} CUDA device(s)')
-                    
-                    # Set CUDA device 0 as the active device
-                    cv2.cuda.setDevice(0)
-                    device_id = cv2.cuda.getDevice()
-                    
-                    # Get device information for logging
-                    info = cv2.cuda.DeviceInfo(device_id)
-                    
-                    # Log GPU device details
-                    self.get_logger().info(f'Active GPU device index: {device_id}')
-                    self.get_logger().info(f'GPU name: {info.name() if hasattr(info, "name") else "Unknown"}')
-                    self.get_logger().info(f'Compute Capability: {info.majorVersion()}.{info.minorVersion()}')
-                    self.get_logger().info(f'Total Memory: {getattr(info, "totalGlobalMem", lambda: 0)() // (1024**3)} GB')
-                    
-                    self.gpu_available = True  # Successfully configured GPU
-                else:
-                    self.get_logger().warning('CUDA not available, falling back to CPU')
-                    self.gpu_available = False
 
+        # Setup device and load model
+        self.setup_device()
+        self.model, self.detector_type, self.classes = self.load_model()
+
+        # Performance tracking
+        self.frame_count = 0
+        self.fps = 0.0
+        self.last_time = cv2.getTickCount()
+
+        # Lag reduction: Skip frames if still processing
+        self.processing = False
+
+        self.get_logger().info(f'Object Recognition started - {self.detector_type}')
+        self.get_logger().info(f'Device: {self.device_name}')
+
+    def setup_device(self):
+        """Configure GPU/CPU computation device."""
+        self.gpu_available = False
+        self.device_name = "CPU"
+        self.device_str = "cpu"
+
+        if self.cfg.device.use_gpu:
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    device_id = getattr(self.cfg.device, 'device_id', 0)
+                    self.device_str = f'cuda:{device_id}'
+                    self.device_name = torch.cuda.get_device_name(device_id)
+                    self.gpu_available = True
+                    self.get_logger().info(f'GPU: {self.device_name}')
+                    self.get_logger().info(f'CUDA: {torch.version.cuda}')
+                else:
+                    self.get_logger().warning('CUDA not available, using CPU')
             except Exception as e:
-                self.get_logger().warning(f'GPU setup failed: {e}, falling back to CPU')
-                self.gpu_available = False
+                self.get_logger().warning(f'GPU setup failed: {e}, using CPU')
         else:
-            self.get_logger().info('CPU mode selected by configuration')
-            self.gpu_available = False
-    
+            self.get_logger().info('CPU mode selected')
+
     def load_model(self):
-        """
-        Load the object detection model optimized for the selected computation device.
-        
-        Attempts to load YOLOv4 first, falls back to YOLOv4-tiny if unavailable,
-        and provides a basic CPU fallback if both models fail.
-        
-        Returns:
-            tuple: (network, class_names, detector_type)
-                - network: OpenCV DNN network object or None
-                - class_names: List of class names for detection
-                - detector_type: String describing the detector type
-        """
-        # First attempt: Load YOLOv4 model
-        weights_path = os.path.join(self.base_path, 'yolov4.weights')
-        config_path = os.path.join(self.base_path, 'yolov4.cfg')
-        names_path = os.path.join(self.base_path, 'coco.names')
-        
-        # Download YOLOv4 if not present
-        if not os.path.exists(weights_path):
-            self.download_yolov4()
-        
-        if os.path.exists(weights_path):
-            self.get_logger().info(f"Loading YOLOv4 for {'GPU' if self.gpu_available else 'CPU'}...")
-            
-            # Load the YOLOv4 network from Darknet format
-            net = cv2.dnn.readNetFromDarknet(config_path, weights_path)
-            
-            # Configure network backend based on available device
-            if self.gpu_available:
-                net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-                net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
-                detector_type = "YOLOv4-GPU"
-                self.get_logger().info("YOLOv4 configured for CUDA")
+        """Load YOLO model based on configuration."""
+        model_type = getattr(self.cfg.model, 'type', 'yolov8')
+
+        if model_type == 'yolov8':
+            return self.load_yolov8()
+        elif model_type == 'yolov4':
+            return self.load_yolov4()
+        else:
+            self.get_logger().error(f"Unknown model type: {model_type}")
+            raise RuntimeError(f"Unsupported model type: {model_type}")
+
+    def load_yolov8(self):
+        """Load YOLOv8 model using ultralytics (GPU required)."""
+        try:
+            from ultralytics import YOLO
+            import torch
+
+            self.get_logger().info("Loading YOLOv8 (GPU mode)...")
+
+            # Verify GPU availability for YOLOv8
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    "YOLOv8 requires GPU but CUDA is not available. "
+                    "Please check your PyTorch/CUDA installation or use YOLOv4 (CPU) instead."
+                )
+
+            # Get model configuration
+            model_name = self.cfg.yolov8.model_name
+            model_file = self.cfg.yolov8.model_file
+
+            # Set download location to config directory
+            model_path = os.path.join(self.base_path, model_file)
+
+            if os.path.exists(model_path):
+                self.get_logger().info(f"Loading model from: {model_path}")
+                model = YOLO(model_path)
             else:
+                # Download to config directory
+                self.get_logger().info(f"Downloading {model_name} to {self.base_path}...")
+
+                # Temporarily change working directory to force download location
+                original_dir = os.getcwd()
+                try:
+                    os.chdir(self.base_path)
+                    model = YOLO(model_file)  # Downloads to current directory
+                    self.get_logger().info(f"✓ Model saved to: {model_path}")
+                finally:
+                    os.chdir(original_dir)
+
+            # Force GPU mode
+            device_id = getattr(self.cfg.device, 'device_id', 0)
+            device_str = f'cuda:{device_id}'
+            model.to(device_str)
+            detector_type = f"YOLOv8-{model_name.upper()}-GPU"
+
+            self.get_logger().info(f"YOLOv8 using GPU: {torch.cuda.get_device_name(device_id)}")
+            self.get_logger().info(f"CUDA version: {torch.version.cuda}")
+            self.get_logger().info(f"FP16 mode: {'Enabled' if self.cfg.yolov8.half else 'Disabled'}")
+
+            # Get class names
+            classes = model.names  # Dict: {0: 'person', 1: 'bicycle', ...}
+            classes_list = [classes[i] for i in sorted(classes.keys())]
+
+            self.get_logger().info(f"✓ {detector_type} loaded successfully")
+            self.get_logger().info(f"✓ {len(classes_list)} classes available")
+
+            return model, detector_type, classes_list
+
+        except Exception as e:
+            self.get_logger().error(f"Failed to load YOLOv8: {e}")
+            raise
+
+    def load_yolov4(self):
+        """Load YOLOv4 model using OpenCV DNN (CPU only - no CUDA support)."""
+        try:
+            from download_yolo_models import YOLOModelDownloader
+
+            # Download models if needed
+            downloader = YOLOModelDownloader(
+                os.path.join(self.base_path, 'object_recognition.yaml'),
+                logger=self.get_logger()
+            )
+            downloader.ensure_all_files(include_tiny=True)
+
+            # Get file paths - access directly from ModelFilesConfig attributes
+            weights_path = os.path.join(self.base_path, self.cfg.yolov4.weights)
+            config_path = os.path.join(self.base_path, self.cfg.yolov4.config)
+            names_path = os.path.join(self.base_path, self.cfg.yolov4.names)
+
+            # Load network
+            if os.path.exists(weights_path) and os.path.exists(config_path):
+                self.get_logger().info("Loading YOLOv4 (CPU mode)...")
+                net = cv2.dnn.readNetFromDarknet(config_path, weights_path)
+
+                # Force CPU backend (OpenCV CUDA backend not available)
                 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
                 net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
                 detector_type = "YOLOv4-CPU"
-                self.get_logger().info("YOLOv4 using CPU")
-            
-            # Load COCO dataset class names
-            with open(names_path, 'r') as f:
-                classes = [line.strip() for line in f.readlines()]
-            
-            return net, classes, detector_type
-                
-        # Second attempt: Fall back to YOLOv4-tiny if YOLOv4 is unavailable
-        try:
-            weights_path = os.path.join(self.base_path, 'yolov4-tiny.weights')
-            config_path = os.path.join(self.base_path, 'yolov4-tiny.cfg')
-            names_path = os.path.join(self.base_path, 'coco.names')
-            
-            if not os.path.exists(weights_path):
-                self.download_yolov4_tiny()
-            
-            if os.path.exists(weights_path):
-                self.get_logger().info(f"Loading YOLOv4-tiny for {'GPU' if self.gpu_available else 'CPU'}...")
-                
-                net = cv2.dnn.readNetFromDarknet(config_path, weights_path)
-                
-                # Configure backend for YOLOv4-tiny
-                if self.gpu_available:
-                    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-                    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA_FP16)
-                    detector_type = "YOLOv4-tiny-GPU"
-                else:
-                    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-                    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU_FP16)
-                    detector_type = "YOLOv4-tiny-CPU"
-                
-                # Load COCO class names
+
+                self.get_logger().info("YOLOv4 using CPU (OpenCV DNN backend)")
+                self.get_logger().warning("YOLOv4 cannot use GPU - OpenCV not compiled with CUDA")
+
+                # Load class names
                 with open(names_path, 'r') as f:
                     classes = [line.strip() for line in f.readlines()]
-                
-                return net, classes, detector_type
-                
+
+                # Cache output layers
+                self.output_layers = self._get_output_layers_v4(net)
+
+                return net, detector_type, classes
+            else:
+                raise RuntimeError("YOLOv4 model files not found")
+
         except Exception as e:
-            self.get_logger().warning(f"YOLOv4-tiny failed: {e}")
-        
-        # Final fallback: Basic CPU-based detection
-        self.get_logger().info("Using CPU-based fallback detection")
-        return None, ["object"], "CPU-Fallback"
-    
-    def download_yolov4(self):
-        """
-        Download YOLOv4 model files (weights, config, and class names).
-        
-        Downloads from official repositories if files are not present locally.
-        """
+            self.get_logger().error(f"Failed to load YOLOv4: {e}")
+            raise
+
+    def _get_output_layers_v4(self, net):
+        """Get output layer names for YOLOv4."""
+        layer_names = net.getLayerNames()
         try:
-            self.get_logger().info("Downloading YOLOv4 (245MB)...")
-            
-            # URLs for YOLOv4 model files
-            weights_url = "https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights"
-            config_url = "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4.cfg"
-            names_url = "https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names"
-            
-            # Local file paths
-            weights_path = os.path.join(self.base_path, 'yolov4.weights')
-            config_path = os.path.join(self.base_path, 'yolov4.cfg')
-            names_path = os.path.join(self.base_path, 'coco.names')
-            
-            # Download model files
-            urllib.request.urlretrieve(weights_url, weights_path)
-            urllib.request.urlretrieve(config_url, config_path)
-            urllib.request.urlretrieve(names_url, names_path)
-            
-            self.get_logger().info("YOLOv4 downloaded successfully")
-            
+            unconnected = net.getUnconnectedOutLayers()
+
+            if isinstance(unconnected, np.ndarray):
+                unconnected = unconnected.flatten().astype(int).tolist()
+            elif isinstance(unconnected, (list, tuple)):
+                unconnected = [int(i[0]) if isinstance(i, (list, np.ndarray)) else int(i) for i in unconnected]
+            else:
+                unconnected = [int(unconnected)]
+
+            unconnected = [i for i in unconnected if 1 <= i <= len(layer_names)]
+
+            if not unconnected:
+                return layer_names[-3:]
+            else:
+                return [layer_names[i - 1] for i in unconnected]
         except Exception as e:
-            self.get_logger().error(f"Failed to download YOLOv4: {e}")
-    
-    def download_yolov4_tiny(self):
-        """
-        Download YOLOv4-tiny model files.
-        
-        A smaller, faster version of YOLOv4 suitable for real-time applications.
-        """
-        try:
-            self.get_logger().info("Downloading YOLOv4-tiny...")
-            
-            # URLs for YOLOv4-tiny model files
-            weights_url = "https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-tiny.weights"
-            config_url = "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-tiny.cfg"
-            names_url = "https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names"
-            
-            # Local file paths
-            weights_path = os.path.join(self.base_path, 'yolov4-tiny.weights')
-            config_path = os.path.join(self.base_path, 'yolov4-tiny.cfg')
-            names_path = os.path.join(self.base_path, 'coco.names')
-            
-            # Download model files
-            urllib.request.urlretrieve(weights_url, weights_path)
-            urllib.request.urlretrieve(config_url, config_path)
-            urllib.request.urlretrieve(names_url, names_path)
-            
-            self.get_logger().info("YOLOv4-tiny downloaded successfully")
-            
-        except Exception as e:
-            self.get_logger().error(f"Failed to download YOLOv4-tiny: {e}")
-    
+            self.get_logger().warning(f"Failed to get output layers: {e}")
+            return layer_names[-3:]
+
     def detect_objects(self, image):
         """
-        Perform object detection on the input image using the loaded model.
-        
-        Args:
-            image: OpenCV image (numpy array) to process
-            
-        Returns:
-            list: List of detection dictionaries, each containing:
-                - 'box': [x, y, width, height] bounding box coordinates
-                - 'confidence': Detection confidence score (0-1)
-                - 'class_name': Detected object class name
-                - 'class_id': Detected object class ID
-        """
-        if self.net is None:
-            return []  # Return empty list if no model is loaded
+        Detect objects in image using YOLO.
 
+        Returns:
+            list: Detections with 'box', 'confidence', 'class_name', 'class_id'
+        """
+        model_type = getattr(self.cfg.model, 'type', 'yolov8')
+
+        if model_type == 'yolov8':
+            return self.detect_yolov8(image)
+        else:
+            return self.detect_yolov4(image)
+
+    def detect_yolov8(self, image):
+        """Detect objects using YOLOv8."""
+        try:
+            # Run inference
+            results = self.model.predict(
+                image,
+                imgsz=self.cfg.yolov8.imgsz,
+                conf=self.cfg.yolov8.conf,
+                iou=self.cfg.yolov8.iou,
+                max_det=self.cfg.yolov8.max_det,
+                half=self.cfg.yolov8.half and self.gpu_available,
+                verbose=False,
+                device=self.device_str
+            )
+
+            detections = []
+
+            # Process results
+            if results and len(results) > 0:
+                result = results[0]  # First image
+
+                # Get boxes, confidences, class IDs
+                boxes = result.boxes
+
+                for box in boxes:
+                    # Get box coordinates (xyxy format)
+                    x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                    x, y, w, h = int(x1), int(y1), int(x2 - x1), int(y2 - y1)
+
+                    # Get confidence and class
+                    confidence = float(box.conf[0])
+                    class_id = int(box.cls[0])
+                    class_name = self.classes[class_id]
+
+                    # Filter by size
+                    if w > self.cfg.detection.min_box_size and h > self.cfg.detection.min_box_size:
+                        detections.append({
+                            'box': [x, y, w, h],
+                            'confidence': confidence,
+                            'class_name': class_name,
+                            'class_id': class_id
+                        })
+
+            return detections
+
+        except Exception as e:
+            self.get_logger().error(f"YOLOv8 detection failed: {e}")
+            return []
+
+    def detect_yolov4(self, image):
+        """Detect objects using YOLOv4 (OpenCV DNN)."""
         height, width = image.shape[:2]
-        detections = []
 
         try:
-            # Preprocess image for the neural network
-            # - Normalize pixel values to 0-1 range
-            # - Resize to 608x608 (YOLOv4 input size)
-            # - Swap Red and Blue channels (OpenCV uses BGR, YOLO expects RGB)
-            blob = cv2.dnn.blobFromImage(image, 1/255.0, (416, 416), swapRB=True, crop=False)
-            self.net.setInput(blob)
+            # Preprocess image
+            blob = cv2.dnn.blobFromImage(
+                image, 1/255.0,
+                (self.cfg.detection.input_size, self.cfg.detection.input_size),
+                swapRB=True, crop=False
+            )
+            self.model.setInput(blob)
 
-            # Get YOLO layer names
-            layer_names = self.net.getLayerNames()
+            # Run inference
+            outputs = self.model.forward(self.output_layers)
 
-            # Get output layers for YOLO detection
-            try:
-                unconnected = self.net.getUnconnectedOutLayers()
-
-                # Normalize the output layer indices to a list of integers
-                if isinstance(unconnected, np.ndarray):
-                    unconnected = unconnected.flatten().astype(int).tolist()
-                elif isinstance(unconnected, (list, tuple)):
-                    unconnected = [int(i[0]) if isinstance(i, (list, np.ndarray)) else int(i) for i in unconnected]
-                else:
-                    unconnected = [int(unconnected)]
-
-                # Filter out invalid layer indices
-                unconnected = [i for i in unconnected if 1 <= i <= len(layer_names)]
-
-                if not unconnected:
-                    self.get_logger().warn("No valid unconnected output layers found — using fallback")
-                    output_layers = layer_names[-3:]  # Use last 3 layers as fallback
-                else:
-                    output_layers = [layer_names[i - 1] for i in unconnected]
-
-            except Exception as e:
-                self.get_logger().error(f"Failed to get output layers: {e}")
-                output_layers = layer_names[-3:]  # Fallback to generic output layers
-
-            # Perform forward pass through the network (inference)
-            outputs = self.net.forward(output_layers)
-
-            # Process detection results
+            # Process detections
             boxes, confidences, class_ids = [], [], []
 
             for output in outputs:
                 for detection in output:
-                    scores = detection[5:]  # Class probabilities start from index 5
+                    scores = detection[5:]
                     if len(scores) == 0:
                         continue
-                    class_id = np.argmax(scores)  # Get class with highest probability
-                    confidence = scores[class_id]  # Get confidence score
 
-                    # Filter detections by confidence threshold and valid class ID
-                    if confidence > 0.3 and class_id < len(self.classes):
-                        # Convert normalized coordinates to pixel coordinates
+                    class_id = np.argmax(scores)
+                    confidence = scores[class_id]
+
+                    if confidence > self.cfg.detection.confidence_threshold and class_id < len(self.classes):
                         center_x = int(detection[0] * width)
                         center_y = int(detection[1] * height)
                         w = int(detection[2] * width)
                         h = int(detection[3] * height)
 
-                        # Calculate bounding box coordinates
                         x = max(0, int(center_x - w / 2))
                         y = max(0, int(center_y - h / 2))
 
-                        # Filter out very small detections (likely noise)
-                        if w > 10 and h > 10:
+                        if w > self.cfg.detection.min_box_size and h > self.cfg.detection.min_box_size:
                             boxes.append([x, y, w, h])
                             confidences.append(float(confidence))
                             class_ids.append(class_id)
 
-            # Apply Non-Maximum Suppression to remove overlapping boxes
-            indices = cv2.dnn.NMSBoxes(boxes, confidences, 0.3, 0.4)
+            # Non-Maximum Suppression
+            indices = cv2.dnn.NMSBoxes(
+                boxes, confidences,
+                self.cfg.detection.confidence_threshold,
+                self.cfg.detection.nms_threshold
+            )
+
+            detections = []
             if len(indices) > 0:
                 for i in indices.flatten():
                     detections.append({
@@ -367,172 +356,137 @@ class GPUObjectRecognitionNode(Node):
             return detections
 
         except Exception as e:
-            self.get_logger().error(f"Detection failed: {e}")
+            self.get_logger().error(f"YOLOv4 detection failed: {e}")
             return []
-    
+
     def calculate_fps(self):
-        """
-        Calculate and update the current frames per second (FPS).
-        
-        Updates the FPS value every second based on the frame count.
-        """
+        """Calculate frames per second."""
         current_time = cv2.getTickCount()
         time_diff = (current_time - self.last_time) / cv2.getTickFrequency()
-        
-        if time_diff > 1.0:  # Update FPS every second
+
+        if time_diff > self.cfg.performance.fps_update_interval:
             self.fps = self.frame_count / time_diff
             self.frame_count = 0
             self.last_time = current_time
-    
+
     def image_callback(self, msg):
-        """
-        Callback function for processing incoming image messages.
-        
-        Args:
-            msg: ROS 2 Image message from the camera topic
-        """
+        """Process incoming camera images."""
+        # Skip frame if still processing previous one (reduce lag)
+        if self.processing:
+            return
+
         try:
-            # Update frame counter and calculate FPS
+            self.processing = True
             self.frame_count += 1
             self.calculate_fps()
-            
-            # Convert ROS Image message to OpenCV format
+
+            # Convert ROS message to OpenCV
             cv_image = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
-            
-            # Process the image (object detection and visualization)
+
+            # Detect and visualize
             processed_image = self.process_image(cv_image)
-            
-            # Display the processed image in a window
-            cv2.imshow('Object Recognition - Press Q to quit', processed_image)
-            
-            # Check for 'Q' key press to exit
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                self.get_logger().info('Quitting...')
-                raise KeyboardInterrupt
-            
-            # Convert processed image back to ROS message and publish
+
+            # Display (if enabled)
+            if self.cfg.visualization.window.show:
+                cv2.imshow(self.cfg.visualization.window.title, processed_image)
+
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q'):
+                    self.get_logger().info('Quitting...')
+                    raise KeyboardInterrupt
+
+            # Publish processed image
             processed_msg = self.bridge.cv2_to_imgmsg(processed_image, 'bgr8')
             processed_msg.header = msg.header
             self.processed_image_pub.publish(processed_msg)
-            
+
         except Exception as e:
-            self.get_logger().error(f'Error processing image: {str(e)}')
-    
+            self.get_logger().error(f'Error: {str(e)}')
+        finally:
+            # Always release processing lock
+            self.processing = False
+
     def process_image(self, image):
-        """
-        Process the input image by detecting objects and drawing visualization.
-        
-        Args:
-            image: OpenCV image to process
-            
-        Returns:
-            numpy.array: Processed image with bounding boxes and information overlay
-        """
-        result = image.copy()  # Create a copy to draw on
-        
-        # Perform object detection
+        """Detect objects and draw bounding boxes."""
+        result = image.copy()
+
+        # Detect objects
         detections = self.detect_objects(image)
-        self.detection_count += len(detections)
-        
-        # Draw detection results on the image
+
+        viz = self.cfg.visualization
+        draw = viz.drawing
+
+        # Draw detections
         for detection in detections:
             x, y, w, h = detection['box']
             confidence = detection['confidence']
             class_name = detection['class_name']
-            
-            # Get unique color for each object class
-            color = self.get_color_for_class(detection['class_id'])
-            
-            # Draw bounding box around detected object
-            cv2.rectangle(result, (x, y), (x + w, y + h), color, 2)
-            
-            # Create label with class name and confidence
+
+            color = self.get_color(detection['class_id'])
+
+            # Bounding box
+            cv2.rectangle(result, (x, y), (x + w, y + h), color, draw.box_thickness)
+
+            # Label
             label = f"{class_name}: {confidence:.2f}"
-            label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
-            
-            # Draw background for label text
-            cv2.rectangle(result, (x, y - label_size[1] - 10), 
+            label_size = cv2.getTextSize(label, draw.label_font, draw.label_font_scale,
+                                        draw.label_font_thickness)[0]
+            cv2.rectangle(result, (x, y - label_size[1] - draw.label_padding),
                          (x + label_size[0], y), color, -1)
-            
-            # Draw label text
-            cv2.putText(result, label, (x, y - 5),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-            
-            # Draw center point of the detected object
-            center_x = x + w // 2
-            center_y = y + h // 2
-            cv2.circle(result, (center_x, center_y), 4, color, -1)
-            
-            # Display coordinates of the center point
-            cv2.putText(result, f"({center_x},{center_y})", 
-                       (x, y + h + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
-        
-        # Add performance and status information overlay
-        cv2.putText(result, f'FPS: {self.fps:.1f}', (10, 30),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        cv2.putText(result, f'Objects: {len(detections)}', (10, 60),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        cv2.putText(result, f'Method: {self.detector_type}', (10, 90),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        cv2.putText(result, f'Device: {"GPU" if self.gpu_available else "CPU"}', (10, 110),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        cv2.putText(result, 'Press Q to quit', (10, result.shape[0] - 10),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-        
+            cv2.putText(result, label, (x, y - 5), draw.label_font,
+                       draw.label_font_scale, draw.label_text_color, draw.label_font_thickness)
+
+            # Center point (if enabled)
+            if viz.show_center_point:
+                center_x = x + w // 2
+                center_y = y + h // 2
+                cv2.circle(result, (center_x, center_y), draw.center_point_radius, color, draw.center_point_filled)
+
+                # Coordinates (if enabled)
+                if viz.show_coordinates:
+                    cv2.putText(result, f"({center_x},{center_y})",
+                               (x, y + h + draw.coords_offset_y), draw.label_font,
+                               draw.coords_font_scale, color, draw.coords_font_thickness)
+
+        # Info overlay
+        if viz.show_fps:
+            cv2.putText(result, f'FPS: {self.fps:.1f}', draw.info_fps_position,
+                       draw.info_font, draw.info_fps_scale, draw.info_fps_color,
+                       draw.info_fps_thickness)
+
+        if viz.show_object_count:
+            cv2.putText(result, f'Objects: {len(detections)}', draw.info_count_position,
+                       draw.info_font, draw.info_count_scale, draw.info_count_color,
+                       draw.info_count_thickness)
+
+        if viz.show_device_info:
+            cv2.putText(result, f'{self.detector_type}', draw.info_device_position,
+                       draw.info_font, draw.info_device_scale, draw.info_device_color,
+                       draw.info_device_thickness)
+
+        if viz.show_quit_message:
+            quit_pos = (10, result.shape[0] - draw.info_quit_offset_bottom)
+            cv2.putText(result, 'Press Q to quit', quit_pos, draw.info_font,
+                       draw.info_quit_scale, draw.info_quit_color, draw.info_quit_thickness)
+
         return result
-    
-    def get_color_for_class(self, class_id):
-        """
-        Generate a unique color for each object class for consistent visualization.
-        
-        Args:
-            class_id: Integer ID of the object class
-            
-        Returns:
-            tuple: BGR color tuple for the class
-        """
-        # Predefined color palette for different object classes
-        colors = [
-            (255, 0, 0),    # Blue
-            (0, 255, 0),    # Green
-            (0, 0, 255),    # Red
-            (255, 255, 0),  # Cyan
-            (255, 0, 255),  # Magenta
-            (0, 255, 255),  # Yellow
-            (255, 165, 0),  # Orange
-            (128, 0, 128),  # Purple
-            (255, 192, 203),# Pink
-            (0, 128, 128),  # Teal
-            (128, 128, 0),  # Olive
-            (128, 0, 0),    # Maroon
-            (0, 0, 128),    # Navy
-            (128, 0, 128),  # Purple
-            (0, 128, 0),    # Dark Green
-        ]
+
+    def get_color(self, class_id):
+        """Get unique color for each class from config."""
+        colors = self.cfg.visualization.colors
         return colors[class_id % len(colors)]
 
 
 def main(args=None):
-    """
-    Main function to initialize and run the ROS 2 node.
-    
-    Args:
-        args: Command line arguments (optional)
-    """
-    # Initialize ROS 2 Python client library
+    """Main entry point."""
     rclpy.init(args=args)
-    
-    # Create the object recognition node
-    node = GPUObjectRecognitionNode()
-    
+    node = ObjectRecognitionNode()
+
     try:
-        # Keep the node running until interrupted
         rclpy.spin(node)
     except KeyboardInterrupt:
-        print("\nShutting down object recognition...")
+        print("\nShutting down...")
     finally:
-        # Cleanup: close windows and destroy node
         cv2.destroyAllWindows()
         node.destroy_node()
         rclpy.shutdown()
