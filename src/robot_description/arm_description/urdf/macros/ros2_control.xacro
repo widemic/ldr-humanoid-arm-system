@@ -36,14 +36,15 @@
                 <state_interface name="position" />
                 <state_interface name="velocity" />
             </joint>
-            <!-- Gripper: Independent control for both fingers -->
+            <!-- Gripper: Only control main joint, left finger mimics automatically -->
             <joint name="left_palm_right_finger">
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
             </joint>
+            <!-- left_palm_left_finger is a mimic joint - only state interfaces -->
             <joint name="left_palm_left_finger">
-                <command_interface name="position" />
+ 
                 <state_interface name="position" />
                 <state_interface name="velocity" />
             </joint>
