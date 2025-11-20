@@ -127,6 +127,18 @@ def generate_launch_description():
         output="screen",
     )
 
+    hand_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "hand_controller",
+            "--controller-manager",
+            "/controller_manager",
+        ],
+        parameters=[{"use_sim_time": True}],
+        output="screen",
+    )
+
     # Delay controller spawning to ensure Gazebo ros2_control plugin is ready
     delayed_joint_state_broadcaster = TimerAction(
         period=3.0,  # Wait for Gazebo to fully initialize
@@ -136,6 +148,11 @@ def generate_launch_description():
     delayed_arm_controller = TimerAction(
         period=4.0,  # Wait for joint_state_broadcaster to be active
         actions=[arm_controller_spawner],
+    )
+
+    delayed_hand_controller = TimerAction(
+        period=5.0,  # Wait for arm_controller to be active
+        actions=[hand_controller_spawner],
     )
 
     # 4. MoveGroup node - delay to ensure controllers are spawned and active
@@ -196,6 +213,7 @@ def generate_launch_description():
             gazebo_launch,
             delayed_joint_state_broadcaster,
             delayed_arm_controller,
+            delayed_hand_controller,
             delayed_move_group,
             delayed_rviz,
         ]
