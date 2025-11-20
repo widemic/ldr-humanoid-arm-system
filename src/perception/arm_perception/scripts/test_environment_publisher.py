@@ -25,14 +25,14 @@ class TestEnvironmentPublisher(Node):
     # ========== CONFIGURATION PARAMETERS ==========
 
     # Table dimensions (X, Y, Z in meters)
-    TABLE_LENGTH = 0.8      # Front-to-back dimension
-    TABLE_WIDTH = 0.6       # Left-to-right dimension
+    TABLE_LENGTH = 0.5      # Front-to-back dimension
+    TABLE_WIDTH = 0.3       # Left-to-right dimension
     TABLE_THICKNESS = 0.02  # Height/thickness
 
     # Table position (center of table)
-    TABLE_X = -0.5           # Distance from robot base
-    TABLE_Y = 0.5           # Lateral position (centered)
-    TABLE_Z = 1.0           # Height of table center
+    TABLE_X = -0.35          # Distance from robot base (closer: was -0.5)
+    TABLE_Y = 0.3            # Lateral position (more centered: was 0.4)
+    TABLE_Z = 0.95            # Height of table center (higher: was 0.9)
 
     # Cylinder dimensions
     CYLINDER_RADIUS = 0.03  # Radius (3cm)
