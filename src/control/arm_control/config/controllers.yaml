@@ -8,6 +8,8 @@ controller_manager:
       publish_rate: 50.0
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
+    hand_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
 
 
 # # Joint State Broadcaster - publishes /joint_states
@@ -42,3 +44,25 @@ arm_controller:
     # Allow external trajectory commands
     allow_partial_joints_goal: false
     allow_integration_in_goal_trajectories: true
+
+
+# Hand Controller - controls both fingers independently
+hand_controller:
+  ros__parameters:
+    joints:
+      - left_palm_right_finger
+      - left_palm_left_finger
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    # Goal tolerances
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 2.0
+
+    allow_nonzero_velocity_at_trajectory_end: true
