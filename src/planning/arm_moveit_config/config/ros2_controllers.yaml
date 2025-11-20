@@ -8,7 +8,7 @@ controller_manager:
 
 
     hand_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: position_controllers/GripperActionController
 
 
     joint_state_broadcaster:
@@ -31,21 +31,4 @@ arm_controller:
     allow_nonzero_velocity_at_trajectory_end: true
 hand_controller:
   ros__parameters:
-    # Control both fingers independently
-    joints:
-      - left_palm_right_finger
-      - left_palm_left_finger
-
-    command_interfaces:
-      - position
-
-    state_interfaces:
-      - position
-      - velocity
-
-    # Goal tolerances
-    constraints:
-      stopped_velocity_tolerance: 0.01
-      goal_time: 2.0
-
-    allow_nonzero_velocity_at_trajectory_end: true
+    joint: left_palm_right_finger
