@@ -25,6 +25,7 @@ install(PROGRAMS
   scripts/object_recognition_node.py
   scripts/moveit_cartesian_example.py
   scripts/complete_depth_camera.py
+  scripts/test_gripper.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
