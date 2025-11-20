@@ -8,7 +8,7 @@ controller_manager:
 
 
     hand_controller:
-      type: position_controllers/GripperActionController
+      type: joint_trajectory_controller/JointTrajectoryController
 
 
     joint_state_broadcaster:
@@ -31,22 +31,21 @@ arm_controller:
     allow_nonzero_velocity_at_trajectory_end: true
 hand_controller:
   ros__parameters:
-    # Control the main gripper joint (left finger mimics automatically)
-    joint: left_palm_right_finger
+    # Control both fingers independently
+    joints:
+      - left_palm_right_finger
+      - left_palm_left_finger
 
-    # Action monitoring
-    action_monitor_rate: 20.0  # Hz
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
 
     # Goal tolerances
-    goal_time: 0.0  # Unlimited time to reach goal
-    goal_tolerance: 0.001  # 1mm tolerance
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 2.0
 
-    # Stall detection
-    stall_velocity_threshold: 0.001  # m/s
-    stall_timeout: 0.5  # seconds
-
-    # Maximum effort (N for prismatic joints)
-    max_effort: 10.0
-
-    # Allow stalling (useful for grasping)
-    allow_stalling: true
+    allow_nonzero_velocity_at_trajectory_end: true
