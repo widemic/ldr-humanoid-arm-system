@@ -30,9 +30,14 @@ class TestEnvironmentPublisher(Node):
     TABLE_THICKNESS = 0.02  # Height/thickness
 
     # Table position (center of table)
-    TABLE_X = -0.35          # Distance from robot base (closer: was -0.5)
-    TABLE_Y = 0.3            # Lateral position (more centered: was 0.4)
-    TABLE_Z = 0.95            # Height of table center (higher: was 0.9)
+    TABLE_X = -0.2         # Distance from robot base (closer: was -0.5)
+    TABLE_Y = 0.55            # Lateral position (more centered: was 0.4)
+    TABLE_Z = 1.1            # Height of table center (higher: was 0.9)
+
+    # Destination Table position (center of table)
+    DEST_TABLE_X = -0.7         # Distance from robot base (farther from robot)
+    DEST_TABLE_Y = 0.0          # Lateral position (centered)
+    DEST_TABLE_Z = 1.1          # Height of table center (same as source table)
 
     # Cylinder dimensions
     CYLINDER_RADIUS = 0.03  # Radius (3cm)
@@ -63,7 +68,7 @@ class TestEnvironmentPublisher(Node):
         self.create_timer(2.0, self.publish_test_environment)
 
         self.get_logger().info('Test Environment Publisher started')
-        self.get_logger().info('Publishing table and cylinder to planning scene...')
+        self.get_logger().info('Publishing source table, destination table, and cylinder to planning scene...')
         self.get_logger().info('Objects will be re-published every 2 seconds to keep them visible')
 
         # Flag to log only once
@@ -82,8 +87,12 @@ class TestEnvironmentPublisher(Node):
             self.get_logger().info('✅ Test environment published successfully!')
             self.get_logger().info('Objects:')
             self.get_logger().info(
-                f'  - Table: {self.TABLE_LENGTH}m x {self.TABLE_WIDTH}m x {self.TABLE_THICKNESS}m '
+                f'  - Source Table: {self.TABLE_LENGTH}m x {self.TABLE_WIDTH}m x {self.TABLE_THICKNESS}m '
                 f'at ({self.TABLE_X}, {self.TABLE_Y}, {self.TABLE_Z})'
+            )
+            self.get_logger().info(
+                f'  - Destination Table: {self.TABLE_LENGTH}m x {self.TABLE_WIDTH}m x {self.TABLE_THICKNESS}m '
+                f'at ({self.DEST_TABLE_X}, {self.DEST_TABLE_Y}, {self.DEST_TABLE_Z})'
             )
             self.get_logger().info(
                 f'  - Cylinder: radius={self.CYLINDER_RADIUS}m, height={self.CYLINDER_HEIGHT}m '
@@ -92,9 +101,12 @@ class TestEnvironmentPublisher(Node):
             self.logged_initial = True
 
     def publish_test_environment(self):
-        """Publish table and cylinder objects (called periodically)"""
-        # Publish table
+        """Publish table, destination table, and cylinder objects (called periodically)"""
+        # Publish source table
         self.publish_table()
+
+        # Publish destination table
+        self.publish_destination_table()
 
         # Publish cylinder
         self.publish_cylinder()
@@ -125,6 +137,33 @@ class TestEnvironmentPublisher(Node):
         table.primitive_poses.append(pose)
 
         self.collision_pub.publish(table)
+
+    def publish_destination_table(self):
+        """Publish a destination table as a box"""
+        dest_table = CollisionObject()
+        dest_table.header = Header()
+        dest_table.header.frame_id = self.FRAME_ID
+        dest_table.header.stamp = self.get_clock().now().to_msg()
+
+        dest_table.id = 'destination_table'
+        dest_table.operation = CollisionObject.ADD
+
+        # Use same dimensions as main table
+        box = SolidPrimitive()
+        box.type = SolidPrimitive.BOX
+        box.dimensions = [self.TABLE_LENGTH, self.TABLE_WIDTH, self.TABLE_THICKNESS]
+
+        # Destination table position from class variables
+        pose = Pose()
+        pose.position.x = self.DEST_TABLE_X
+        pose.position.y = self.DEST_TABLE_Y
+        pose.position.z = self.DEST_TABLE_Z
+        pose.orientation.w = 1.0  # No rotation
+
+        dest_table.primitives.append(box)
+        dest_table.primitive_poses.append(pose)
+
+        self.collision_pub.publish(dest_table)
 
     def publish_cylinder(self):
         """Publish a cylinder object to grasp (automatically positioned on table)"""
@@ -161,7 +200,7 @@ class TestEnvironmentPublisher(Node):
 
     def clear_environment(self):
         """Clear all test objects from planning scene"""
-        for obj_id in ['test_table', 'test_cylinder']:
+        for obj_id in ['test_table', 'destination_table', 'test_cylinder']:
             remove_obj = CollisionObject()
             remove_obj.header = Header()
             remove_obj.header.frame_id = self.FRAME_ID
