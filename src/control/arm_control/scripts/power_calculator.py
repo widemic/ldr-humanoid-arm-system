@@ -175,7 +175,8 @@ class PowerCalculator:
         self,
         joint_name: str,
         torque: float,
-        velocity: float
+        velocity: float,
+        use_supply_voltage: bool = True
     ) -> Tuple[float, float, float]:
         """
         Calculate electrical power consumption.
@@ -184,12 +185,23 @@ class PowerCalculator:
             joint_name: Name of the joint
             torque: Output torque (Nm)
             velocity: Joint velocity (rad/s)
+            use_supply_voltage: If True, use rated supply voltage (48V) for power calc.
+                              If False, use calculated motor terminal voltage.
 
         Returns:
             Tuple of (current_A, voltage_V, power_W)
         """
+        actuator_name = self.joint_to_actuator.get(joint_name)
         current = self.calculate_motor_current(joint_name, torque, velocity)
-        voltage = self.calculate_motor_voltage(joint_name, current, velocity)
+
+        if use_supply_voltage and actuator_name:
+            # Use supply voltage for power consumption from battery
+            motor = self.actuators[actuator_name]['motor']
+            voltage = motor.get('rated_voltage', 48.0)
+        else:
+            # Use calculated motor terminal voltage (back-EMF + I*R)
+            voltage = self.calculate_motor_voltage(joint_name, current, velocity)
+
         power = voltage * current
 
         return current, voltage, power
@@ -392,20 +404,24 @@ def main():
     torque = 30.0  # Nm
     velocity = 1.0  # rad/s
 
-    current, voltage, power = calc.calculate_electrical_power(joint_name, torque, velocity)
+    current, voltage, power = calc.calculate_electrical_power(joint_name, torque, velocity, use_supply_voltage=True)
 
     print(f"\nSingle Joint Power Calculation:")
     print(f"Joint: {joint_name}")
     print(f"Torque: {torque} Nm")
     print(f"Velocity: {velocity} rad/s")
     print(f"Current: {current:.2f} A")
-    print(f"Voltage: {voltage:.2f} V")
-    print(f"Electrical Power: {power:.2f} W")
+    print(f"Supply Voltage: {voltage:.2f} V (rated supply)")
+    print(f"Power Consumption: {power:.2f} W")
 
     p_mech = calc.calculate_mechanical_power(torque, velocity)
     eff = calc.calculate_efficiency(joint_name, torque, velocity)
     print(f"Mechanical Power: {p_mech:.2f} W")
     print(f"Efficiency: {eff*100:.1f}%")
+
+    # Also show motor terminal voltage
+    _, v_motor, _ = calc.calculate_electrical_power(joint_name, torque, velocity, use_supply_voltage=False)
+    print(f"Motor Terminal Voltage: {v_motor:.2f} V (back-EMF + I×R)")
 
     # Example: Calculate total system power
     print("\n" + "="*60)
@@ -427,7 +443,7 @@ def main():
     for joint, data in result['joints'].items():
         print(f"\n{joint}:")
         print(f"  Current:    {data['current']:.2f} A")
-        print(f"  Voltage:    {data['voltage']:.2f} V")
+        print(f"  Voltage:    {data['voltage']:.2f} V (supply)")
         print(f"  Power:      {data['power']:.2f} W")
         print(f"  Efficiency: {data['efficiency']*100:.1f}%")
 
