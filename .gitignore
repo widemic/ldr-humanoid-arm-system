@@ -8,6 +8,7 @@
 */install-/
 */__pycache__/
 **/.pytest_cache/
+*.pyc
 
 # Colcon specific
 */.colcon_
