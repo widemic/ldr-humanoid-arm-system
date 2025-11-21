@@ -1,326 +1,358 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>LauncherWindow</class>
- <widget class="QMainWindow" name="LauncherWindow">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>520</width>
-    <height>617</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Full System Launcher</string>
-  </property>
-  <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="spacing">
-     <number>12</number>
-    </property>
-    <item>
-     <widget class="QLabel" name="label_title">
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Launch the full ROS 2 arm system</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_description">
-      <property name="text">
-       <string>Use the buttons below to start each ROS 2 process in the background after sourcing the workspace (if found).</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="group_command">
-      <property name="title">
-       <string>Love Death Robots</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QLabel" name="label_branding">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>180</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>LOVE DEATH + ROBOTS</string>
-         </property>
-         <property name="scaledContents">
-          <bool>false</bool>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
+    <class>LauncherWindow</class>
+    <widget class="QMainWindow" name="LauncherWindow">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>520</width>
+                <height>617</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>Full System Launcher</string>
+        </property>
+        <widget class="QWidget" name="centralwidget">
+            <layout class="QVBoxLayout" name="verticalLayout">
+                <property name="spacing">
+                    <number>12</number>
+                </property>
+                <item>
+                    <widget class="QLabel" name="label_title">
+                        <property name="font">
+                            <font>
+                                <pointsize>14</pointsize>
+                                <weight>75</weight>
+                                <bold>true</bold>
+                            </font>
+                        </property>
+                        <property name="text">
+                            <string>Launch the full ROS 2 arm system</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignCenter</set>
+                        </property>
+                    </widget>
+                </item>
+                <item>
+                    <widget class="QLabel" name="label_description">
+                        <property name="text">
+                            <string>Use the buttons below to start each ROS 2 process in the background after sourcing the workspace (if found).</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignCenter</set>
+                        </property>
+                        <property name="wordWrap">
+                            <bool>true</bool>
+                        </property>
+                    </widget>
+                </item>
+                <item>
+                    <widget class="Line" name="line">
+                        <property name="orientation">
+                            <enum>Qt::Horizontal</enum>
+                        </property>
+                    </widget>
+                </item>
+                <item>
+                    <widget class="QGroupBox" name="group_command">
+                        <property name="title">
+                            <string>Love Death Robots</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="verticalLayout_2">
+                            <item>
+                                <widget class="QLabel" name="label_branding">
+                                    <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>0</width>
+                                            <height>180</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>LOVE DEATH + ROBOTS</string>
+                                    </property>
+                                    <property name="scaledContents">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>Qt::AlignCenter</set>
+                                    </property>
+                                    <property name="wordWrap">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
+                            </item>
+                        </layout>
+                    </widget>
+                </item>
+                <item>
+                    <widget class="QGroupBox" name="group_processes">
+                        <property name="title">
+                            <string>Process Controls</string>
+                        </property>
+                        <layout class="QGridLayout" name="gridLayout">
+                            <item row="0" column="0">
+                                <widget class="QLabel" name="label_system_name">
+                                    <property name="text">
+                                        <string>Full System Launch</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="0" column="1">
+                                <widget class="QPushButton" name="button_system_start">
+                                    <property name="text">
+                                        <string>Start</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="0" column="2">
+                                <widget class="QPushButton" name="button_system_stop">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Stop</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="0" column="3">
+                                <widget class="QLabel" name="label_system_status">
+                                    <property name="text">
+                                        <string>Idle</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="1" column="0">
+                                <widget class="QLabel" name="label_rqt_name">
+                                    <property name="text">
+                                        <string>rqt_image_view</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="1" column="1">
+                                <widget class="QPushButton" name="button_rqt_start">
+                                    <property name="text">
+                                        <string>Start</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="1" column="2">
+                                <widget class="QPushButton" name="button_rqt_stop">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Stop</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="1" column="3">
+                                <widget class="QLabel" name="label_rqt_status">
+                                    <property name="text">
+                                        <string>Idle</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="2" column="0">
+                                <widget class="QLabel" name="label_gazebo_name">
+                                    <property name="text">
+                                        <string>Gazebo</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="2" column="1">
+                                <widget class="QPushButton" name="button_gazebo_start">
+                                    <property name="text">
+                                        <string>Start</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="2" column="2">
+                                <widget class="QPushButton" name="button_gazebo_stop">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Stop</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="2" column="3">
+                                <widget class="QLabel" name="label_gazebo_status">
+                                    <property name="text">
+                                        <string>Idle</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="3" column="0">
+                                <widget class="QLabel" name="label_rviz_name">
+                                    <property name="text">
+                                        <string>RViz</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="3" column="1">
+                                <widget class="QPushButton" name="button_rviz_start">
+                                    <property name="text">
+                                        <string>Start</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="3" column="2">
+                                <widget class="QPushButton" name="button_rviz_stop">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Stop</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="3" column="3">
+                                <widget class="QLabel" name="label_rviz_status">
+                                    <property name="text">
+                                        <string>Idle</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="4" column="0">
+                                <widget class="QLabel" name="label_moveit_name">
+                                    <property name="text">
+                                        <string>MoveIt (move_group)</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="4" column="1">
+                                <widget class="QPushButton" name="button_moveit_start">
+                                    <property name="text">
+                                        <string>Start</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="4" column="2">
+                                <widget class="QPushButton" name="button_moveit_stop">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Stop</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="4" column="3">
+                                <widget class="QLabel" name="label_moveit_status">
+                                    <property name="text">
+                                        <string>Idle</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="5" column="0">
+                                <widget class="QLabel" name="label_octomap_name">
+                                    <property name="text">
+                                        <string>OctoMap Server</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="5" column="1">
+                                <widget class="QPushButton" name="button_octomap_start">
+                                    <property name="text">
+                                        <string>Start</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="5" column="2">
+                                <widget class="QPushButton" name="button_octomap_stop">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Stop</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="5" column="3">
+                                <widget class="QLabel" name="label_octomap_status">
+                                    <property name="text">
+                                        <string>Idle</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="6" column="0">
+                                <widget class="QLabel" name="label_object_detection_name">
+                                    <property name="text">
+                                        <string>Object Detection</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="6" column="1">
+                                <widget class="QPushButton" name="button_object_detection_start">
+                                    <property name="text">
+                                        <string>Start</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="6" column="2">
+                                <widget class="QPushButton" name="button_object_detection_stop">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Stop</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="6" column="3">
+                                <widget class="QLabel" name="label_object_detection_status">
+                                    <property name="text">
+                                        <string>Idle</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            
+                            <item row="7" column="0">
+                                <widget class="QLabel" name="label_perception_name">
+                                    <property name="text">
+                                        <string>Perception</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="7" column="1">
+                                <widget class="QPushButton" name="button_perception_start">
+                                    <property name="text">
+                                        <string>Start</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="7" column="2">
+                                <widget class="QPushButton" name="button_perception_stop">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Stop</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="7" column="3">
+                                <widget class="QLabel" name="label_perception_status">
+                                    <property name="text">
+                                        <string>Idle</string>
+                                    </property>
+                                </widget>
+                            </item>
+                        </layout>
+                    </widget>
+                </item>
+            </layout>
         </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="group_processes">
-      <property name="title">
-       <string>Process Controls</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_system_name">
-         <property name="text">
-          <string>Full System Launch</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="button_system_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QPushButton" name="button_system_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QLabel" name="label_system_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_rqt_name">
-         <property name="text">
-          <string>rqt_image_view</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="button_rqt_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QPushButton" name="button_rqt_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QLabel" name="label_rqt_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_gazebo_name">
-         <property name="text">
-          <string>Gazebo</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QPushButton" name="button_gazebo_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QPushButton" name="button_gazebo_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="3">
-        <widget class="QLabel" name="label_gazebo_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_rviz_name">
-         <property name="text">
-          <string>RViz</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QPushButton" name="button_rviz_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="QPushButton" name="button_rviz_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="3">
-        <widget class="QLabel" name="label_rviz_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_moveit_name">
-         <property name="text">
-          <string>MoveIt (move_group)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QPushButton" name="button_moveit_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
-        <widget class="QPushButton" name="button_moveit_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="3">
-        <widget class="QLabel" name="label_moveit_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_octomap_name">
-         <property name="text">
-          <string>OctoMap Server</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QPushButton" name="button_octomap_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="2">
-        <widget class="QPushButton" name="button_octomap_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="3">
-        <widget class="QLabel" name="label_octomap_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_object_detection_name">
-         <property name="text">
-          <string>Object Detection</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QPushButton" name="button_object_detection_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
-        <widget class="QPushButton" name="button_object_detection_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="3">
-        <widget class="QLabel" name="label_object_detection_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-   </layout>
-  </widget>
- </widget>
- <resources/>
- <connections/>
+    </widget>
+    <resources/>
+    <connections/>
 </ui>

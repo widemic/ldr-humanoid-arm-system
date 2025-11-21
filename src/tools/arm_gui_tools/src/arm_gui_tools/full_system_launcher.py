@@ -19,6 +19,7 @@ RVIZ_CMD = 'rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/conf
 MOVEIT_CMD = 'ros2 launch arm_moveit_config demo.launch.py'
 OCTOMAP_CMD = 'ros2 launch arm_system_bringup moveit_octomap_only.launch.py'
 OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
+PERCEPTIION_CMD = 'ros2 launch arm_perception perception.launch.py'
 
 
 class LauncherWindow(QtWidgets.QMainWindow):
@@ -89,6 +90,13 @@ class LauncherWindow(QtWidgets.QMainWindow):
             start_button='button_object_detection_start',
             stop_button='button_object_detection_stop',
             status_label='label_object_detection_status',
+        )
+        self._register_tool(
+            name='perception',
+            command=PERCEPTIION_CMD,
+            start_button='button_perception_start',
+            stop_button='button_perception_stop',
+            status_label='label_perception_status',
         )
 
         self.monitor_timer = QtCore.QTimer(self)
