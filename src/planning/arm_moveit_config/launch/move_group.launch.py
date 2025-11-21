@@ -3,5 +3,9 @@ from moveit_configs_utils.launches import generate_move_group_launch
 
 
 def generate_launch_description():
-    moveit_config = MoveItConfigsBuilder("arm_description", package_name="arm_moveit_config").to_moveit_configs()
+    moveit_config = (
+        MoveItConfigsBuilder("arm_description", package_name="arm_moveit_config")
+        .sensors_3d(file_path="config/sensors_3d.yaml")
+        .to_moveit_configs()
+    )
     return generate_move_group_launch(moveit_config)

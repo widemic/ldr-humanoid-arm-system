@@ -10,41 +10,51 @@
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
+                <state_interface name="effort" />
             </joint>
             <joint name="left_shoulder_roll_rs04">
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
+                <state_interface name="effort" />
             </joint>
             <joint name="left_shoulder_yaw_rs03">
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
+                <state_interface name="effort" />
             </joint>
             <joint name="left_elbow_rs03">
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
+                <state_interface name="effort" />
             </joint>
             <joint name="left_wrist_rs02">
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
+                <state_interface name="effort" />
             </joint>
             <joint name="left_hand_rs02">
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
+                <state_interface name="effort" />
             </joint>
+            <!-- Gripper: Only control main joint, left finger mimics automatically -->
             <joint name="left_palm_right_finger">
                 <command_interface name="position" />
                 <state_interface name="position" />
                 <state_interface name="velocity" />
+                <state_interface name="effort" />
             </joint>
+            <!-- left_palm_left_finger is a mimic joint - only state interfaces -->
             <joint name="left_palm_left_finger">
-                <command_interface name="position" />
+
                 <state_interface name="position" />
                 <state_interface name="velocity" />
+                <state_interface name="effort" />
             </joint>
         </ros2_control>
     </xacro:macro>

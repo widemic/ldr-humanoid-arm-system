@@ -4,9 +4,12 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
       publish_rate: 50
-      
+
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
+
+    hand_controller:
+      type: position_controllers/GripperActionController
 
 arm_controller:
   ros__parameters:
@@ -22,3 +25,24 @@ arm_controller:
     state_interfaces:
       - position
       - velocity
+
+hand_controller:
+  ros__parameters:
+    joint: left_palm_right_finger
+
+    # Action monitoring
+    action_monitor_rate: 20.0
+
+    # Goal tolerances
+    goal_time: 0.0
+    goal_tolerance: 0.001
+
+    # Stall detection
+    stall_velocity_threshold: 0.001
+    stall_timeout: 0.5
+
+    # Maximum effort
+    max_effort: 10.0
+
+    # Allow stalling
+    allow_stalling: true

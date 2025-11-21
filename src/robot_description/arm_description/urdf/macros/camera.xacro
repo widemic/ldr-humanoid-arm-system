@@ -30,7 +30,7 @@
     </link>
 
     <joint name="base_camera_joint" type="fixed">
-        <parent link="base_fixture_link" />
+        <parent link="base_link" />
         <child link="head_depth_camera_optical_frame" />
         <origin xyz="0 0 1.2" rpy="0 0 0" />
     </joint>

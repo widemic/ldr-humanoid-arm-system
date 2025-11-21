@@ -80,6 +80,7 @@ def generate_launch_description():
             publish_robot_description_semantic=True,
             publish_planning_scene=True,
         )
+        .sensors_3d(file_path="config/sensors_3d.yaml")
         .joint_limits(file_path="config/joint_limits.yaml")
         .to_moveit_configs()
     )
@@ -96,48 +97,7 @@ def generate_launch_description():
         }.items(),
     )
 
-    # 2. Load ros2_controllers configuration
-    ros2_controllers_path = PathJoinSubstitution(
-        [FindPackageShare("arm_moveit_config"), "config", "ros2_controllers.yaml"]
-    )
-
-    # 3. Controller spawners - spawn the controllers needed for MoveIt
-    joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[
-            "joint_state_broadcaster",
-            "--controller-manager",
-            "/controller_manager",
-        ],
-        parameters=[{"use_sim_time": True}],
-        output="screen",
-    )
-
-    arm_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[
-            "arm_controller",
-            "--controller-manager",
-            "/controller_manager",
-        ],
-        parameters=[{"use_sim_time": True}],
-        output="screen",
-    )
-
-    # Delay controller spawning to ensure Gazebo ros2_control plugin is ready
-    delayed_joint_state_broadcaster = TimerAction(
-        period=3.0,  # Wait for Gazebo to fully initialize
-        actions=[joint_state_broadcaster_spawner],
-    )
-
-    delayed_arm_controller = TimerAction(
-        period=4.0,  # Wait for joint_state_broadcaster to be active
-        actions=[arm_controller_spawner],
-    )
-
-    # 4. MoveGroup node - delay to ensure controllers are spawned and active
+    # 2. MoveGroup node - delay to ensure controllers are spawned and active by spawn_arm.launch.py
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
@@ -146,13 +106,19 @@ def generate_launch_description():
             moveit_config.to_dict(),
             {"use_sim_time": True},
             {"publish_monitored_planning_scene": True},
+            {
+                "octomap_frame": "base_link",
+                "octomap_resolution": 0.05,
+                "max_range": 5.0,
+            },
         ],
         arguments=["--ros-args", "--log-level", log_level],
     )
 
     # Delay MoveGroup start to ensure controllers are active
+    # spawn_arm.launch.py spawns: joint_state_broadcaster (4s), arm_controller (5s), hand_controller (6s)
     delayed_move_group = TimerAction(
-        period=6.0,  # Wait for controllers to be fully active
+        period=8.0,  # Wait for all controllers to be fully active (hand_controller at 6s + 2s buffer)
         actions=[move_group_node],
     )
 
@@ -180,7 +146,7 @@ def generate_launch_description():
 
     # Delay RViz start to ensure MoveGroup is ready
     delayed_rviz = TimerAction(
-        period=8.0,  # Wait for MoveGroup to be fully initialized
+        period=10.0,  # Wait for MoveGroup to be fully initialized (starts at 8s + 2s buffer)
         actions=[rviz_node],
     )
 
@@ -188,8 +154,7 @@ def generate_launch_description():
         declared_arguments
         + [
             gazebo_launch,
-            delayed_joint_state_broadcaster,
-            delayed_arm_controller,
+            # Note: Controllers are spawned by spawn_arm.launch.py, no need to spawn here
             delayed_move_group,
             delayed_rviz,
         ]

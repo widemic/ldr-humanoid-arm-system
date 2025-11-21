@@ -33,14 +33,14 @@ This package contains the complete robot description for the humanoid arm, inclu
 ### Link Structure
 
 ```
-base_fixture_link (400 kg support)
+base_link (400 kg support)
 └── shoulder_motor_link (0.53 kg)
     └── upper_arm_link (1.20 kg)
         └── shoulder_pitch_motor_link (0.53 kg)
             └── forearm_link (0.97 kg)
                 └── elbow_motor_link (0.36 kg)
                     └── elbow_flange_link (0.036 kg)
-                        └── wrist_base_fixture_link (0.49 kg)
+                        └── wrist_base_link (0.49 kg)
                             └── wrist_motor_link (0.36 kg)
                                 └── wrist_pitch_link (0.71 kg)
                                     └── wrist_assembly_link (0.25 kg)
@@ -111,7 +111,7 @@ This will open:
 2. Select **RobotModel** → Click **OK**
 3. (Optional) Add **TF** display to see coordinate frames
 4. (Optional) Add **Axes** display for reference
-5. Set **Fixed Frame** to `base_fixture_link` (top left, Global Options)
+5. Set **Fixed Frame** to `base_link` (top left, Global Options)
 6. Adjust view with mouse:
    - Left-click + drag: Rotate
    - Middle-click + drag: Pan
@@ -183,7 +183,7 @@ When running `view_arm.launch.py`, the following topics are available:
   - Published by: joint_state_publisher or joint_state_publisher_gui
 
 - `/tf` (tf2_msgs/TFMessage)
-  - Transform tree from base_fixture_link to all robot links
+  - Transform tree from base_link to all robot links
   - Published by: robot_state_publisher
 
 - `/tf_static` (tf2_msgs/TFMessage)
@@ -216,14 +216,14 @@ urdf_to_graphiz $(ros2 pkg prefix arm_description)/share/arm_description/urdf/hu
 ## Coordinate Frames (TF Tree)
 
 ```
-base_fixture_link
+base_link
 └── shoulder_motor_link
     └── upper_arm_link
         └── shoulder_pitch_motor_link
             └── forearm_link
                 └── elbow_motor_link
                     └── elbow_flange_link
-                        └── wrist_base_fixture_link
+                        └── wrist_base_link
                             └── wrist_motor_link
                                 └── wrist_pitch_link
                                     └── wrist_assembly_link
@@ -282,7 +282,7 @@ This package is used by:
 **Solution:**
 1. Check that RobotModel display is added
 2. Verify "Robot Description" parameter is set to `/robot_description`
-3. Confirm Fixed Frame is set to `base_fixture_link`
+3. Confirm Fixed Frame is set to `base_link`
 4. Check terminal for error messages
 
 ### Issue: Joint sliders not appearing

@@ -1,25 +1,41 @@
 sensors:
-  - default_sensor
-  - kinect_depthimage
-default_sensor:
-  far_clipping_plane_distance: 5.0
+  - depth_camera
+ 
+depth_camera:
+  # Plugin type for point cloud processing
+  sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+ 
+  # Point cloud source
+  point_cloud_topic: /camera/depth/points
+ 
+  # Reference frame for the sensor (camera optical frame)
+  # Point cloud Z-axis filtering is relative to THIS frame
+  # For depth cameras: +Z points INTO the scene (away from camera)
+  #                    -Z points BACK towards the camera
+ 
+  # Z-axis filtering (in camera_depth_optical_frame)
+  # IMPORTANT: Only accept points in FRONT of camera (positive Z)
+  point_cloud_min_z: 0.1       # Minimum 10cm in front of camera (avoid noise at lens)
+  point_cloud_max_z: 3.0       # Maximum 3m range (typical workspace depth)
+ 
+  # Range limits
+  max_range: 5.0               # Maximum sensor range (meters)
+ 
+  # Point cloud downsampling for performance
+  # 1 = no downsampling (use all points)
+  # 2 = use every 2nd point (4x faster)
+  # 4 = use every 4th point (16x faster)
+  point_subsample: 1           # No downsampling for accuracy
+ 
+  # Collision padding (safety margin around detected obstacles)
+  padding_offset: 0.05         # 5cm safety padding
+  padding_scale: 1.0           # Linear padding scale
+ 
+  # Update rate
+  max_update_rate: 5.0         # Process point clouds at 5 Hz (real-time)
+ 
+  # Free space detection - CRITICAL for dynamic environments
+  # Raycasting marks voxels between camera and obstacles as FREE
+  # This allows the map to clear when objects are removed
   filtered_cloud_topic: filtered_cloud
-  image_topic: /camera/depth/image_raw
-  max_update_rate: 1.0
-  near_clipping_plane_distance: 0.3
-  padding_offset: 0.03
-  padding_scale: 4.0
-  queue_size: 5
-  sensor_plugin: occupancy_map_monitor/DepthImageOctomapUpdater
-  shadow_threshold: 0.2
-kinect_depthimage:
-  far_clipping_plane_distance: 5.0
-  filtered_cloud_topic: filtered_cloud
-  image_topic: /head_mount_kinect/depth_registered/image_raw
-  max_update_rate: 1.0
-  near_clipping_plane_distance: 0.3
-  padding_offset: 0.03
-  padding_scale: 4.0
-  queue_size: 5
-  sensor_plugin: occupancy_map_monitor/DepthImageOctomapUpdater
-  shadow_threshold: 0.2
+ 
