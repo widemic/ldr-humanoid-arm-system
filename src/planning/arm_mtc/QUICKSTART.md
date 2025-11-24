@@ -1,196 +1,184 @@
-# Quick Start Guide - arm_mtc Package
+# MTC Pick-and-Place Quick Start Guide
 
-This guide will get you up and running with MoveIt Task Constructor for the 5-DOF humanoid arm in under 5 minutes.
+This guide will get you up and running with the MoveIt Task Constructor pick-and-place demo in 5 minutes.
 
-## Installation
+## Prerequisites
 
-### 1. Install MTC Dependencies
+1. Workspace is built:
+   ```bash
+   cd ~/your_workspace
+   colcon build
+   source install/setup.bash
+   ```
 
+2. MTC is installed:
+   ```bash
+   sudo apt install ros-jazzy-moveit-task-constructor-core
+   ```
+
+## Quick Demo
+
+### Step 1: Launch the Robot System
+
+Open terminal 1:
 ```bash
-sudo apt update
-sudo apt install ros-jazzy-moveit-task-constructor-core \
-                 ros-jazzy-moveit-task-constructor-msgs \
-                 ros-jazzy-moveit-task-constructor-visualization
+# Start robot system (Gazebo + Controllers)
+ros2 launch arm_system_bringup full_system.launch.py
 ```
 
-### 2. Build the Package
+Wait ~10 seconds for everything to initialize.
 
+### Step 2: Launch MTC Demo
+
+Open terminal 2:
 ```bash
-cd ~/Documents/GitHub/ldr-humanoid-arm-system  # Or your workspace root
-colcon build --packages-select arm_mtc
-source install/setup.bash
+# Run pick-and-place planning (includes move_group)
+ros2 launch arm_mtc pick_place_demo.launch.py execute:=false
 ```
 
-## Running the Demo
+Wait a few seconds for move_group and the MTC node to initialize.
 
-### Option 1: Simple Move Demo (Recommended for First Time)
-
-This demonstrates basic MTC usage with simple movements.
-
-**Terminal 1 - Gazebo:**
+Open terminal 3:
 ```bash
-source install/setup.bash
-ros2 launch arm_control sim.launch.py
+# Start RViz with MoveIt config
+rviz2 -d $(ros2 pkg prefix arm_moveit_config)/share/arm_moveit_config/config/moveit.rviz
 ```
 
-**Terminal 2 - MoveIt (wait ~20 seconds):**
+In RViz, add **Motion Planning Tasks** display:
+1. Click "Add" button
+2. Select "moveit_task_constructor_msgs" → "Motion Planning Tasks"
+3. Click OK
+
+You should see:
+- Console output in terminal 2: "Task planning succeeded with X solutions"
+- RViz: Planned trajectory visualization
+- Motion Planning Tasks panel: Stage-by-stage breakdown
+
+### Step 4: Execute the Task (Optional)
+
+To actually execute the planned motion, stop the current demo (Ctrl+C in terminal 2) and run:
+
+To actually execute the planned motion:
 ```bash
-source install/setup.bash
-ros2 launch arm_moveit_config demo.launch.py
+ros2 launch arm_mtc pick_place_demo.launch.py execute:=true
 ```
 
-**Terminal 3 - Run Simple Demo (wait until RViz shows the robot):**
-```bash
-source install/setup.bash
-ros2 run arm_mtc simple_move_demo.py
+Watch the robot perform the complete pick-and-place sequence!
+
+## What Just Happened?
+
+The MTC node:
+1. ✅ Created a planning scene with table and target object
+2. ✅ Built a task pipeline with 15+ stages
+3. ✅ Planned collision-free trajectories for each stage
+4. ✅ (If execute:=true) Sent trajectories to robot controllers
+
+## Customization
+
+### Change Object Location
+
+Edit [config/mtc_node_params.yaml](config/mtc_node_params.yaml):
+
+```yaml
+# Object parameters
+object_pose: [0.4, 0.1, 0.175, 0.0, 0.0, 0.0]  # Move object to new location
+place_pose: [0.2, -0.2, 0.175, 0.0, 0.0, 0.0]   # Change place location
 ```
 
-You should see the arm move to home position and back!
+Relaunch the demo.
 
-### Option 2: Pick and Place Demo
+### Change Object Type
 
-This demonstrates a more complex task with multiple stages.
-
-**Terminal 1 - Gazebo:**
-```bash
-source install/setup.bash
-ros2 launch arm_control sim.launch.py
+```yaml
+object_type: "box"  # Change from "cylinder" to "box"
+object_dimensions: [0.05, 0.05, 0.1]  # [x, y, z] for box
 ```
 
-**Terminal 2 - MoveIt (wait ~20 seconds):**
-```bash
-source install/setup.bash
-ros2 launch arm_moveit_config demo.launch.py
+### Adjust Planning Behavior
+
+```yaml
+# More grasp samples (slower but more solutions)
+grasp_pose_angle_delta: 0.1309  # ~7.5 degrees (smaller = more samples)
+
+# Faster planning (less precise)
+cartesian_step_size: 0.005  # Larger step size
+
+# More solutions
+max_solutions: 20
 ```
-
-**Terminal 3 - Run Pick and Place Demo:**
-```bash
-source install/setup.bash
-ros2 launch arm_mtc mtc_demo.launch.py
-```
-
-## Visualizing Tasks in RViz
-
-MTC provides visualization tools to inspect planned tasks:
-
-1. In RViz (Terminal 2), click **Panels → Add New Panel**
-2. Select **Motion Planning Tasks**
-3. In the new panel:
-   - Select the task from the dropdown
-   - Browse through different solution trajectories
-   - Inspect individual stages
-   - Play/pause the trajectory preview
 
 ## Troubleshooting
 
-### "Planning failed" Error
+### "Task planning failed"
 
-**Check controllers are running:**
+**Common causes**:
+- Object out of reach → Move `object_pose` closer
+- Collision detected → Check object doesn't overlap with table
+- IK solver timeout → Increase timeout in kinematics.yaml
+
+**Debug**:
 ```bash
+# Check robot state
+ros2 topic echo /joint_states
+
+# Check controllers
 ros2 control list_controllers
 ```
 
-Should show:
-- `arm_controller` [active]
-- `joint_state_broadcaster` [active]
+### "No solutions found in grasp stage"
 
-**Check MoveIt is ready:**
-```bash
-ros2 topic list | grep move_group
-```
+**Try**:
+1. Adjust `grasp_frame_transform` in config
+2. Increase `grasp_pose_max_ik_solutions`
+3. Check gripper frame matches SRDF end-effector
 
-Should show several `/move_group/*` topics.
+### RViz doesn't show trajectory
 
-### "No solutions found"
-
-- Increase planning timeout in [config/mtc_config.yaml](config/mtc_config.yaml)
-- Verify the "home" pose exists in the SRDF
-- Check joint limits aren't violated
-
-### Import Errors
-
-If you see Python import errors:
-
-```bash
-# Re-source after building
-source install/setup.bash
-
-# Verify package is installed
-ros2 pkg list | grep arm_mtc
-```
+**Fix**:
+1. Ensure "Motion Planning Tasks" display is added
+2. Check topic: `/mtc/solution` should have messages
+3. Verify task is planning successfully (check console)
 
 ## Next Steps
 
-1. **Modify the simple demo** - Edit [scripts/simple_move_demo.py](scripts/simple_move_demo.py)
-   - Add custom joint positions
-   - Create new movement sequences
+1. **Modify the pipeline**: Edit [src/mtc_node.cpp](src/mtc_node.cpp) to add custom stages
+2. **Integrate perception**: Use real-time object detection instead of static objects
+3. **Add fallback strategies**: Try multiple planners (OMPL → Pilz → Cartesian)
+4. **Test with real hardware**: Change `use_sim:=false` when robot is connected
 
-2. **Explore configuration** - Edit [config/mtc_config.yaml](config/mtc_config.yaml)
-   - Adjust planning parameters
-   - Modify workspace bounds
-   - Change approach/retreat behaviors
+## Full Documentation
 
-3. **Create custom tasks** - See [README.md](README.md) for examples
-   - Learn about different stage types
-   - Combine stages for complex behaviors
-
-4. **Add gripper integration** - When gripper hardware is available
-   - Uncomment gripper stages in pick_place_demo.py
-   - Configure gripper controllers
+See [README.md](README.md) for complete documentation including:
+- Full task pipeline explanation
+- All configuration parameters
+- Advanced usage examples
+- Troubleshooting guide
 
 ## Useful Commands
 
 ```bash
-# List all MTC-related packages
-ros2 pkg list | grep moveit_task_constructor
+# Check MTC node is running
+ros2 node list | grep mtc
 
-# Check MTC version
-ros2 pkg xml moveit_task_constructor_core | grep version
+# View task parameters
+ros2 param list /mtc_node
 
-# Monitor task execution
-ros2 topic echo /execute_task_solution
+# Monitor planning scene
+ros2 topic echo /planning_scene
 
-# Debug planning
-ros2 topic echo /move_group/display_planned_path
+# Check joint states
+ros2 topic echo /joint_states
+
+# View controller status
+ros2 control list_controllers
 ```
 
-## Configuration Files
+## Support
 
-- **Task parameters**: [config/mtc_config.yaml](config/mtc_config.yaml)
-- **Launch file**: [launch/mtc_demo.launch.py](launch/mtc_demo.launch.py)
-- **Demo scripts**: [scripts/](scripts/)
+- [MTC Tutorial](https://moveit.picknik.ai/main/doc/tutorials/pick_and_place_with_moveit_task_constructor/pick_and_place_with_moveit_task_constructor.html)
+- [Project Documentation](../../../docs/ARCHITECTURE.md)
+- [Implementation Guide](../../../mtc_implementation_guide.md)
 
-## Architecture Overview
+---
 
-```
-arm_mtc (Your Task Definition)
-    ↓
-MoveIt Task Constructor Core
-    ↓
-MoveIt Move Group (Planning)
-    ↓
-arm_controller (Execution)
-    ↓
-Gazebo Simulation (or Real Hardware)
-```
-
-## Getting Help
-
-- Full documentation: [README.md](README.md)
-- MTC tutorials: https://moveit.picknik.ai/main/doc/tutorials/pick_and_place_with_moveit_task_constructor/
-- Issues: https://github.com/widemic/ldr-humanoid-arm-system/issues
-
-## Example Task Output
-
-When running successfully, you should see output like:
-
-```
-[INFO] [simple_move_demo]: Initializing Simple Move Task...
-[INFO] [simple_move_demo]: Task pipeline configured with 5 stages
-[INFO] [simple_move_demo]: Planning task...
-[INFO] [simple_move_demo]: Planning succeeded! Found 1 solution(s)
-[INFO] [simple_move_demo]: Executing task...
-[INFO] [simple_move_demo]: Task execution succeeded!
-```
-
-Happy planning! 🤖
+**Happy Manipulating! 🦾**
