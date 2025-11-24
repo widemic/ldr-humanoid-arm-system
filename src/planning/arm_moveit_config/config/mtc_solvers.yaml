@@ -1,0 +1,67 @@
+# MoveIt Task Constructor Stage Solvers Configuration
+# This file defines the solvers used by different MTC stages
+
+# Cartesian path planner for linear movements
+cartesian:
+  type: "cartesian_path"
+  step_size: 0.01          # Interpolation step size in meters
+  jump_threshold: 0.0      # Maximum allowed joint space jump (0 = disabled)
+  min_fraction: 0.9        # Minimum fraction of path that must be achievable
+
+# Joint interpolation planner for simple joint movements
+joint_interpolation:
+  type: "joint_interpolation"
+  max_step: 0.1            # Maximum joint step in radians
+
+# Sampling-based planner (OMPL) for complex motions
+pipeline:
+  name: "ompl"
+  planning_plugin: "ompl_interface/OMPLPlanner"
+  request_adapters: >-
+    default_planner_request_adapters/AddTimeOptimalParameterization
+    default_planner_request_adapters/ResolveConstraintFrames
+    default_planner_request_adapters/FixWorkspaceBounds
+    default_planner_request_adapters/FixStartStateBounds
+    default_planner_request_adapters/FixStartStateCollision
+    default_planner_request_adapters/FixStartStatePathConstraints
+  start_state_max_bounds_error: 0.1
+
+# Pilz industrial motion planner for predictable motions
+pilz_industrial_motion_planner:
+  planning_plugin: "pilz_industrial_motion_planner/CommandPlanner"
+  request_adapters: ""
+  capabilities: >-
+    pilz_industrial_motion_planner/MoveGroupLinCartesianService
+    pilz_industrial_motion_planner/MoveGroupJointCartesianService
+  default_planner_config: "PTP"  # Point-to-Point
+
+  # Pilz planner types
+  PTP:  # Point-to-Point (joint space)
+    planning_plugin: "pilz_industrial_motion_planner/PlanningPipelinePTP"
+  LIN:  # Linear in Cartesian space
+    planning_plugin: "pilz_industrial_motion_planner/PlanningPipelineLIN"
+  CIRC: # Circular in Cartesian space
+    planning_plugin: "pilz_industrial_motion_planner/PlanningPipelineCIRC"
+
+# Deep grasp planning (for grasping stages)
+deep_grasp:
+  type: "deep_grasp"
+  angle_delta: 0.1         # Angular resolution for grasp sampling (radians)
+  ik_frame: "tcp_link"     # End-effector frame for IK
+
+# MTC-specific solver parameters
+mtc:
+  # Global timeout for all solvers (seconds)
+  timeout: 5.0
+
+  # Number of planning attempts
+  max_attempts: 10
+
+  # Velocity/acceleration scaling
+  max_velocity_scaling_factor: 1.0
+  max_acceleration_scaling_factor: 1.0
+
+  # Workspace bounds (meters relative to planning frame)
+  workspace:
+    min_corner: [-2.0, -2.0, -2.0]
+    max_corner: [2.0, 2.0, 2.0]
