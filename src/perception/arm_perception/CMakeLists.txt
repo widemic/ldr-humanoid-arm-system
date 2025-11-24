@@ -35,6 +35,9 @@ install(PROGRAMS
   scripts/planning_scene_updater.py
   scripts/dynamic_object_tracker.py
   scripts/test_environment_publisher.py
+  scripts/test_workspace.py
+  scripts/pick_and_place_cylinder.py
+  scripts/pick_and_place_action.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -30,14 +30,14 @@ class TestEnvironmentPublisher(Node):
     TABLE_THICKNESS = 0.02  # Height/thickness
 
     # Table position (center of table)
-    TABLE_X = -0.2         # Distance from robot base (closer: was -0.5)
-    TABLE_Y = 0.55            # Lateral position (more centered: was 0.4)
-    TABLE_Z = 1.1            # Height of table center (higher: was 0.9)
+    TABLE_X = -0.3         # Distance from robot base (closer: was -0.5)
+    TABLE_Y = 0.35            # Lateral position (more centered: was 0.4)
+    TABLE_Z = 0.9            # Height of table center (higher: was 0.9)
 
     # Destination Table position (center of table)
     DEST_TABLE_X = -0.7         # Distance from robot base (farther from robot)
     DEST_TABLE_Y = 0.0          # Lateral position (centered)
-    DEST_TABLE_Z = 1.1          # Height of table center (same as source table)
+    DEST_TABLE_Z = 0.9          # Height of table center (same as source table)
 
     # Cylinder dimensions
     CYLINDER_RADIUS = 0.03  # Radius (3cm)
