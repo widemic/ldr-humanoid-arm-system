@@ -6,10 +6,14 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
-install(DIRECTORY scripts/
-  DESTINATION share/${PROJECT_NAME}/scripts
-  USE_SOURCE_PERMISSIONS
+# Install Python scripts as executables
+install(PROGRAMS
+  scripts/check_mtc.py
+  scripts/mtc_simple_demo.py
+  scripts/mtc_pick_place_demo.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY launch/
