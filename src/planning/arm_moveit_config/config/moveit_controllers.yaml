@@ -20,6 +20,7 @@ moveit_simple_controller_manager:
     default: true
   hand_controller:
     type: GripperCommand
+    command_joint: left_palm_right_finger
     joints:
       - left_palm_left_finger
       - left_palm_right_finger

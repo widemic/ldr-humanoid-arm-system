@@ -29,7 +29,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
-# MTC Node executable
+# MTC Node executable (original complex version)
 add_executable(mtc_node src/mtc_node.cpp)
 
 ament_target_dependencies(mtc_node
@@ -44,9 +44,41 @@ ament_target_dependencies(mtc_node
   tf2_geometry_msgs
 )
 
+# MTC Node 2 executable (simple tutorial version)
+add_executable(mtc_node2 src/mtc_node2.cpp)
+
+ament_target_dependencies(mtc_node2
+  rclcpp
+  moveit_task_constructor_core
+  moveit_task_constructor_msgs
+  moveit_ros_planning_interface
+  moveit_core
+  geometry_msgs
+  shape_msgs
+  tf2_eigen
+  tf2_geometry_msgs
+)
+
+# MTC Pick Place Cylinder executable (complete pick and place demo)
+add_executable(mtc_pick_place_cylinder src/mtc_pick_place_cylinder.cpp)
+
+ ament_target_dependencies(mtc_pick_place_cylinder
+  rclcpp
+  moveit_task_constructor_core
+  moveit_task_constructor_msgs
+  moveit_ros_planning_interface
+  moveit_core
+  geometry_msgs
+  shape_msgs
+  tf2_eigen
+  tf2_geometry_msgs
+)
+
 # Install executables
 install(TARGETS
   mtc_node
+  mtc_node2
+  mtc_pick_place_cylinder
   DESTINATION lib/${PROJECT_NAME}
 )
 
