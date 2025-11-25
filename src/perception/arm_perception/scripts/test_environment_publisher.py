@@ -22,38 +22,57 @@ from std_msgs.msg import Header
 class TestEnvironmentPublisher(Node):
     """Publishes test objects (table + cylinder) to MoveIt planning scene"""
 
-    # ========== CONFIGURATION PARAMETERS ==========
-
-    # Table dimensions (X, Y, Z in meters)
-    TABLE_LENGTH = 0.5      # Front-to-back dimension
-    TABLE_WIDTH = 0.3       # Left-to-right dimension
-    TABLE_THICKNESS = 0.02  # Height/thickness
-
-    # Table position (center of table)
-    TABLE_X = -0.3         # Distance from robot base (closer: was -0.5)
-    TABLE_Y = 0.35            # Lateral position (more centered: was 0.4)
-    TABLE_Z = 0.9            # Height of table center (higher: was 0.9)
-
-    # Destination Table position (center of table)
-    DEST_TABLE_X = -0.7         # Distance from robot base (farther from robot)
-    DEST_TABLE_Y = 0.0          # Lateral position (centered)
-    DEST_TABLE_Z = 0.9          # Height of table center (same as source table)
-
-    # Cylinder dimensions
-    CYLINDER_RADIUS = 0.03  # Radius (3cm)
-    CYLINDER_HEIGHT = 0.15  # Height (15cm)
-
-    # Cylinder position on table (X, Y relative to table center)
-    CYLINDER_OFFSET_X = 0.0 # X offset from table center (0 = centered)
-    CYLINDER_OFFSET_Y = 0.0 # Y offset from table center (0 = centered)
-
-    # Reference frame
-    FRAME_ID = 'base_link'
-
-    # ==============================================
-
     def __init__(self):
         super().__init__('test_environment_publisher')
+
+        # Declare parameters from YAML
+        self.declare_parameter('world_frame', 'base_link')
+        self.declare_parameter('source_table.name', 'test_table')
+        self.declare_parameter('source_table.position.x', -0.45)
+        self.declare_parameter('source_table.position.y', 0.30)
+        self.declare_parameter('source_table.position.z', 0.95)
+        self.declare_parameter('source_table.dimensions.length', 0.5)
+        self.declare_parameter('source_table.dimensions.width', 0.3)
+        self.declare_parameter('source_table.dimensions.thickness', 0.02)
+
+        self.declare_parameter('destination_table.name', 'destination_table')
+        self.declare_parameter('destination_table.position.x', -0.60)
+        self.declare_parameter('destination_table.position.y', -0.30)
+        self.declare_parameter('destination_table.position.z', 0.95)
+        self.declare_parameter('destination_table.dimensions.length', 0.5)
+        self.declare_parameter('destination_table.dimensions.width', 0.3)
+        self.declare_parameter('destination_table.dimensions.thickness', 0.02)
+
+        self.declare_parameter('cylinder.name', 'test_cylinder')
+        self.declare_parameter('cylinder.dimensions.height', 0.15)
+        self.declare_parameter('cylinder.dimensions.radius', 0.03)
+        self.declare_parameter('cylinder.position_offset.x', 0.0)
+        self.declare_parameter('cylinder.position_offset.y', 0.0)
+
+        # Load parameters
+        self.frame_id = self.get_parameter('world_frame').value
+
+        # Source table
+        self.table_name = self.get_parameter('source_table.name').value
+        self.table_x = self.get_parameter('source_table.position.x').value
+        self.table_y = self.get_parameter('source_table.position.y').value
+        self.table_z = self.get_parameter('source_table.position.z').value
+        self.table_length = self.get_parameter('source_table.dimensions.length').value
+        self.table_width = self.get_parameter('source_table.dimensions.width').value
+        self.table_thickness = self.get_parameter('source_table.dimensions.thickness').value
+
+        # Destination table
+        self.dest_table_name = self.get_parameter('destination_table.name').value
+        self.dest_table_x = self.get_parameter('destination_table.position.x').value
+        self.dest_table_y = self.get_parameter('destination_table.position.y').value
+        self.dest_table_z = self.get_parameter('destination_table.position.z').value
+
+        # Cylinder
+        self.cylinder_name = self.get_parameter('cylinder.name').value
+        self.cylinder_height = self.get_parameter('cylinder.dimensions.height').value
+        self.cylinder_radius = self.get_parameter('cylinder.dimensions.radius').value
+        self.cylinder_offset_x = self.get_parameter('cylinder.position_offset.x').value
+        self.cylinder_offset_y = self.get_parameter('cylinder.position_offset.y').value
 
         # Publisher for collision objects
         self.collision_pub = self.create_publisher(
@@ -79,23 +98,23 @@ class TestEnvironmentPublisher(Node):
         self.publish_test_environment()
         if not self.logged_initial:
             # Calculate cylinder position for logging
-            table_top_z = self.TABLE_Z + (self.TABLE_THICKNESS / 2.0)
-            cyl_z = table_top_z + (self.CYLINDER_HEIGHT / 2.0)
-            cyl_x = self.TABLE_X + self.CYLINDER_OFFSET_X
-            cyl_y = self.TABLE_Y + self.CYLINDER_OFFSET_Y
+            table_top_z = self.table_z + (self.table_thickness / 2.0)
+            cyl_z = table_top_z + (self.cylinder_height / 2.0)
+            cyl_x = self.table_x + self.cylinder_offset_x
+            cyl_y = self.table_y + self.cylinder_offset_y
 
             self.get_logger().info('✅ Test environment published successfully!')
             self.get_logger().info('Objects:')
             self.get_logger().info(
-                f'  - Source Table: {self.TABLE_LENGTH}m x {self.TABLE_WIDTH}m x {self.TABLE_THICKNESS}m '
-                f'at ({self.TABLE_X}, {self.TABLE_Y}, {self.TABLE_Z})'
+                f'  - Source Table: {self.table_length}m x {self.table_width}m x {self.table_thickness}m '
+                f'at ({self.table_x}, {self.table_y}, {self.table_z})'
             )
             self.get_logger().info(
-                f'  - Destination Table: {self.TABLE_LENGTH}m x {self.TABLE_WIDTH}m x {self.TABLE_THICKNESS}m '
-                f'at ({self.DEST_TABLE_X}, {self.DEST_TABLE_Y}, {self.DEST_TABLE_Z})'
+                f'  - Destination Table: {self.table_length}m x {self.table_width}m x {self.table_thickness}m '
+                f'at ({self.dest_table_x}, {self.dest_table_y}, {self.dest_table_z})'
             )
             self.get_logger().info(
-                f'  - Cylinder: radius={self.CYLINDER_RADIUS}m, height={self.CYLINDER_HEIGHT}m '
+                f'  - Cylinder: radius={self.cylinder_radius}m, height={self.cylinder_height}m '
                 f'at ({cyl_x:.3f}, {cyl_y:.3f}, {cyl_z:.3f})'
             )
             self.logged_initial = True
@@ -115,22 +134,22 @@ class TestEnvironmentPublisher(Node):
         """Publish a table as a box"""
         table = CollisionObject()
         table.header = Header()
-        table.header.frame_id = self.FRAME_ID
+        table.header.frame_id = self.frame_id
         table.header.stamp = self.get_clock().now().to_msg()
 
-        table.id = 'test_table'
+        table.id = self.table_name
         table.operation = CollisionObject.ADD
 
-        # Table dimensions from class variables
+        # Table dimensions from parameters
         box = SolidPrimitive()
         box.type = SolidPrimitive.BOX
-        box.dimensions = [self.TABLE_LENGTH, self.TABLE_WIDTH, self.TABLE_THICKNESS]
+        box.dimensions = [self.table_length, self.table_width, self.table_thickness]
 
-        # Table position from class variables
+        # Table position from parameters
         pose = Pose()
-        pose.position.x = self.TABLE_X
-        pose.position.y = self.TABLE_Y
-        pose.position.z = self.TABLE_Z
+        pose.position.x = self.table_x
+        pose.position.y = self.table_y
+        pose.position.z = self.table_z
         pose.orientation.w = 1.0  # No rotation
 
         table.primitives.append(box)
@@ -142,22 +161,22 @@ class TestEnvironmentPublisher(Node):
         """Publish a destination table as a box"""
         dest_table = CollisionObject()
         dest_table.header = Header()
-        dest_table.header.frame_id = self.FRAME_ID
+        dest_table.header.frame_id = self.frame_id
         dest_table.header.stamp = self.get_clock().now().to_msg()
 
-        dest_table.id = 'destination_table'
+        dest_table.id = self.dest_table_name
         dest_table.operation = CollisionObject.ADD
 
         # Use same dimensions as main table
         box = SolidPrimitive()
         box.type = SolidPrimitive.BOX
-        box.dimensions = [self.TABLE_LENGTH, self.TABLE_WIDTH, self.TABLE_THICKNESS]
+        box.dimensions = [self.table_length, self.table_width, self.table_thickness]
 
-        # Destination table position from class variables
+        # Destination table position from parameters
         pose = Pose()
-        pose.position.x = self.DEST_TABLE_X
-        pose.position.y = self.DEST_TABLE_Y
-        pose.position.z = self.DEST_TABLE_Z
+        pose.position.x = self.dest_table_x
+        pose.position.y = self.dest_table_y
+        pose.position.z = self.dest_table_z
         pose.orientation.w = 1.0  # No rotation
 
         dest_table.primitives.append(box)
@@ -169,27 +188,27 @@ class TestEnvironmentPublisher(Node):
         """Publish a cylinder object to grasp (automatically positioned on table)"""
         cylinder = CollisionObject()
         cylinder.header = Header()
-        cylinder.header.frame_id = self.FRAME_ID
+        cylinder.header.frame_id = self.frame_id
         cylinder.header.stamp = self.get_clock().now().to_msg()
 
-        cylinder.id = 'test_cylinder'
+        cylinder.id = self.cylinder_name
         cylinder.operation = CollisionObject.ADD
 
-        # Cylinder dimensions from class variables
+        # Cylinder dimensions from parameters
         cyl = SolidPrimitive()
         cyl.type = SolidPrimitive.CYLINDER
-        cyl.dimensions = [self.CYLINDER_HEIGHT, self.CYLINDER_RADIUS]
+        cyl.dimensions = [self.cylinder_height, self.cylinder_radius]
 
         # Calculate cylinder position:
-        # 1. Table top Z = TABLE_Z + TABLE_THICKNESS/2
-        # 2. Cylinder center Z = table_top_z + CYLINDER_HEIGHT/2
+        # 1. Table top Z = table_z + table_thickness/2
+        # 2. Cylinder center Z = table_top_z + cylinder_height/2
         # 3. X, Y = TABLE position + offsets
-        table_top_z = self.TABLE_Z + (self.TABLE_THICKNESS / 2.0)
-        cylinder_z = table_top_z + (self.CYLINDER_HEIGHT / 2.0)
+        table_top_z = self.table_z + (self.table_thickness / 2.0)
+        cylinder_z = table_top_z + (self.cylinder_height / 2.0)
 
         pose = Pose()
-        pose.position.x = self.TABLE_X + self.CYLINDER_OFFSET_X
-        pose.position.y = self.TABLE_Y + self.CYLINDER_OFFSET_Y
+        pose.position.x = self.table_x + self.cylinder_offset_x
+        pose.position.y = self.table_y + self.cylinder_offset_y
         pose.position.z = cylinder_z
         pose.orientation.w = 1.0  # Upright orientation
 
@@ -200,10 +219,10 @@ class TestEnvironmentPublisher(Node):
 
     def clear_environment(self):
         """Clear all test objects from planning scene"""
-        for obj_id in ['test_table', 'destination_table', 'test_cylinder']:
+        for obj_id in [self.table_name, self.dest_table_name, self.cylinder_name]:
             remove_obj = CollisionObject()
             remove_obj.header = Header()
-            remove_obj.header.frame_id = self.FRAME_ID
+            remove_obj.header.frame_id = self.frame_id
             remove_obj.header.stamp = self.get_clock().now().to_msg()
             remove_obj.id = obj_id
             remove_obj.operation = CollisionObject.REMOVE
