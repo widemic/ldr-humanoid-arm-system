@@ -208,28 +208,6 @@ void MTCTaskNode::doTask()
     grasp->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "hand", "group", "ik_frame" });
 
     /****************************************************
-  ---- *               Approach Object                    *
-     ***************************************************/
-    {
-      // Approach distance should be small since grasp poses are already near the object
-      // Cylinder radius = 3cm, palm thickness ~2-3cm, so minimum clearance ~1cm
-      const double approach_min = 0.0;    // Allow zero approach if already at grasp pose
-      const double approach_max = 0.10;   // Maximum 10cm approach distance
-      auto stage = std::make_unique<mtc::stages::MoveRelative>("approach object", cartesian_planner);
-      stage->properties().set("marker_ns", "approach_object");
-      stage->properties().set("link", hand_frame);
-      stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-      stage->setMinMaxDistance(approach_min, approach_max);
-
-      // Approach direction in hand_frame (following tutorial pattern)
-      geometry_msgs::msg::Vector3Stamped vec;
-      vec.header.frame_id = hand_frame;
-      vec.vector.z = 1.0;  // approach along hand Z axis
-      stage->setDirection(vec);
-      grasp->insert(std::move(stage));
-    }
-
-    /****************************************************
   ---- *               Generate Grasp Pose (sampled)    *
      ***************************************************/
     {
@@ -245,7 +223,25 @@ void MTCTaskNode::doTask()
       auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
       wrapper->setMaxIKSolutions(8);
       wrapper->setMinSolutionDistance(1.0);
-      wrapper->setIKFrame(hand_frame);  // Direct frame, no transform
+      
+
+
+         // Grasp frame transform: defines where on the gripper the object center should be
+      // AND the orientation of the gripper relative to the grasp approach
+      Eigen::Isometry3d grasp_frame_transform = Eigen::Isometry3d::Identity();
+      
+      // Rotation: align gripper with grasp direction
+      // GenerateGraspPose creates poses where X points towards object, Z is up (cylinder axis)
+      // We need to rotate so our gripper's finger direction (Y) points toward object
+      // Rotate -90 degrees around Z to align gripper Y with grasp X
+      Eigen::AngleAxisd rotation(M_PI / 12, Eigen::Vector3d::UnitZ());
+      grasp_frame_transform.linear() = rotation.toRotationMatrix();
+      
+      // Translation: offset along the NEW Y axis (which was X before rotation)
+      // This puts the object center between the fingers
+      grasp_frame_transform.translation().y() = 0.08;  // 8cm offset
+      
+      wrapper->setIKFrame(grasp_frame_transform, hand_frame);
 
       wrapper->setIgnoreCollisions(true);
       wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
@@ -313,8 +309,8 @@ void MTCTaskNode::doTask()
       geometry_msgs::msg::Vector3Stamped vec;
       vec.header.frame_id = world_frame;  // base_link
       vec.vector.x = 0.0;
-      vec.vector.y = -1.0;  // UP is -Y direction in base_link!
-      vec.vector.z = 0.0;
+      vec.vector.y = 0.0;  
+      vec.vector.z = 1.0;
       stage->setDirection(vec);
       grasp->insert(std::move(stage));
     }
@@ -356,78 +352,38 @@ void MTCTaskNode::doTask()
     place->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "hand", "group" });
 
     /******************************************************
-  ---- *          Generate Place Pose (fixed world)        *
+     *          Generate Place Pose (Object-Relative)       *
      *****************************************************/
     {
-      const int max_ik_solutions = this->get_parameter("grasp.max_ik_solutions").as_int();
-      const double min_solution_distance = this->get_parameter("grasp.min_solution_distance").as_double();
-
-      // Destination pose: above destination table top
-      // Adjusted position for better reachability (flexibility of ~10cm)
-      const double dest_table_x = this->get_parameter("destination_table.position.x").as_double();
-      const double dest_table_y = this->get_parameter("destination_table.position.y").as_double();
-      const double dest_table_z = this->get_parameter("destination_table.position.z").as_double();
-      const double dest_table_thickness = this->get_parameter("destination_table.dimensions.thickness").as_double();
-      const double cylinder_height = this->get_parameter("cylinder.dimensions.height").as_double();
-      const double dest_table_top_z = dest_table_z + (dest_table_thickness / 2.0);
-      const double target_z = dest_table_top_z + (cylinder_height / 2.0);  // cylinder center at table top
-
-      auto stage = std::make_unique<mtc::stages::GeneratePose>("generate place pose");
-      stage->properties().configureInitFrom(mtc::Stage::PARENT, { "ik_frame" });
+      // Use GeneratePlacePose with SMALL reachable offset
+      auto stage = std::make_unique<mtc::stages::GeneratePlacePose>("generate place pose");
+      stage->properties().configureInitFrom(mtc::Stage::PARENT);
       stage->properties().set("marker_ns", "place_pose");
+      stage->setObject("test_cylinder");
+
+      // Pose is RELATIVE TO OBJECT
+      // Small offset to make it reachable (tutorial used 0.5m which is too far!)
+      geometry_msgs::msg::PoseStamped p;
+      p.header.frame_id = "test_cylinder";  // Relative to object
+      p.pose.position.x = +0.15;  // 15cm to the left (opposite of pick direction)
+      p.pose.position.y = 0.0;    // No Y offset
+      p.pose.position.z = 0.0;   // No Z offset (same height)
+      p.pose.orientation.w = 1.0;  // Identity orientation
+      stage->setPose(p);
       stage->setMonitoredStage(pick_stage_ptr);
 
-      geometry_msgs::msg::PoseStamped place_pose;
-      place_pose.header.frame_id = world_frame;
-      // Try position closer to robot base (10cm forward in Z) for better reach
-      place_pose.pose.position.x = dest_table_x + 0.10;  // 10cm forward (closer to robot)
-      place_pose.pose.position.y = dest_table_y;
-      place_pose.pose.position.z = target_z + 0.05;  // Only 5cm above (not 10cm)
-
-      // Rotate 180° around Z axis (blue/up) to flip the hand orientation
-      // This makes: Green → back, Red → left, Blue → up
-      Eigen::Quaterniond q(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
-      place_pose.pose.orientation.x = q.x();
-      place_pose.pose.orientation.y = q.y();
-      place_pose.pose.orientation.z = q.z();
-      place_pose.pose.orientation.w = q.w();
-
-      stage->setPose(place_pose);
-
+      // IK wrapper - use OBJECT frame
       auto wrapper = std::make_unique<mtc::stages::ComputeIK>("place pose IK", std::move(stage));
-      wrapper->setMaxIKSolutions(max_ik_solutions);
-      wrapper->setMinSolutionDistance(min_solution_distance);
-      wrapper->setIKFrame(hand_frame);
-      wrapper->setIgnoreCollisions(true);
-      wrapper->setGroup("arm");
+      wrapper->setMaxIKSolutions(8);  // More solutions for better chance
+      wrapper->setMinSolutionDistance(0.05);
+      wrapper->setIKFrame("test_cylinder");  // IK frame is the OBJECT
       wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
       wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
       place->insert(std::move(wrapper));
     }
 
     /******************************************************
-  ---- *          Lower Object to Table                   *
-     *****************************************************/
-    {
-      // Lower the object from approach height (10cm above) down to table surface
-      auto stage = std::make_unique<mtc::stages::MoveRelative>("lower object", cartesian_planner);
-      stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-      stage->setMinMaxDistance(0.08, 0.12);  // Lower 8-12cm (covers the +0.10 offset)
-      stage->setIKFrame(hand_frame);
-      stage->properties().set("marker_ns", "lower_object");
-
-      // Move downward (-Y direction in base_link)
-      geometry_msgs::msg::Vector3Stamped vec;
-      vec.header.frame_id = world_frame;  // base_link
-      vec.vector.x = 0.0;
-      vec.vector.y = 1.0;   // DOWN is +Y direction (opposite of lift)
-      vec.vector.z = 0.0;
-      stage->setDirection(vec);
-      place->insert(std::move(stage));
-    }
-
-    /******************************************************
-  ---- *          Open Hand                              *
+     *          Open Hand                                 *
      *****************************************************/
     {
       auto stage = std::make_unique<mtc::stages::MoveTo>("open hand", sampling_planner);
@@ -437,7 +393,18 @@ void MTCTaskNode::doTask()
     }
 
     /******************************************************
-  ---- *          Detach Object                          *
+     *          Forbid collision (hand,object)            *
+     *****************************************************/
+    {
+      // TUTORIAL PATTERN: Forbid collisions after opening hand (line 448-451)
+      auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("forbid collision (hand,object)");
+      stage->allowCollisions("test_cylinder",
+                             *task_.getRobotModel()->getJointModelGroup(hand_group), false);
+      place->insert(std::move(stage));
+    }
+
+    /******************************************************
+     *          Detach Object                             *
      *****************************************************/
     {
       auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("detach object");
@@ -446,46 +413,21 @@ void MTCTaskNode::doTask()
     }
 
     /******************************************************
-  ---- *          Retreat Motion                            *
+     *          Retreat Motion                            *
      *****************************************************/
     {
-      // Stronger retreat upward; allow zero minimum to avoid failures when already clear
+      // TUTORIAL PATTERN: Retreat motion (line 467-476)
+      // Adapted for base_link frame: retreat in -Z direction (backward)
       auto stage = std::make_unique<mtc::stages::MoveRelative>("retreat after place", cartesian_planner);
       stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-      stage->setMinMaxDistance(0.0, 0.30);
+      stage->setMinMaxDistance(0.05, 0.3);  // Tutorial uses these values
       stage->setIKFrame(hand_frame);
       stage->properties().set("marker_ns", "retreat");
-      geometry_msgs::msg::Vector3Stamped vec;
-      vec.header.frame_id = world_frame;
-      vec.vector.z = 1.0;
-      stage->setDirection(vec);
-      place->insert(std::move(stage));
-    }
 
-    /******************************************************
-  ---- *          Clear Object (extra lift)             *
-     *****************************************************/
-    {
-      auto stage = std::make_unique<mtc::stages::MoveRelative>("clear object", cartesian_planner);
-      stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-      stage->setMinMaxDistance(0.0, 0.15);  // allow zero if already clear
-      stage->setIKFrame(hand_frame);
-      stage->properties().set("marker_ns", "clear_object");
       geometry_msgs::msg::Vector3Stamped vec;
-      vec.header.frame_id = world_frame;
-      vec.vector.z = 1.0;
+      vec.header.frame_id = world_frame;  // base_link
+      vec.vector.z = 1;  // Retreat backward (tutorial pattern)
       stage->setDirection(vec);
-      place->insert(std::move(stage));
-    }
-
-    /******************************************************
-  ---- *          allow collision (hand, object)        *
-     *****************************************************/
-    {
-      auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("allow collision (hand,object)");
-      stage->allowCollisions("test_cylinder",
-                           *task_.getRobotModel()->getJointModelGroup("hand"),
-                           true);
       place->insert(std::move(stage));
     }
 
