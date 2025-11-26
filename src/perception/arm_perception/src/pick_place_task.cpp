@@ -137,6 +137,8 @@ void MTCTaskNode::doTask()
   const double max_velocity_scaling = this->get_parameter("planner.max_velocity_scaling").as_double();
   const double max_acceleration_scaling = this->get_parameter("planner.max_acceleration_scaling").as_double();
 
+  const double object_radius = this->get_parameter("cylinder.dimensions.radius").as_double();
+
   // Create planners (following tutorial pattern exactly)
   auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(shared_from_this());
   sampling_planner->setProperty("goal_joint_tolerance", goal_joint_tolerance);
@@ -216,6 +218,26 @@ void MTCTaskNode::doTask()
     task_.properties().exposeTo(grasp->properties(), { "eef", "hand", "group", "ik_frame" });
     grasp->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "hand", "group", "ik_frame" });
 
+
+    /****************************************************
+  ---- *               Approach Object (15cm offset)    *
+     ***************************************************/
+    {
+      auto stage = std::make_unique<mtc::stages::MoveRelative>("approach object", cartesian_planner);
+      stage->properties().set("marker_ns", "approach_object");
+      stage->properties().set("link", hand_frame);
+      stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
+      stage->setMinMaxDistance(0.0, 0.15);  // Approach up to 15cm
+      stage->setIKFrame(hand_frame);
+
+      // Approach direction: move forward in hand frame (negative Z in base_link)
+      geometry_msgs::msg::Vector3Stamped vec;
+      vec.header.frame_id = hand_frame;
+      vec.vector.z = -1.0;  // Approach along hand frame Z axis (towards object)
+      stage->setDirection(vec);
+      grasp->insert(std::move(stage));
+    }
+    
     /****************************************************
   ---- *               Generate Grasp Pose (sampled)    *
      ***************************************************/
@@ -228,31 +250,30 @@ void MTCTaskNode::doTask()
       stage->setAngleDelta(M_PI / 12);  // 15 degrees between grasp samples (tutorial pattern)
       stage->setMonitoredStage(initial_state_ptr);
 
-      // ComputeIK wrapper - try without transform first to verify IK works
+      // ComputeIK wrapper - use collision detection to validate grasp poses
       auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
       wrapper->setMaxIKSolutions(8);
       wrapper->setMinSolutionDistance(1.0);
 
-
-
-         // Grasp frame transform: defines where on the gripper the object center should be
-      // AND the orientation of the gripper relative to the grasp approach
+      // Grasp frame transform: defines where on the gripper the object center should be
+      // GenerateGraspPose creates poses at object surface, we need offset to position gripper correctly
       Eigen::Isometry3d grasp_frame_transform = Eigen::Isometry3d::Identity();
-      
+
       // Rotation: align gripper with grasp direction
       // GenerateGraspPose creates poses where X points towards object, Z is up (cylinder axis)
-      // We need to rotate so our gripper's finger direction (Y) points toward object
-      // Rotate -90 degrees around Z to align gripper Y with grasp X
+      // Rotate 15 degrees around Z to align gripper optimally
       Eigen::AngleAxisd rotation(M_PI / 12, Eigen::Vector3d::UnitZ());
       grasp_frame_transform.linear() = rotation.toRotationMatrix();
 
-      // Translation: offset along the NEW Y axis (which was X before rotation)
-      // This puts the object center between the fingers
-      grasp_frame_transform.translation().y() = 0.08;  // 8cm offset
+      // Translation: offset to position object between fingers
+      // This offset accounts for gripper geometry - places object center at grasp point
+      grasp_frame_transform.translation().y() = 0.08;  // 8cm offset for gripper geometry
 
       wrapper->setIKFrame(grasp_frame_transform, hand_frame);
 
-      wrapper->setIgnoreCollisions(true);
+      // Enable collision detection - validates that grasp poses are collision-free
+      // This ensures gripper doesn't collide with object or environment during grasp
+      wrapper->setIgnoreCollisions(false);
       wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
       wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
       grasp->insert(std::move(wrapper));
@@ -280,12 +301,44 @@ void MTCTaskNode::doTask()
     }
 
     /****************************************************
-  ---- *               Close Hand                      *
+  ---- *               Close Hand (around object)      *
      ***************************************************/
     {
+      // Calculate gripper closing position based on object radius
+      // IMPORTANT: Gripper logic (from SRDF):
+      //   right_finger: -0.033m = OPEN (fully), +0.00026m = CLOSE (fully)
+      //   Positive = closing, Negative = opening
+      //
+      // We need to calculate position where gripper touches object sides
+      // Object radius determines how far fingers can close before touching
+
+      const double safety_margin = 0.0000002;  // 2mm safety margin
+
+      // Map object radius to gripper position
+      // When object_radius = 0.033m (max open), gripper should be at -0.033 (fully open)
+      // When object_radius = 0m (no object), gripper can be at +0.00026 (fully closed)
+      // Linear interpolation: position = -object_radius + safety_margin
+      double gripper_close_position = -(object_radius + safety_margin);
+
+      // Clamp to joint limits to avoid exceeding hardware limits
+      const double GRIPPER_LIMIT_OPEN = -0.033;    // Maximum opening (most negative)
+      const double GRIPPER_LIMIT_CLOSED = 0.00026; // Maximum closing (most positive)
+      gripper_close_position = std::max(GRIPPER_LIMIT_OPEN,
+                                       std::min(GRIPPER_LIMIT_CLOSED, gripper_close_position));
+
+      // Close gripper to calculated position (not fully closed)
+      // NOTE: Only control right finger - left finger is a mimic joint (multiplier=-1.0)
       auto stage = std::make_unique<mtc::stages::MoveTo>("close hand", sampling_planner);
       stage->setGroup(hand_group);
-      stage->setGoal(hand_close_pose);
+
+      // Set explicit joint goal for RIGHT finger only (left mimics automatically)
+      std::map<std::string, double> gripper_positions;
+      gripper_positions["left_palm_right_finger"] = gripper_close_position;
+      stage->setGoal(gripper_positions);
+
+      RCLCPP_INFO(LOGGER, "Close hand: object_radius=%.4fm, position=%.4fm (limits: [%.4f, %.4f])",
+                  object_radius, gripper_close_position, GRIPPER_LIMIT_OPEN, GRIPPER_LIMIT_CLOSED);
+
       grasp->insert(std::move(stage));
     }
 
@@ -403,12 +456,37 @@ void MTCTaskNode::doTask()
     }
 
     /******************************************************
-     *          Open Hand                                 *
+     *          Open Hand (release object)               *
      *****************************************************/
     {
+      // Open gripper to release object
+      // Right finger limits: [-0.033m (closed), +0.00026m (open)]
+      // NOTE: Only control right finger - left finger is a mimic joint (multiplier=-1.0)
+
+      // Open gripper fully to release object
+      // IMPORTANT: Gripper logic (from SRDF):
+      //   right_finger: -0.033 = OPEN, +0.0002 = CLOSE
+      //   Negative values = opening
+
+      double gripper_open_position = -0.03;  // Negative = open (not fully to avoid limits)
+
+      // Clamp to joint limits
+      const double GRIPPER_LIMIT_OPEN = -0.033;    // Maximum opening (most negative)
+      const double GRIPPER_LIMIT_CLOSED = 0.00026; // Maximum closing (most positive)
+      gripper_open_position = std::max(GRIPPER_LIMIT_OPEN,
+                                      std::min(GRIPPER_LIMIT_CLOSED, gripper_open_position));
+
       auto stage = std::make_unique<mtc::stages::MoveTo>("open hand", sampling_planner);
       stage->setGroup(hand_group);
-      stage->setGoal(hand_open_pose);
+
+      // Set explicit joint goal for RIGHT finger only (left mimics automatically)
+      std::map<std::string, double> gripper_positions;
+      gripper_positions["left_palm_right_finger"] = gripper_open_position;
+      stage->setGoal(gripper_positions);
+
+      RCLCPP_INFO(LOGGER, "Open hand: object_radius=%.4f, position=%.4f (limits: [%.4f, %.4f])",
+                  object_radius, gripper_open_position, GRIPPER_LIMIT_CLOSED, GRIPPER_LIMIT_OPEN);
+
       place->insert(std::move(stage));
     }
 

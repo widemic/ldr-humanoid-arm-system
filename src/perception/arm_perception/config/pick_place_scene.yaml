@@ -34,7 +34,7 @@
       name: "test_cylinder"
       dimensions:
         height: 0.15    # 15cm tall
-        radius: 0.01    # 3cm radius
+        radius: 0.03    # 3cm radius
       position_offset:
         x: 0.0          # Offset from table center (X)
         y: 0.0          # Offset from table center (Y)
