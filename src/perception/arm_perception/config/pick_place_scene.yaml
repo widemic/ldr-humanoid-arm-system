@@ -20,7 +20,7 @@
     destination_table:
       name: "destination_table"
       position:
-        x: -0.60      # Moved farther (matches test_environment_publisher patch)
+        x: -0.45      # Moved farther (matches test_environment_publisher patch)
         y: -0.35      # Left side (symmetric)
         z: 0.95       # Same height
       dimensions:

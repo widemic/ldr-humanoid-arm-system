@@ -123,6 +123,19 @@ void MTCTaskNode::doTask()
   const std::string arm_ready_pose = this->get_parameter("poses.arm_ready").as_string();
   const std::string world_frame = this->get_parameter("world_frame").as_string();
 
+  const double grasp_angle_delta = this->get_parameter("grasp.angle_delta").as_double();
+  const int grasp_max_ik_solutions = this->get_parameter("grasp.max_ik_solutions").as_int();
+  const double grasp_min_solution_distance = this->get_parameter("grasp.min_solution_distance").as_double();
+  const double grasp_tcp_offset_x = this->get_parameter("grasp.tcp_offset.x").as_double();
+  const double grasp_tcp_offset_y = this->get_parameter("grasp.tcp_offset.y").as_double();
+  const double grasp_tcp_offset_z = this->get_parameter("grasp.tcp_offset.z").as_double();
+
+  const double dest_table_x = this->get_parameter("destination_table.position.x").as_double();
+  const double dest_table_y = this->get_parameter("destination_table.position.y").as_double();
+  const double dest_table_z = this->get_parameter("destination_table.position.z").as_double();
+  const double dest_table_thickness = this->get_parameter("destination_table.dimensions.thickness").as_double();
+  const double cylinder_height = this->get_parameter("cylinder.dimensions.height").as_double();
+
   const double goal_joint_tolerance = this->get_parameter("planner.goal_joint_tolerance").as_double();
   const double cartesian_step_size = this->get_parameter("planner.cartesian_step_size").as_double();
   const double max_velocity_scaling = this->get_parameter("planner.max_velocity_scaling").as_double();
@@ -223,7 +236,7 @@ void MTCTaskNode::doTask()
       auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
       wrapper->setMaxIKSolutions(8);
       wrapper->setMinSolutionDistance(1.0);
-      
+
 
 
          // Grasp frame transform: defines where on the gripper the object center should be
@@ -240,7 +253,7 @@ void MTCTaskNode::doTask()
       // Translation: offset along the NEW Y axis (which was X before rotation)
       // This puts the object center between the fingers
       grasp_frame_transform.translation().y() = 0.08;  // 8cm offset
-      
+
       wrapper->setIKFrame(grasp_frame_transform, hand_frame);
 
       wrapper->setIgnoreCollisions(true);
@@ -352,33 +365,44 @@ void MTCTaskNode::doTask()
     place->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "hand", "group" });
 
     /******************************************************
-     *          Generate Place Pose (Object-Relative)       *
+     *          Generate Place Pose (Destination Table)     *
      *****************************************************/
     {
-      // Use GeneratePlacePose with SMALL reachable offset
+      // Place object on destination table (absolute position in world frame)
       auto stage = std::make_unique<mtc::stages::GeneratePlacePose>("generate place pose");
-      stage->properties().configureInitFrom(mtc::Stage::PARENT);
-      stage->properties().set("marker_ns", "place_pose");
+        stage->properties().configureInitFrom(mtc::Stage::PARENT);
+        stage->properties().set("marker_ns", "place_pose");
       stage->setObject("test_cylinder");
 
-      // Pose is RELATIVE TO OBJECT
-      // Small offset to make it reachable (tutorial used 0.5m which is too far!)
+      // Pose is in WORLD FRAME (base_link), on destination table surface
       geometry_msgs::msg::PoseStamped p;
-      p.header.frame_id = "test_cylinder";  // Relative to object
-      p.pose.position.x = +0.15;  // 15cm to the left (opposite of pick direction)
-      p.pose.position.y = 0.0;    // No Y offset
-      p.pose.position.z = 0.0;   // No Z offset (same height)
+      p.header.frame_id = world_frame;  // Absolute position in world frame
+      p.pose.position.x = dest_table_x;
+      p.pose.position.y = dest_table_y;
+      // Place on table surface: table_z + half_thickness + half_cylinder_height
+      p.pose.position.z = dest_table_z + (dest_table_thickness / 2.0) + (cylinder_height / 2.0);
       p.pose.orientation.w = 1.0;  // Identity orientation
       stage->setPose(p);
-      stage->setMonitoredStage(pick_stage_ptr);
+        stage->setMonitoredStage(pick_stage_ptr);
 
-      // IK wrapper - use OBJECT frame
+      // IK wrapper - use hand frame for IK with offset
       auto wrapper = std::make_unique<mtc::stages::ComputeIK>("place pose IK", std::move(stage));
       wrapper->setMaxIKSolutions(8);  // More solutions for better chance
       wrapper->setMinSolutionDistance(0.05);
-      wrapper->setIKFrame("test_cylinder");  // IK frame is the OBJECT
-      wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
-      wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
+
+      // Place frame transform: same 8cm offset as grasp
+      Eigen::Isometry3d place_frame_transform = Eigen::Isometry3d::Identity();
+
+      // Rotation: align gripper with place direction (same as grasp)
+      Eigen::AngleAxisd rotation(M_PI / 12, Eigen::Vector3d::UnitZ());
+      place_frame_transform.linear() = rotation.toRotationMatrix();
+
+      // Translation: 8cm offset along Y axis (same as grasp)
+      place_frame_transform.translation().y() = 0.08;
+
+      wrapper->setIKFrame(place_frame_transform, hand_frame);
+        wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
+        wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
       place->insert(std::move(wrapper));
     }
 
