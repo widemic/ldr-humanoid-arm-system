@@ -21,6 +21,9 @@
 #include <geometry_msgs/msg/vector3_stamped.hpp>
 #include <Eigen/Geometry>
 
+#include <iostream>
+#include <unistd.h>  // for getpid()
+
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("mtc_pick_place");
 namespace mtc = moveit::task_constructor;
 
@@ -122,13 +125,6 @@ void MTCTaskNode::doTask()
   const std::string arm_home_pose = this->get_parameter("poses.arm_home").as_string();
   const std::string arm_ready_pose = this->get_parameter("poses.arm_ready").as_string();
   const std::string world_frame = this->get_parameter("world_frame").as_string();
-
-  const double grasp_angle_delta = this->get_parameter("grasp.angle_delta").as_double();
-  const int grasp_max_ik_solutions = this->get_parameter("grasp.max_ik_solutions").as_int();
-  const double grasp_min_solution_distance = this->get_parameter("grasp.min_solution_distance").as_double();
-  const double grasp_tcp_offset_x = this->get_parameter("grasp.tcp_offset.x").as_double();
-  const double grasp_tcp_offset_y = this->get_parameter("grasp.tcp_offset.y").as_double();
-  const double grasp_tcp_offset_z = this->get_parameter("grasp.tcp_offset.z").as_double();
 
   const double dest_table_x = this->get_parameter("destination_table.position.x").as_double();
   const double dest_table_y = this->get_parameter("destination_table.position.y").as_double();
@@ -249,7 +245,7 @@ void MTCTaskNode::doTask()
       // Rotate -90 degrees around Z to align gripper Y with grasp X
       Eigen::AngleAxisd rotation(M_PI / 12, Eigen::Vector3d::UnitZ());
       grasp_frame_transform.linear() = rotation.toRotationMatrix();
-      
+
       // Translation: offset along the NEW Y axis (which was X before rotation)
       // This puts the object center between the fingers
       grasp_frame_transform.translation().y() = 0.08;  // 8cm offset
@@ -515,6 +511,34 @@ int main(int argc, char** argv)
   options.automatically_declare_parameters_from_overrides(true);
 
   auto mtc_task_node = std::make_shared<MTCTaskNode>(options);
+
+#ifndef NDEBUG
+  // DEBUG BUILD ONLY: Wait for continue signal
+  // Check for /tmp/mtc_debug_wait file - delete it to continue
+  const char* debug_flag = "/tmp/mtc_debug_wait";
+  if (access(debug_flag, F_OK) == 0) {
+    std::cout << "\n";
+    std::cout << "========================================\n";
+    std::cout << "🐛 DEBUG BUILD: Waiting for continue signal\n";
+    std::cout << "========================================\n";
+    std::cout << "Process ID: " << getpid() << "\n";
+    std::cout << "Build Type: Debug\n";
+    std::cout << "\nTo continue execution, run in another terminal:\n";
+    std::cout << "  rm /tmp/mtc_debug_wait\n";
+    std::cout << "\nOr to disable debug wait:\n";
+    std::cout << "  Rebuild with: colcon build --packages-select arm_perception\n";
+    std::cout << "  (without -DCMAKE_BUILD_TYPE=Debug)\n";
+    std::cout << "\nWaiting for signal...\n";
+    std::cout << "========================================\n\n";
+
+    // Wait until file is deleted
+    while (access(debug_flag, F_OK) == 0) {
+      std::cout << "Waiting... (PID: " << getpid() << ")\r" << std::flush;
+      sleep(1);
+    }
+    std::cout << "\n✅ Continue signal received!\n\n";
+  }
+#endif
 
   rclcpp::executors::MultiThreadedExecutor executor;
 
