@@ -1,0 +1,27 @@
+# BoT-SORT Configuration - AGGRESSIVE TRACKING FOR FAST MOTION
+# Optimized for single moving object with maximum ID persistence
+
+tracker_type: botsort
+
+# Detection thresholds - ULTRA-LOW for fast motion and difficult angles
+track_high_thresh: 0.20    # High confidence threshold
+track_low_thresh: 0.03     # ULTRA-low confidence threshold (extremely permissive)
+new_track_thresh: 0.10     # New track creation threshold (HARDER to create new tracks)
+
+# Track persistence - MAXIMUM
+track_buffer: 300          # Keep tracks for 10 seconds at 30fps (300 frames)
+
+# Matching - ULTRA-LENIENT
+match_thresh: 0.20         # IoU matching threshold (even lower = even easier matching)
+fuse_score: true           # Fuse detection confidence with tracking score
+
+# Global Motion Compensation (GMC) - helps with camera/object motion
+gmc_method: sparseOptFlow  # Use optical flow for motion compensation
+
+# ReID (Re-Identification) - ENABLED for appearance-based tracking
+with_reid: true            # Enable ReID for long-term tracking
+proximity_thresh: 0.5      # Spatial proximity for ReID (HIGHER = more lenient spatial matching)
+appearance_thresh: 0.5     # Appearance similarity (LOWER = more lenient appearance matching)
+
+# Model configuration
+model: auto                # Use model's built-in feature extractor
