@@ -20,3 +20,4 @@
 **/.vscode/
 */.code-workspace
 /.claude/
+*.pt
