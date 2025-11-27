@@ -20,6 +20,15 @@
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("mtc_pick_place_cylinder");
 namespace mtc = moveit::task_constructor;
 
+// Object configuration structure
+struct ObjectConfig {
+  std::string id;
+  double radius;
+  double height;
+  double pick_x, pick_y, pick_z;
+  double place_x, place_y, place_z;
+};
+
 class MTCPickPlaceCylinder
 {
 public:
@@ -27,14 +36,17 @@ public:
 
   rclcpp::node_interfaces::NodeBaseInterface::SharedPtr getNodeBaseInterface();
 
-  void doTask();
+  bool doTask();
 
   void setupPlanningScene();
+  
+  bool loadObjectConfig();
 
 private:
   mtc::Task createTask();
   mtc::Task task_;
   rclcpp::Node::SharedPtr node_;
+  ObjectConfig object_config_;
 };
 
 MTCPickPlaceCylinder::MTCPickPlaceCylinder(const rclcpp::NodeOptions& options)
@@ -47,53 +59,108 @@ rclcpp::node_interfaces::NodeBaseInterface::SharedPtr MTCPickPlaceCylinder::getN
   return node_->get_node_base_interface();
 }
 
-void MTCPickPlaceCylinder::setupPlanningScene()
+bool MTCPickPlaceCylinder::loadObjectConfig()
 {
-  moveit_msgs::msg::CollisionObject cylinder;
-  cylinder.id = "target_cylinder";
-  cylinder.header.frame_id = "base_link";
-  cylinder.primitives.resize(1);
-  cylinder.primitives[0].type = shape_msgs::msg::SolidPrimitive::CYLINDER;
-  cylinder.primitives[0].dimensions = { 0.15, 0.025 };  // height: 15cm, radius: 2.5cm
+  // Declare parameters if not already declared (handles both command-line and default cases)
+  auto declare_if_not_declared = [this](const std::string& name, const auto& default_value) {
+    if (!node_->has_parameter(name)) {
+      node_->declare_parameter(name, default_value);
+    }
+  };
 
-  geometry_msgs::msg::Pose cylinder_pose;
-  cylinder_pose.position.x = -0.2;   // 30cm in front of robot
-  cylinder_pose.position.y = 0.5;   // Centered
-  cylinder_pose.position.z = 1.2; // On table surface: table_top(0.7) + half_cylinder_height(0.075)
+  declare_if_not_declared("object_id", std::string("target_cylinder"));
+  declare_if_not_declared("object_radius", 0.025);
+  declare_if_not_declared("object_height", 0.15);
+  declare_if_not_declared("pick_x", -0.2);
+  declare_if_not_declared("pick_y", 0.5);
+  declare_if_not_declared("pick_z", 1.2);
+  declare_if_not_declared("place_x", -0.2);
+  declare_if_not_declared("place_y", -0.5);
+  declare_if_not_declared("place_z", 1.2);
 
-  // Cylinder orientation: identity quaternion means:
-  // - X-axis points forward (same as base_link X)
-  // - Y-axis points left (same as base_link Y)
-  // - Z-axis points up (cylinder standing vertical)
-  cylinder_pose.orientation.x = 0.0;
-  cylinder_pose.orientation.y = 0.0;
-  cylinder_pose.orientation.z = 0.0;
-  cylinder_pose.orientation.w = 1.0;
-  cylinder.pose = cylinder_pose;
+  object_config_.id = node_->get_parameter("object_id").as_string();
+  object_config_.radius = node_->get_parameter("object_radius").as_double();
+  object_config_.height = node_->get_parameter("object_height").as_double();
+  object_config_.pick_x = node_->get_parameter("pick_x").as_double();
+  object_config_.pick_y = node_->get_parameter("pick_y").as_double();
+  object_config_.pick_z = node_->get_parameter("pick_z").as_double();
+  object_config_.place_x = node_->get_parameter("place_x").as_double();
+  object_config_.place_y = node_->get_parameter("place_y").as_double();
+  object_config_.place_z = node_->get_parameter("place_z").as_double();
 
-  // Add table as collision object
-  moveit_msgs::msg::CollisionObject table;
-  table.id = "table";
-  table.header.frame_id = "base_link";
-  table.primitives.resize(1);
-  table.primitives[0].type = shape_msgs::msg::SolidPrimitive::BOX;
-  table.primitives[0].dimensions = { 0.5, 0.5, 0.2 };  // width, depth, height
+  RCLCPP_INFO(LOGGER, "Loaded object config: id=%s, radius=%.3f, height=%.3f",
+              object_config_.id.c_str(), object_config_.radius, object_config_.height);
+  RCLCPP_INFO(LOGGER, "Pick pose: (%.3f, %.3f, %.3f)",
+              object_config_.pick_x, object_config_.pick_y, object_config_.pick_z);
+  RCLCPP_INFO(LOGGER, "Place pose: (%.3f, %.3f, %.3f)",
+              object_config_.place_x, object_config_.place_y, object_config_.place_z);
 
-  geometry_msgs::msg::Pose table_pose;
-  table_pose.position.x = 0.3;   // In front of robot, aligned with cylinder
-  table_pose.position.y = 0.0;   // Centered
-  table_pose.position.z = 0.6;   // Table surface at z=0.7 (half_height=0.1 + 0.6)
-  table_pose.orientation.w = 1.0;
-  table.pose = table_pose;
-
-  moveit::planning_interface::PlanningSceneInterface psi;
-  psi.applyCollisionObject(cylinder);
-  psi.applyCollisionObject(table);
-
-  RCLCPP_INFO(LOGGER, "Planning scene setup complete: cylinder and table added");
+  return true;
 }
 
-void MTCPickPlaceCylinder::doTask()
+void MTCPickPlaceCylinder::setupPlanningScene()
+{
+  moveit::planning_interface::PlanningSceneInterface psi;
+  
+  // Helper to declare parameter if not already declared
+  auto declare_if_not_declared = [this](const std::string& name, bool default_value) {
+    if (!node_->has_parameter(name)) {
+      node_->declare_parameter(name, default_value);
+    }
+  };
+  
+  // Check if we should spawn the object (external script may have already done it)
+  declare_if_not_declared("spawn_object", true);
+  bool spawn_object = node_->get_parameter("spawn_object").as_bool();
+  
+  if (spawn_object) {
+    moveit_msgs::msg::CollisionObject cylinder;
+    cylinder.id = object_config_.id;
+    cylinder.header.frame_id = "base_link";
+    cylinder.primitives.resize(1);
+    cylinder.primitives[0].type = shape_msgs::msg::SolidPrimitive::CYLINDER;
+    cylinder.primitives[0].dimensions = { object_config_.height, object_config_.radius };
+
+    geometry_msgs::msg::Pose cylinder_pose;
+    cylinder_pose.position.x = object_config_.pick_x;
+    cylinder_pose.position.y = object_config_.pick_y;
+    cylinder_pose.position.z = object_config_.pick_z;
+    cylinder_pose.orientation.w = 1.0;
+    cylinder.pose = cylinder_pose;
+
+    psi.applyCollisionObject(cylinder);
+    RCLCPP_INFO(LOGGER, "Spawned object '%s' at (%.3f, %.3f, %.3f)",
+                object_config_.id.c_str(), object_config_.pick_x, 
+                object_config_.pick_y, object_config_.pick_z);
+  } else {
+    RCLCPP_INFO(LOGGER, "Skipping object spawn (spawn_object=false)");
+  }
+  
+  // Check if table should be added
+  declare_if_not_declared("spawn_table", true);
+  if (node_->get_parameter("spawn_table").as_bool()) {
+    moveit_msgs::msg::CollisionObject table;
+    table.id = "table";
+    table.header.frame_id = "base_link";
+    table.primitives.resize(1);
+    table.primitives[0].type = shape_msgs::msg::SolidPrimitive::BOX;
+    table.primitives[0].dimensions = { 0.5, 0.5, 0.2 };
+
+    geometry_msgs::msg::Pose table_pose;
+    table_pose.position.x = 0.3;
+    table_pose.position.y = 0.0;
+    table_pose.position.z = 0.6;
+    table_pose.orientation.w = 1.0;
+    table.pose = table_pose;
+
+    psi.applyCollisionObject(table);
+    RCLCPP_INFO(LOGGER, "Spawned table");
+  }
+
+  RCLCPP_INFO(LOGGER, "Planning scene setup complete");
+}
+
+bool MTCPickPlaceCylinder::doTask()
 {
   task_ = createTask();
 
@@ -104,14 +171,14 @@ void MTCPickPlaceCylinder::doTask()
   catch (mtc::InitStageException& e)
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Task initialization failed: " << e);
-    return;
+    return false;
   }
 
   RCLCPP_INFO(LOGGER, "Starting task planning (max 5 solutions)...");
   if (!task_.plan(5))
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Task planning failed");
-    return;
+    return false;
   }
 
   task_.introspection().publishSolution(*task_.solutions().front());
@@ -123,10 +190,11 @@ void MTCPickPlaceCylinder::doTask()
   if (result.val != moveit_msgs::msg::MoveItErrorCodes::SUCCESS)
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Task execution failed with error code: " << result.val);
-    return;
+    return false;
   }
 
   RCLCPP_INFO(LOGGER, "Task executed successfully!");
+  return true;
 }
 
 mtc::Task MTCPickPlaceCylinder::createTask()
@@ -138,6 +206,24 @@ mtc::Task MTCPickPlaceCylinder::createTask()
   const auto& arm_group_name = "arm";
   const auto& hand_group_name = "hand";
   const auto& hand_frame = "left_palm";
+
+  // ========== CONFIGURABLE PARAMETERS ==========
+  // Pre-grasp offset: distance from palm origin for IK (must be > 0 to avoid collision)
+  // This is where the gripper will be BEFORE the approach
+  const double pre_grasp_offset = 0.15;  // 15cm - stand-off distance for IK
+  
+  // Approach: move from pre_grasp position toward the object
+  // Final grasp position = pre_grasp_offset - approach_distance
+  const double approach_min_dist = 0.05;  // 5cm minimum approach (final offset = 10cm)
+  const double approach_max_dist = 0.25;  // 25cm maximum approach
+  
+  // Grasp offset for place stage (where object center is relative to palm)
+  const double grasp_offset = 0.05;  // 5cm - approximate final grasp position
+  
+  const double lift_min_dist = 0.02;
+  const double lift_max_dist = 0.10;
+  const double retreat_min_dist = 0.02;
+  const double retreat_max_dist = 0.10;
 
   // Set task properties
   task.setProperty("group", arm_group_name);
@@ -210,10 +296,10 @@ mtc::Task MTCPickPlaceCylinder::createTask()
     {
       auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("allow collision (hand,object)");
       stage->allowCollisions(
-        "target_cylinder",
+        object_config_.id,
         task.getRobotModel()->getJointModelGroup(hand_group_name)->getLinkModelNamesWithCollisionGeometry(),
         true);
-      stage->allowCollisions("target_cylinder", "left_hand", true);
+      stage->allowCollisions(object_config_.id, "left_hand", true);
       grasp->insert(std::move(stage));
     }
 
@@ -223,18 +309,9 @@ mtc::Task MTCPickPlaceCylinder::createTask()
       stage->properties().configureInitFrom(mtc::Stage::PARENT);
       stage->properties().set("marker_ns", "grasp_pose");
       stage->setPreGraspPose("open");
-      stage->setObject("target_cylinder");
+      stage->setObject(object_config_.id);
       stage->setAngleDelta(M_PI / 6);  // 12 poses around cylinder (30 degrees apart)
       stage->setMonitoredStage(current_state_ptr);
-
-      // IMPORTANT: GenerateGraspPose for cylinders creates poses where:
-      // - The pose rotates around the cylinder's Z-axis at different angles
-      // - X-axis points radially INWARD (toward cylinder center)
-      // - Y-axis points tangentially (perpendicular to radius)
-      // - Z-axis points along cylinder axis (upward for standing cylinder)
-      //
-      // If the grey gripper doesn't look radially aligned, it means the cylinder's
-      // frame orientation is not identity, or GenerateGraspPose is using a different convention
 
       // Wrap with ComputeIK
       auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
@@ -243,57 +320,105 @@ mtc::Task MTCPickPlaceCylinder::createTask()
       wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
       wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
 
-      // Grasp frame transform: defines where on the gripper the object center should be
-      // The red target gripper is already correctly oriented radially around cylinder
-      // So we only need translation offset, NO rotation
+      // Pre-grasp frame transform: offset from palm to object center
+      // This positions the gripper at a stand-off distance, then approach moves closer
       Eigen::Isometry3d grasp_frame_transform = Eigen::Isometry3d::Identity();
-
-      // Translation: 8cm offset to position object center between fingers
-      // This is the distance from left_palm origin to where the object should be grasped
-      grasp_frame_transform.translation().y() = 0.08;
-
+      grasp_frame_transform.translation().y() = pre_grasp_offset;
       wrapper->setIKFrame(grasp_frame_transform, hand_frame);
 
       grasp->insert(std::move(wrapper));
     }
 
-    // 6.3: Close gripper around cylinder
-    // Calculate grip position based on cylinder radius (2.5cm = 0.025m)
-    // Fingers move along X axis, need to leave ~2.5cm gap on each side
+    // 6.3: Approach object (move gripper toward object along Y-axis of hand frame)
+    {
+      auto stage = std::make_unique<mtc::stages::MoveRelative>("approach object", cartesian_planner);
+      stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
+      stage->setMinMaxDistance(approach_min_dist, approach_max_dist);
+      stage->setIKFrame(hand_frame);
+      stage->properties().set("marker_ns", "approach");
+
+      // Move along Y-axis of hand_frame (toward the object)
+      geometry_msgs::msg::Vector3Stamped vec;
+      vec.header.frame_id = hand_frame;
+      vec.vector.y = 1.0;  // Positive Y = toward object (based on your gripper orientation)
+      stage->setDirection(vec);
+      grasp->insert(std::move(stage));
+    }
+
+    // 6.4: Close gripper - Query object size from planning scene and calculate grip position
     {
       auto stage = std::make_unique<mtc::stages::MoveTo>("close gripper", interpolation_planner);
       stage->setGroup(hand_group_name);
       
-      // Open: left=0.033, right=-0.033 (fingers apart)
-      // Close: left=-0.0041, right=0.0002 (fingers together)
-      // For 2.5cm radius cylinder, set fingers to grip around it
-      std::map<std::string, double> gripper_grasp;
-      gripper_grasp["left_palm_left_finger"] = 0.025;   // More open
-      gripper_grasp["left_palm_right_finger"] = -0.025; // More open
-      stage->setGoal(gripper_grasp);
+      // Query planning scene for object dimensions
+      moveit::planning_interface::PlanningSceneInterface psi;
+      auto objects = psi.getObjects({object_config_.id});
+      
+      double object_radius = 0.025;  // Default fallback
+      if (objects.count(object_config_.id) > 0) {
+        const auto& obj = objects[object_config_.id];
+        if (!obj.primitives.empty() && 
+            obj.primitives[0].type == shape_msgs::msg::SolidPrimitive::CYLINDER) {
+          // Cylinder dimensions: [height, radius]
+          object_radius = obj.primitives[0].dimensions[1];
+          RCLCPP_INFO(LOGGER, "Detected object '%s' radius from planning scene: %.4fm",
+                      object_config_.id.c_str(), object_radius);
+        }
+      } else {
+        RCLCPP_WARN(LOGGER, "Object '%s' not found in planning scene, using parameter radius",
+                    object_config_.id.c_str());
+        object_radius = object_config_.radius;
+      }
+      
+      // Calculate gripper position based on detected object size
+      // Add small clearance to avoid collision (fingers just touching, not penetrating)
+      const double clearance = 0.002;  // 2mm gap to avoid collision in planning
+      const double object_diameter = 2.0 * object_radius;
+      
+      const double left_open = 0.033;
+      const double right_open = -0.033;
+      const double total_open = left_open - right_open;  // 0.066m
+      
+      // Close to just touch the object (with clearance)
+      const double close_amount = (total_open - object_diameter - 2.0 * clearance) / 2.0;
+      
+      double left_closed = left_open - close_amount;
+      double right_closed = right_open + close_amount;
+      
+      // Clamp to valid range
+      left_closed = std::max(left_closed, 0.0);
+      right_closed = std::min(right_closed, 0.0);
+      
+      RCLCPP_INFO(LOGGER, "Gripper closing to: left=%.4f, right=%.4f (object diameter=%.4fm, clearance=%.4fm)",
+                  left_closed, right_closed, object_diameter, clearance);
+      
+      std::map<std::string, double> closed_position;
+      closed_position["left_palm_left_finger"] = left_closed;
+      closed_position["left_palm_right_finger"] = right_closed;
+      stage->setGoal(closed_position);
       
       grasp->insert(std::move(stage));
     }
 
-    // 6.4: Attach object after gripper closed
+    // 6.5: Attach object after gripper closed
     {
       auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("attach object");
-      stage->attachObject("target_cylinder", hand_frame);
+      stage->attachObject(object_config_.id, hand_frame);
       attach_object_ptr = stage.get();  // Save pointer for GeneratePlacePose
       grasp->insert(std::move(stage));
     }
 
-    // 6.5: Lift object (move up in base_link Z)
+    // 6.6: Lift object (move up in base_link Z)
     {
       auto stage = std::make_unique<mtc::stages::MoveRelative>("lift", cartesian_planner);
       stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-      stage->setMinMaxDistance(0.01, 0.05);
+      stage->setMinMaxDistance(lift_min_dist, lift_max_dist);
       stage->setIKFrame(hand_frame);
       stage->properties().set("marker_ns", "lift");
 
       geometry_msgs::msg::Vector3Stamped vec;
       vec.header.frame_id = "base_link";
-      vec.vector.z = 0.05;  // Lift 5cm
+      vec.vector.z = 1.0;  // Lift upward
       stage->setDirection(vec);
       grasp->insert(std::move(stage));
     }
@@ -321,14 +446,14 @@ mtc::Task MTCPickPlaceCylinder::createTask()
       auto stage = std::make_unique<mtc::stages::GeneratePlacePose>("generate place pose");
       stage->properties().configureInitFrom(mtc::Stage::PARENT);
       stage->properties().set("marker_ns", "place_pose");
-      stage->setObject("target_cylinder");
+      stage->setObject(object_config_.id);
 
-      // Place pose: x=-0.2, y=-0.5, z=1.2
+      // Place pose from parameters
       geometry_msgs::msg::PoseStamped place_pose;
       place_pose.header.frame_id = "base_link";
-      place_pose.pose.position.x = -0.2;
-      place_pose.pose.position.y = -0.5;
-      place_pose.pose.position.z = 1.2;
+      place_pose.pose.position.x = object_config_.place_x;
+      place_pose.pose.position.y = object_config_.place_y;
+      place_pose.pose.position.z = object_config_.place_z;
       place_pose.pose.orientation.w = 1.0;
       stage->setPose(place_pose);
       stage->setMonitoredStage(attach_object_ptr);  // Monitor stage where object is attached
@@ -340,9 +465,9 @@ mtc::Task MTCPickPlaceCylinder::createTask()
       wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
       wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
 
-      // Same grasp frame transform as picking
+      // Use same grasp frame transform as picking (configurable offset)
       Eigen::Isometry3d place_frame_transform = Eigen::Isometry3d::Identity();
-      place_frame_transform.translation().y() = 0.08;
+      place_frame_transform.translation().y() = grasp_offset;
       wrapper->setIKFrame(place_frame_transform, hand_frame);
 
       place->insert(std::move(wrapper));
@@ -360,31 +485,32 @@ mtc::Task MTCPickPlaceCylinder::createTask()
     {
       auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("forbid collision (hand,object)");
       stage->allowCollisions(
-        "target_cylinder",
+        object_config_.id,
         task.getRobotModel()->getJointModelGroup(hand_group_name)->getLinkModelNamesWithCollisionGeometry(),
         false);
-      stage->allowCollisions("target_cylinder", "left_hand", false);
+      stage->allowCollisions(object_config_.id, "left_hand", false);
       place->insert(std::move(stage));
     }
 
     // 8.4: Detach object
     {
       auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("detach object");
-      stage->detachObject("target_cylinder", hand_frame);
+      stage->detachObject(object_config_.id, hand_frame);
       place->insert(std::move(stage));
     }
 
-    // 8.5: Retreat from place (move back)
+    // 8.5: Retreat from place (move UP in world frame to avoid stacked objects)
     {
       auto stage = std::make_unique<mtc::stages::MoveRelative>("retreat", cartesian_planner);
       stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-      stage->setMinMaxDistance(0.02, 0.10);
+      stage->setMinMaxDistance(retreat_min_dist, retreat_max_dist);
       stage->setIKFrame(hand_frame);
       stage->properties().set("marker_ns", "retreat");
 
+      // Move UP in world frame (avoids collision with stacked cylinders)
       geometry_msgs::msg::Vector3Stamped vec;
-      vec.header.frame_id = hand_frame;
-      vec.vector.y = -1.0;  // Retreat away from object
+      vec.header.frame_id = "world";
+      vec.vector.z = 1.0;  // Retreat upward
       stage->setDirection(vec);
       place->insert(std::move(stage));
     }
@@ -412,25 +538,37 @@ int main(int argc, char** argv)
 
   auto mtc_node = std::make_shared<MTCPickPlaceCylinder>(options);
   rclcpp::executors::MultiThreadedExecutor executor;
+  executor.add_node(mtc_node->getNodeBaseInterface());
 
-  auto spin_thread = std::make_unique<std::thread>([&executor, &mtc_node]() {
-    executor.add_node(mtc_node->getNodeBaseInterface());
+  // Spin in background for service calls
+  auto spin_thread = std::make_unique<std::thread>([&executor]() {
     executor.spin();
-    executor.remove_node(mtc_node->getNodeBaseInterface());
   });
 
   // Wait for system initialization
-  RCLCPP_INFO(LOGGER, "Waiting for system initialization (5 seconds)...");
-  rclcpp::sleep_for(std::chrono::seconds(5));
+  RCLCPP_INFO(LOGGER, "Waiting for system initialization (3 seconds)...");
+  rclcpp::sleep_for(std::chrono::seconds(3));
+
+  // Load object configuration from parameters
+  if (!mtc_node->loadObjectConfig()) {
+    RCLCPP_ERROR(LOGGER, "Failed to load object configuration");
+    executor.cancel();
+    spin_thread->join();
+    rclcpp::shutdown();
+    return 1;
+  }
 
   mtc_node->setupPlanningScene();
 
-  RCLCPP_INFO(LOGGER, "Waiting 2 seconds for planning scene to update...");
-  rclcpp::sleep_for(std::chrono::seconds(2));
+  RCLCPP_INFO(LOGGER, "Waiting 1 second for planning scene to update...");
+  rclcpp::sleep_for(std::chrono::seconds(1));
 
-  mtc_node->doTask();
+  bool success = mtc_node->doTask();
 
+  // Task complete - shutdown cleanly
+  RCLCPP_INFO(LOGGER, "Task complete, shutting down...");
+  executor.cancel();
   spin_thread->join();
   rclcpp::shutdown();
-  return 0;
+  return success ? 0 : 1;
 }

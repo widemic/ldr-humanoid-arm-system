@@ -92,6 +92,7 @@ install(DIRECTORY
 # Install Python scripts
 install(PROGRAMS
   scripts/simple_pick.py
+  scripts/mtc_orchestrator.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
