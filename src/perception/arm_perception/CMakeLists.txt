@@ -64,6 +64,7 @@ install(PROGRAMS
   scripts/test_workspace.py
   scripts/pick_and_place_cylinder.py
   scripts/pick_and_place_action.py
+  scripts/mtc_solution_executor.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

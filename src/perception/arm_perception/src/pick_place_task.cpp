@@ -16,6 +16,7 @@
 #include <moveit/task_constructor/task.h>
 #include <moveit/task_constructor/solvers.h>
 #include <moveit/task_constructor/stages.h>
+#include <moveit_task_constructor_msgs/msg/solution.hpp>
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/vector3_stamped.hpp>
@@ -43,12 +44,18 @@ public:
 private:
   mtc::Task task_;
   rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base_interface_;
+  rclcpp::Publisher<moveit_task_constructor_msgs::msg::Solution>::SharedPtr solution_pub_;
+
+  bool publishBestSolution();
 };
 
 MTCTaskNode::MTCTaskNode(const rclcpp::NodeOptions& options)
   : Node("mtc_pick_place", options)
 {
   node_base_interface_ = this->get_node_base_interface();
+
+  // Publishes the selected MTC solution so the external executor can run it
+  solution_pub_ = this->create_publisher<moveit_task_constructor_msgs::msg::Solution>("/solution", 10);
 
   // Parameters are automatically declared from YAML via automatically_declare_parameters_from_overrides(true)
   // in main(), so we don't need to manually declare them here
@@ -197,11 +204,9 @@ void MTCTaskNode::doTask()
    *                                                  *
    ***************************************************/
   {
-    mtc::stages::Connect::GroupPlannerVector planners = {
-        { "arm", sampling_planner },
-        { "hand", sampling_planner }
-    };
-    auto stage = std::make_unique<mtc::stages::Connect>("move to pick", planners);
+    // Only move the arm between open-hand and grasp setup to avoid mixed arm+gripper trajectories
+    auto stage = std::make_unique<mtc::stages::Connect>(
+        "move to pick", mtc::stages::Connect::GroupPlannerVector{ { "arm", sampling_planner } });
     stage->setTimeout(15.0);  // Increased timeout for complex planning
     stage->properties().configureInitFrom(mtc::Stage::PARENT);
     task_.add(std::move(stage));
@@ -312,7 +317,7 @@ void MTCTaskNode::doTask()
       // We need to calculate position where gripper touches object sides
       // Object radius determines how far fingers can close before touching
 
-      const double safety_margin = 0.0000002;  // 2mm safety margin
+      const double safety_margin = -0.0005;  // 2mm safety margin
 
       // Map object radius to gripper position
       // When object_radius = 0.033m (max open), gripper should be at -0.033 (fully open)
@@ -564,20 +569,17 @@ void MTCTaskNode::doTask()
     return;
   }
 
-  // Publish task solution for visualization
-  task_.introspection().publishSolution(*task_.solutions().front());
-
-  // Execute task
-  RCLCPP_INFO(LOGGER, "Executing task solution...");
-  auto result = task_.execute(*task_.solutions().front());
-  if (result.val != moveit_msgs::msg::MoveItErrorCodes::SUCCESS)
+  // Publish best solution on /solution for the executor (sorted by cost internally)
+  if (!publishBestSolution())
   {
-    RCLCPP_ERROR(LOGGER, "Task execution failed with error code: %d", result.val);
     return;
   }
 
   RCLCPP_INFO(LOGGER, "========================================");
-  RCLCPP_INFO(LOGGER, "✅ Task completed successfully!");
+  RCLCPP_INFO(LOGGER, "✅ Task planning completed successfully!");
+  RCLCPP_INFO(LOGGER, "Solution published to /solution topic");
+  RCLCPP_INFO(LOGGER, "To execute, use RViz 'Execute' button or call:");
+  RCLCPP_INFO(LOGGER, "  ros2 action send_goal /execute_task_solution ...");
   RCLCPP_INFO(LOGGER, "========================================");
 }
 
@@ -632,4 +634,22 @@ int main(int argc, char** argv)
 
   rclcpp::shutdown();
   return 0;
+}
+
+bool MTCTaskNode::publishBestSolution()
+{
+  if (task_.solutions().empty())
+  {
+    RCLCPP_ERROR(LOGGER, "No solutions available to publish");
+    return false;
+  }
+
+  moveit_task_constructor_msgs::msg::Solution solution_msg;
+  task_.solutions().front()->toMsg(solution_msg);
+  solution_pub_->publish(solution_msg);
+
+  RCLCPP_INFO(LOGGER,
+              "Published best MTC solution to /solution (sub-trajectories: %zu)",
+              solution_msg.sub_trajectory.size());
+  return true;
 }

@@ -462,14 +462,14 @@
       </geometry>
     </collision>
   </link>
-  <link name="left_palm_right_finger_link">
+    <link name="left_palm_right_finger_link">
     <inertial>
       <origin xyz="0.021797 0.050369 1.1072E-11" rpy="0 0 0" />
       <mass value="0.02913" />
       <inertia ixx="0.00010609" ixy="1.2822E-05" ixz="2.1515E-19" iyy="4.9057E-05" iyz="2.3548E-19" izz="8.8986E-05" />
     </inertial>
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="-0.005 0 0" rpy="0 0 0" />
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/left_palm_right_finger.STL" />
       </geometry>
@@ -478,7 +478,7 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="-0.005 0 0" rpy="0 0 0" />
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/left_palm_right_finger.STL" />
       </geometry>
@@ -505,5 +505,5 @@
         <mesh filename="package://arm_description/meshes/visual/left_palm_left_finger.STL" />
       </geometry>
     </collision>
-  </link>
+    </link>
 </robot>
