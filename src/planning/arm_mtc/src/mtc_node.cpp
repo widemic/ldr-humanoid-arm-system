@@ -347,6 +347,18 @@ mtc::Task MTCTaskNode::createTask() {
       grasp->insert(std::move(stage));
     }
 
+    // Re-allow Collision (gripper-object) after attachment
+    {
+      auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("re-allow collision (gripper,attached object)");
+      stage->allowCollisions(
+        object_name,
+        task.getRobotModel()
+          ->getJointModelGroup(gripper_group_name)
+          ->getLinkModelNamesWithCollisionGeometry(),
+        true);
+      grasp->insert(std::move(stage));
+    }
+
     // Lift Object
     {
       auto stage = std::make_unique<mtc::stages::MoveRelative>("lift object", cartesian_planner);
