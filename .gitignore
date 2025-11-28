@@ -21,3 +21,6 @@
 */.code-workspace
 /.claude/
 *.pt
+
+# YOLO tracking crops
+object_crops/

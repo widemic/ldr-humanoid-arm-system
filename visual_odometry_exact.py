@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
 Visual Odometry implementation matching yv1es/visual-odometry-from-scratch
-Adapted for webcam/IP camera stream with real-time visualization.
+Adapted for webcam/IP camera stream and ROS 2 topics with real-time visualization.
+
+ROS 2 Integration:
+- Set USE_ROS2=true to enable ROS 2 topic subscription
+- Set ROS2_TOPIC=/camera/color/image_raw (default) or custom topic
 """
 
 import os
@@ -17,6 +21,58 @@ from typing import List, Tuple, Optional
 from helpers.decompose_essential_matrix import decomposeEssentialMatrix
 from helpers.disambiguate_relative_pose import disambiguateRelativePose
 from helpers.linear_triangulation import linearTriangulation
+
+# ROS 2 support (enabled by default)
+USE_ROS2 = os.environ.get("USE_ROS2", "true").lower() in {"1", "true", "t", "yes", "y", "on"}
+if USE_ROS2:
+    try:
+        import rclpy
+        from rclpy.node import Node
+        from sensor_msgs.msg import Image
+        from cv_bridge import CvBridge
+        import threading
+        ROS2_AVAILABLE = True
+    except ImportError:
+        print("Warning: ROS 2 libraries not available. Install with:")
+        print("  pip install rclpy cv-bridge")
+        print("Falling back to camera/video mode.")
+        USE_ROS2 = False
+        ROS2_AVAILABLE = False
+else:
+    ROS2_AVAILABLE = False
+
+
+# ROS 2 Image Subscriber (thread-safe frame provider)
+class ROS2CameraNode(Node):
+    """ROS 2 node that subscribes to camera topic and provides frames."""
+
+    def __init__(self, topic="/camera/color/image_raw"):
+        super().__init__('visual_odometry_camera_subscriber')
+        self.bridge = CvBridge()
+        self.current_frame = None
+        self.frame_lock = threading.Lock()
+
+        self.subscription = self.create_subscription(
+            Image,
+            topic,
+            self.image_callback,
+            10
+        )
+        self.get_logger().info(f'Subscribed to {topic}')
+
+    def image_callback(self, msg):
+        """Convert ROS Image message to OpenCV format."""
+        try:
+            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            with self.frame_lock:
+                self.current_frame = cv_image
+        except Exception as e:
+            self.get_logger().error(f'Error converting image: {e}')
+
+    def get_frame(self):
+        """Thread-safe frame retrieval."""
+        with self.frame_lock:
+            return self.current_frame.copy() if self.current_frame is not None else None
 
 
 @dataclass
@@ -175,11 +231,14 @@ class VisualOdometry:
         # Triangulate using repo's linear method
         M1 = self.K @ np.eye(3, 4)
         M2 = self.K @ np.c_[R, t]
-        X = linearTriangulation(pts1_h, pts2_h, M1, M2)[:-1]  # Remove homogeneous coordinate
+        X_homogeneous = linearTriangulation(pts1_h, pts2_h, M1, M2)  # 4xN homogeneous
+
+        # Convert from homogeneous to 3D coordinates
+        X = X_homogeneous[:3, :] / X_homogeneous[3, :]  # 3xN
 
         # Filter points behind cameras
         ok1 = X[2, :] > 0
-        X_cam2 = R @ X + t[:, None]
+        X_cam2 = R @ X + t
         ok2 = X_cam2[2, :] > 0
         valid = ok1 & ok2
 
@@ -398,7 +457,8 @@ class VisualOdometry:
                     c_curr_h = np.vstack([c_curr_group, np.ones(c_curr_group.shape[1])])
 
                     X_new_h = linearTriangulation(c_start_h, c_curr_h, M_start, M_end)
-                    X_new = X_new_h[:3, :]
+                    # Convert from homogeneous to 3D coordinates
+                    X_new = X_new_h[:3, :] / X_new_h[3, :]
 
                     # Check depth in both cameras
                     C1 = R_start @ X_new + t_start.reshape(3, 1)
@@ -556,23 +616,76 @@ class VisualOdometry:
 def main():
     # Parse environment variables
     video_source = os.environ.get("VIDEO_SOURCE", "0")
-    if video_source.isdigit():
-        video_source = int(video_source)
+    ros2_topic = os.environ.get("ROS2_TOPIC", "/camera/color/image_raw")
+
+    print("=" * 70)
+    print("  Visual Odometry - Monocular SLAM")
+    print("=" * 70)
 
     focal = float(os.environ.get("FOCAL", "800"))
 
-    # Open video capture
-    cap = cv2.VideoCapture(video_source)
-    if not cap.isOpened():
-        print(f"Cannot open video source: {video_source}")
-        sys.exit(1)
+    # Initialize video source or ROS 2 node
+    ros2_node = None
+    ros2_executor = None
+    cap = None
+    first_frame = None
 
-    ret, frame = cap.read()
-    if not ret:
-        print("Cannot read initial frame")
-        sys.exit(1)
+    if USE_ROS2:
+        # Initialize ROS 2
+        print(f"\n🤖 ROS 2 Mode")
+        print(f"Topic: {ros2_topic}")
+        print(f"Initializing ROS 2 node...")
 
-    h, w = frame.shape[:2]
+        rclpy.init()
+        ros2_node = ROS2CameraNode(topic=ros2_topic)
+
+        # Spin ROS 2 in background thread
+        ros2_executor = rclpy.executors.SingleThreadedExecutor()
+        ros2_executor.add_node(ros2_node)
+        ros2_thread = threading.Thread(target=ros2_executor.spin, daemon=True)
+        ros2_thread.start()
+        print("✓ ROS 2 node initialized!\n")
+
+        # Wait for first frame
+        print("Waiting for first frame from ROS 2 topic...")
+        import time
+        timeout = 10  # seconds
+        start_time = time.time()
+        while ros2_node.get_frame() is None:
+            if time.time() - start_time > timeout:
+                print(f"✗ No frames received from {ros2_topic} after {timeout}s")
+                print("\nTroubleshooting:")
+                print(f"  - Check if topic exists: ros2 topic list | grep {ros2_topic}")
+                print(f"  - Check topic type: ros2 topic info {ros2_topic}")
+                print(f"  - Echo topic: ros2 topic echo {ros2_topic} --max-count 1")
+                rclpy.shutdown()
+                sys.exit(1)
+            time.sleep(0.1)
+
+        first_frame = ros2_node.get_frame()
+        print("✓ Receiving frames from ROS 2!\n")
+    else:
+        # Open video capture
+        print(f"\n📹 Camera/Video Mode")
+        if video_source.isdigit():
+            video_source = int(video_source)
+            print(f"Camera: {video_source}")
+        else:
+            print(f"Video file: {video_source}")
+
+        cap = cv2.VideoCapture(video_source)
+        if not cap.isOpened():
+            print(f"✗ Cannot open video source: {video_source}")
+            sys.exit(1)
+
+        ret, first_frame = cap.read()
+        if not ret:
+            print("✗ Cannot read initial frame")
+            sys.exit(1)
+
+        print("✓ Video source opened!\n")
+
+    h, w = first_frame.shape[:2]
     cx = float(os.environ.get("CX", str(w / 2)))
     cy = float(os.environ.get("CY", str(h / 2)))
 
@@ -582,16 +695,26 @@ def main():
     vo = VisualOdometry(K, show_viz=True)
 
     print(f"Visual Odometry initialized")
+    print(f"Resolution: {w}x{h}")
     print(f"Camera intrinsics:\n{K}")
-    print(f"Collecting {vo.K_BOOTSTRAP} frames for bootstrapping...")
+    print(f"\nCollecting {vo.K_BOOTSTRAP} frames for bootstrapping...")
+    print("=" * 70 + "\n")
 
     # Collect bootstrap images
     bootstrap_images = []
     while len(bootstrap_images) < vo.K_BOOTSTRAP:
-        ret, frame = cap.read()
-        if not ret:
-            print("Failed to read frame")
-            break
+        if USE_ROS2:
+            frame = ros2_node.get_frame()
+            if frame is None:
+                time.sleep(0.01)
+                continue
+            ret = True
+        else:
+            ret, frame = cap.read()
+            if not ret:
+                print("Failed to read frame")
+                break
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         bootstrap_images.append(gray)
         cv2.imshow("Collecting bootstrap frames", frame)
@@ -610,15 +733,34 @@ def main():
 
     # Continuous operation
     print("\nStarting continuous operation. Press 'q' to quit.")
-    ret, frame_prev = cap.read()
-    if ret:
-        gray_prev = cv2.cvtColor(frame_prev, cv2.COLOR_BGR2GRAY)
+
+    # Get first frame for continuous operation
+    if USE_ROS2:
+        frame_prev = ros2_node.get_frame()
+        while frame_prev is None:
+            time.sleep(0.01)
+            frame_prev = ros2_node.get_frame()
+    else:
+        ret, frame_prev = cap.read()
+        if not ret:
+            print("Cannot read frame for continuous operation")
+            sys.exit(1)
+
+    gray_prev = cv2.cvtColor(frame_prev, cv2.COLOR_BGR2GRAY)
 
     while True:
-        ret, frame_curr = cap.read()
-        if not ret:
-            print("Stream ended")
-            break
+        # Get frame from either ROS 2 or OpenCV VideoCapture
+        if USE_ROS2:
+            frame_curr = ros2_node.get_frame()
+            if frame_curr is None:
+                cv2.waitKey(10)
+                continue
+            ret = True
+        else:
+            ret, frame_curr = cap.read()
+            if not ret:
+                print("Stream ended")
+                break
 
         gray_curr = cv2.cvtColor(frame_curr, cv2.COLOR_BGR2GRAY)
 
@@ -635,7 +777,13 @@ def main():
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
-    cap.release()
+    # Cleanup
+    if cap is not None:
+        cap.release()
+    if USE_ROS2 and ros2_node is not None:
+        ros2_node.destroy_node()
+        rclpy.shutdown()
+        print("\n✓ ROS 2 shutdown complete.")
     cv2.destroyAllWindows()
     plt.show(block=True)
 

@@ -4,7 +4,11 @@ YOLOv8 Native Object Tracking
 Based on: https://github.com/computervisioneng/object-tracking-yolov8-native
 
 This script uses YOLOv8's built-in tracking capabilities to detect and track objects
-in video streams (camera or video file).
+in video streams (camera, video file, or ROS 2 topic).
+
+ROS 2 Integration:
+- Set USE_ROS2=true to enable ROS 2 topic subscription
+- Set ROS2_TOPIC=/camera/color/image_raw (default) or custom topic
 """
 
 from ultralytics import YOLO
@@ -18,9 +22,60 @@ import numpy as np
 
 import yaml
 
+# ROS 2 support (enabled by default)
+USE_ROS2 = os.environ.get("USE_ROS2", "true").lower() in {"1", "true", "t", "yes", "y", "on"}
+if USE_ROS2:
+    try:
+        import rclpy
+        from rclpy.node import Node
+        from sensor_msgs.msg import Image
+        from cv_bridge import CvBridge
+        ROS2_AVAILABLE = True
+    except ImportError:
+        print("Warning: ROS 2 libraries not available. Install with:")
+        print("  pip install rclpy cv-bridge")
+        print("Falling back to camera/video mode.")
+        USE_ROS2 = False
+        ROS2_AVAILABLE = False
+else:
+    ROS2_AVAILABLE = False
+
 
 def _str_to_bool(val: str) -> bool:
     return str(val).lower() in {"1", "true", "t", "yes", "y", "on"}
+
+
+# ROS 2 Image Subscriber (thread-safe frame provider)
+class ROS2CameraNode(Node):
+    """ROS 2 node that subscribes to camera topic and provides frames."""
+
+    def __init__(self, topic="/camera/color/image_raw"):
+        super().__init__('yolo_tracking_camera_subscriber')
+        self.bridge = CvBridge()
+        self.current_frame = None
+        self.frame_lock = __import__('threading').Lock()
+
+        self.subscription = self.create_subscription(
+            Image,
+            topic,
+            self.image_callback,
+            10
+        )
+        self.get_logger().info(f'Subscribed to {topic}')
+
+    def image_callback(self, msg):
+        """Convert ROS Image message to OpenCV format."""
+        try:
+            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            with self.frame_lock:
+                self.current_frame = cv_image
+        except Exception as e:
+            self.get_logger().error(f'Error converting image: {e}')
+
+    def get_frame(self):
+        """Thread-safe frame retrieval."""
+        with self.frame_lock:
+            return self.current_frame.copy() if self.current_frame is not None else None
 
 
 # Object validation based on physical characteristics
@@ -474,6 +529,7 @@ def main():
     # Prefer YOLOv11 if present locally, otherwise use YOLOv8x-seg for maximum accuracy
     model_name = resolve_model_name()
     video_source = os.environ.get("VIDEO_SOURCE", "0")  # 0 for webcam, or path to video file
+    ros2_topic = os.environ.get("ROS2_TOPIC", "/camera/color/image_raw")  # ROS 2 topic
 
     # Tracking parameters - ULTRA-AGGRESSIVE FOR FAST MOTION
     conf_threshold = float(os.environ.get("CONF_THRESHOLD", "0.20"))  # Slightly higher to reduce false positives
@@ -492,7 +548,10 @@ def main():
     print("  YOLOv8 + BoT-SORT - ULTIMATE PERSISTENT TRACKING")
     print("=" * 70)
     print(f"\nModel: {model_name}")
-    print(f"Video source: {video_source}")
+    if USE_ROS2:
+        print(f"Input: ROS 2 Topic '{ros2_topic}'")
+    else:
+        print(f"Video source: {video_source}")
     print(f"Confidence threshold: {conf_threshold}")
     print(f"IoU threshold: {iou_threshold} (VERY LOW - aggressive matching)")
     print(f"Max age: {max_age} frames (8+ seconds persistence)")
@@ -509,6 +568,8 @@ def main():
     print("  ✓ Physical validation - rejects implausible classifications")
     print("  ✓ Upright window: Rotated crop keeping object vertical")
     print("  ✓ Orientation arrow: Shows object tilt angle")
+    if USE_ROS2:
+        print("  ✓ ROS 2 Integration - subscribes to camera topics")
     print("\nControls:")
     print("  - Press 'q' to quit")
     print("  - Press 'p' to pause/resume")
@@ -530,63 +591,104 @@ def main():
         print("  pip install ultralytics")
         sys.exit(1)
 
-    # Open video source
-    # If video_source is a digit string, convert to int for camera
-    if video_source.isdigit():
-        video_source = int(video_source)
+    # Initialize video source or ROS 2 node
+    ros2_node = None
+    ros2_executor = None
+    cap = None
 
-    print(f"Opening video source: {video_source}...")
-    cap = cv2.VideoCapture(video_source)
+    if USE_ROS2:
+        # Initialize ROS 2
+        print(f"Initializing ROS 2 node and subscribing to {ros2_topic}...")
+        rclpy.init()
+        ros2_node = ROS2CameraNode(topic=ros2_topic)
 
-    # Force 1080p on camera sources to stabilize detection/tracking
-    desired_width, desired_height = 1920, 1080
+        # Spin ROS 2 in background thread
+        import threading
+        ros2_executor = rclpy.executors.SingleThreadedExecutor()
+        ros2_executor.add_node(ros2_node)
+        ros2_thread = threading.Thread(target=ros2_executor.spin, daemon=True)
+        ros2_thread.start()
+        print("✓ ROS 2 node initialized and spinning!\n")
 
-    # Optionally set camera pixel format (helps unlock higher resolutions)
-    if isinstance(video_source, int):
-        fourcc_str = os.environ.get("CAM_FOURCC", "MJPG")  # Common: MJPG, YUYV
-        if fourcc_str:
-            try:
-                fourcc = cv2.VideoWriter_fourcc(*fourcc_str)
-                cap.set(cv2.CAP_PROP_FOURCC, fourcc)
-                print(f"Requesting camera FOURCC={fourcc_str} for higher resolution")
-            except Exception as exc:
-                print(f"Warning: could not set FOURCC {fourcc_str}: {exc}")
-    if isinstance(video_source, int):
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, desired_width)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, desired_height)
+        # Wait for first frame
+        print("Waiting for first frame from ROS 2 topic...")
+        import time
+        timeout = 10  # seconds
+        start_time = time.time()
+        while ros2_node.get_frame() is None:
+            if time.time() - start_time > timeout:
+                print(f"✗ No frames received from {ros2_topic} after {timeout}s")
+                print("\nTroubleshooting:")
+                print(f"  - Check if topic exists: ros2 topic list | grep {ros2_topic}")
+                print(f"  - Check topic type: ros2 topic info {ros2_topic}")
+                print(f"  - Echo topic: ros2 topic echo {ros2_topic} --max-count 1")
+                rclpy.shutdown()
+                sys.exit(1)
+            time.sleep(0.1)
+        print("✓ Receiving frames from ROS 2!\n")
 
-    # Set higher FPS if specified
-    if force_fps > 0 and isinstance(video_source, int):
-        cap.set(cv2.CAP_PROP_FPS, force_fps)
-        print(f"Requesting {force_fps} FPS from camera...")
+        # Get frame properties from first frame
+        first_frame = ros2_node.get_frame()
+        height, width = first_frame.shape[:2]
+        fps = 30  # Assume 30 FPS for ROS 2 topics
+    else:
+        # Open video source
+        # If video_source is a digit string, convert to int for camera
+        if video_source.isdigit():
+            video_source = int(video_source)
 
-    if not cap.isOpened():
-        print(f"✗ Unable to open video source: {video_source}")
-        print("\nTroubleshooting:")
-        print("  - For webcam: try VIDEO_SOURCE=0, 1, or 2")
-        print("  - For video file: provide full path to the file")
-        print("  - Camera permission issue? Check if you're in video group:")
-        print("    Run: groups | grep video")
-        print("    If not in video group: sudo usermod -a -G video $USER")
-        print("    Then log out and log back in")
-        print("\nQuick test:")
-        print("  ls -l /dev/video0  # Check permissions")
-        print("  id | grep video    # Check if current session has video group")
-        print("\nExamples:")
-        print("  python3 yolov8_native_tracking.py")
-        print("  VIDEO_SOURCE=1 python3 yolov8_native_tracking.py")
-        print("  VIDEO_SOURCE=./video.mp4 python3 yolov8_native_tracking.py")
-        sys.exit(1)
+        print(f"Opening video source: {video_source}...")
+        cap = cv2.VideoCapture(video_source)
 
-    print("✓ Video source opened successfully!\n")
+        # Force 1080p on camera sources to stabilize detection/tracking
+        desired_width, desired_height = 1920, 1080
 
-    # Get video properties
-    fps = int(cap.get(cv2.CAP_PROP_FPS))
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    if isinstance(video_source, int) and (width != desired_width or height != desired_height):
-        print(f"⚠️ Requested {desired_width}x{desired_height}, camera returned {width}x{height}.")
-    print(f"Video properties: {width}x{height} @ {fps} FPS\n")
+        # Optionally set camera pixel format (helps unlock higher resolutions)
+        if isinstance(video_source, int):
+            fourcc_str = os.environ.get("CAM_FOURCC", "MJPG")  # Common: MJPG, YUYV
+            if fourcc_str:
+                try:
+                    fourcc = cv2.VideoWriter_fourcc(*fourcc_str)
+                    cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+                    print(f"Requesting camera FOURCC={fourcc_str} for higher resolution")
+                except Exception as exc:
+                    print(f"Warning: could not set FOURCC {fourcc_str}: {exc}")
+        if isinstance(video_source, int):
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, desired_width)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, desired_height)
+
+        # Set higher FPS if specified
+        if force_fps > 0 and isinstance(video_source, int):
+            cap.set(cv2.CAP_PROP_FPS, force_fps)
+            print(f"Requesting {force_fps} FPS from camera...")
+
+        if not cap.isOpened():
+            print(f"✗ Unable to open video source: {video_source}")
+            print("\nTroubleshooting:")
+            print("  - For webcam: try VIDEO_SOURCE=0, 1, or 2")
+            print("  - For video file: provide full path to the file")
+            print("  - Camera permission issue? Check if you're in video group:")
+            print("    Run: groups | grep video")
+            print("    If not in video group: sudo usermod -a -G video $USER")
+            print("    Then log out and log back in")
+            print("\nQuick test:")
+            print("  ls -l /dev/video0  # Check permissions")
+            print("  id | grep video    # Check if current session has video group")
+            print("\nExamples:")
+            print("  python3 yolov8_native_tracking.py")
+            print("  VIDEO_SOURCE=1 python3 yolov8_native_tracking.py")
+            print("  VIDEO_SOURCE=./video.mp4 python3 yolov8_native_tracking.py")
+            sys.exit(1)
+
+        print("✓ Video source opened successfully!\n")
+
+        # Get video properties
+        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        if isinstance(video_source, int) and (width != desired_width or height != desired_height):
+            print(f"⚠️ Requested {desired_width}x{desired_height}, camera returned {width}x{height}.")
+        print(f"Video properties: {width}x{height} @ {fps} FPS\n")
 
     # Prepare tracker config tuned for fast motion and ID persistence
     tracker_config = prepare_tracker_config(tracker_type, fps)
@@ -624,14 +726,40 @@ def main():
     CROP_WINDOW = "Upright View"
     cv2.namedWindow(CROP_WINDOW)
 
+    # Object crop management
+    import shutil
+    # Save crops relative to script location, not current working directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    crops_dir = os.path.join(script_dir, "object_crops")
+
+    # Clean/create crops directory at startup
+    if os.path.exists(crops_dir):
+        shutil.rmtree(crops_dir)
+    os.makedirs(crops_dir, exist_ok=True)
+
+    active_tracks = set()  # Track IDs currently visible
+    saved_crops = {}  # track_id -> crop_file_path
+
+    print(f"Object crops will be saved to: {crops_dir}")
+    print("Crops are automatically managed (created/deleted) based on tracking\n")
+
     # Main tracking loop
     while True:
         if not paused:
-            ret, frame = cap.read()
+            # Get frame from either ROS 2 or OpenCV VideoCapture
+            if USE_ROS2:
+                frame = ros2_node.get_frame()
+                if frame is None:
+                    print("\nNo frame available from ROS 2 topic.")
+                    cv2.waitKey(10)
+                    continue
+                ret = True
+            else:
+                ret, frame = cap.read()
 
-            if not ret:
-                print("\nEnd of video or unable to read frame.")
-                break
+                if not ret:
+                    print("\nEnd of video or unable to read frame.")
+                    break
 
             frame_count += 1
 
@@ -735,10 +863,62 @@ def main():
                     if tid in track_velocities:
                         del track_velocities[tid]
 
-            # Add frame counter
+                # Save crops for each detected object and manage cleanup
+                current_frame_tracks = set()
+
+                for idx, tid in enumerate(track_ids_list):
+                    if idx not in keep_indices:
+                        continue
+
+                    current_frame_tracks.add(tid)
+
+                    # Get object bbox and class
+                    bbox = boxes.xyxy[idx].cpu().numpy()
+                    x1, y1, x2, y2 = map(int, bbox)
+                    cls_id = int(boxes.cls[idx].cpu().numpy())
+                    obj_name = model.names[cls_id]
+
+                    # Use stable class if available
+                    if tid in stable_class:
+                        obj_name = stable_class[tid]
+
+                    # Extract crop from frame
+                    crop = frame[max(0, y1):min(frame.shape[0], y2),
+                                max(0, x1):min(frame.shape[1], x2)]
+
+                    if crop.size > 0:
+                        # Save crop with track ID and class name
+                        crop_filename = f"track_{tid:04d}_{obj_name.replace(' ', '_')}.jpg"
+                        crop_path = os.path.join(crops_dir, crop_filename)
+
+                        # Check if this is a new track
+                        is_new_track = tid not in saved_crops
+
+                        # Save or update crop
+                        cv2.imwrite(crop_path, crop)
+                        saved_crops[tid] = crop_path
+
+                        # Print message for new crops
+                        if is_new_track:
+                            print(f"💾 Saved new crop: {crop_filename}")
+
+                # Remove crops for objects no longer visible
+                lost_tracks = active_tracks - current_frame_tracks
+                for tid in lost_tracks:
+                    if tid in saved_crops:
+                        crop_path = saved_crops[tid]
+                        if os.path.exists(crop_path):
+                            os.remove(crop_path)
+                            print(f"🗑️  Removed crop for lost track ID {tid}")
+                        del saved_crops[tid]
+
+                # Update active tracks
+                active_tracks = current_frame_tracks
+
+            # Add frame counter and crop count
             cv2.putText(
                 annotated_frame,
-                f"Frame: {frame_count}",
+                f"Frame: {frame_count} | Crops: {len(saved_crops)}",
                 (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
@@ -1180,9 +1360,29 @@ def main():
             print("Reset tracking state and cleared all motion trails")
 
     # Cleanup
-    cap.release()
+    if cap is not None:
+        cap.release()
+    if USE_ROS2 and ros2_node is not None:
+        ros2_node.destroy_node()
+        rclpy.shutdown()
+        print("\n✓ ROS 2 shutdown complete.")
     cv2.destroyAllWindows()
-    print(f"\nProcessed {frame_count} frames.")
+
+    # Summary of saved crops
+    print(f"\n{'='*60}")
+    print(f"SUMMARY")
+    print(f"{'='*60}")
+    print(f"Processed {frame_count} frames.")
+    print(f"Final crops saved: {len(saved_crops)}")
+    if saved_crops:
+        print(f"\nCrops location: {crops_dir}")
+        print("Saved crops:")
+        for tid, path in sorted(saved_crops.items()):
+            filename = os.path.basename(path)
+            print(f"  - {filename}")
+    else:
+        print("\nNo crops remain (all objects lost tracking)")
+    print(f"{'='*60}")
     print("Done!")
 
 
@@ -1193,12 +1393,16 @@ if __name__ == "__main__":
         print("\nUsage:")
         print("  python3 yolov8_native_tracking.py")
         print("\nEnvironment Variables:")
+        print("  USE_ROS2 - Enable ROS 2 mode (default: TRUE)")
+        print("             Set to 'false' to use camera/video instead")
+        print("  ROS2_TOPIC - ROS 2 camera topic (default: /camera/color/image_raw)")
+        print("               Only used when USE_ROS2=true")
         print("  YOLO_MODEL - Model to use (default: auto-detect, prefers YOLOv11 if present)")
         print("               Segmentation models (with orientation): yolov11n-seg.pt, yolov11s-seg.pt, yolov8x-seg.pt, yolov8n-seg.pt")
         print("               Detection models (no orientation): yolov11n.pt, yolov11s.pt, yolov8n.pt, yolov8s.pt")
         print("  VIDEO_SOURCE - Video source (default: 0)")
-        print("                 0, 1, 2... for webcam")
-        print("                 path/to/video.mp4 for video file")
+        print("                 Only used when USE_ROS2=false")
+        print("                 0, 1, 2... for webcam, or path to video file")
         print("  CONF_THRESHOLD - Detection confidence (default: 0.20)")
         print("                   Lower = more detections, higher = fewer false positives")
         print("  IOU_THRESHOLD - Tracking IoU threshold (default: 0.05)")
@@ -1210,12 +1414,16 @@ if __name__ == "__main__":
         print("  TRACKER - Tracker type (default: botsort_aggressive.yaml)")
         print("            Options: bytetrack.yaml, botsort.yaml, botsort_aggressive.yaml")
         print("\nExamples:")
-        print("  # Use default webcam (camera 0)")
+        print("  # ROS 2 with RealSense (DEFAULT - implicit USE_ROS2=true)")
         print("  python3 yolov8_native_tracking.py")
-        print("\n  # Use different camera")
-        print("  VIDEO_SOURCE=1 python3 yolov8_native_tracking.py")
+        print("\n  # ROS 2 with Gazebo camera")
+        print("  ROS2_TOPIC=/camera python3 yolov8_native_tracking.py")
+        print("\n  # Use camera laptop (disable ROS 2)")
+        print("  USE_ROS2=false python3 yolov8_native_tracking.py")
+        print("\n  # Use different laptop camera")
+        print("  USE_ROS2=false VIDEO_SOURCE=1 python3 yolov8_native_tracking.py")
         print("\n  # Use video file")
-        print("  VIDEO_SOURCE=./test.mp4 python3 yolov8_native_tracking.py")
+        print("  USE_ROS2=false VIDEO_SOURCE=./test.mp4 python3 yolov8_native_tracking.py")
         print("\n  # Use YOLOv11 segmentation model if downloaded locally")
         print("  YOLO_MODEL=yolov11n-seg.pt python3 yolov8_native_tracking.py")
         print("\n  # Use larger model for better detection (YOLOv8 example)")
@@ -1228,6 +1436,8 @@ if __name__ == "__main__":
         print("  TRACKER=botsort_aggressive.yaml python3 yolov8_native_tracking.py")
         print("\n  # Maximum persistence (for very fast objects)")
         print("  CONF_THRESHOLD=0.15 IOU_THRESHOLD=0.03 MAX_AGE=200 python3 yolov8_native_tracking.py")
+        print("\n  # ROS 2 with Gazebo camera")
+        print("  USE_ROS2=true ROS2_TOPIC=/camera python3 yolov8_native_tracking.py")
         sys.exit(0)
 
     main()
