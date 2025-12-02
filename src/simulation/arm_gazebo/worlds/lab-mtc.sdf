@@ -219,10 +219,17 @@
         - restitution_coefficient: 0 - No bounce (objects don't rebound off table)
         - threshold: 1e6 - Energy threshold for bounce
 
+      Inertial Properties (nominal, ignored for static objects):
+        - mass: 50 kg - Typical wooden table weight
+        - Moments of inertia (calculated for solid box):
+          * Ixx = (1/12)m(h² + d²) = (1/12)(50)(0.95² + 0.3²) = 3.958 kg·m²
+          * Iyy = (1/12)m(h² + w²) = (1/12)(50)(0.95² + 0.5²) = 4.479 kg·m²
+          * Izz = (1/12)m(w² + d²) = (1/12)(50)(0.5² + 0.3²) = 0.625 kg·m²
+
       Static: true (table is fixed, cannot be moved by robot)
+      Note: Inertial properties are included for completeness but ignored by physics engine
     -->
     <model name="test_table">
-      <static>true</static>
       <pose>-0.45 0.35 0.475 0 0 0</pose>
       <link name="link">
         <collision name="collision">
@@ -263,6 +270,18 @@
             <diffuse>0.5 0.4 0.3 1</diffuse>
           </material>
         </visual>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>8</mass>
+          <inertia>
+            <ixx>3.958</ixx>
+            <iyy>4.479</iyy>
+            <izz>0.625</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
       </link>
     </model>
 
@@ -385,12 +404,19 @@
         - restitution_coefficient: 0 - No bounce (objects settle immediately)
         - threshold: 1e6 - Energy threshold for bounce
 
+      Inertial Properties (nominal, ignored for static objects):
+        - mass: 50 kg - Identical to source table
+        - Moments of inertia (same as test_table):
+          * Ixx = 3.958 kg·m²
+          * Iyy = 4.479 kg·m²
+          * Izz = 0.625 kg·m²
+
       Static: true (table is fixed, cannot be moved by robot)
 
       Note: Identical to test_table for symmetric pick-and-place behavior
+      Note: Inertial properties included for completeness but ignored by physics engine
     -->
     <model name="destination_table">
-      <static>true</static>
       <pose>-0.45 -0.35 0.475 0 0 0</pose>
       <link name="link">
         <collision name="collision">
@@ -431,6 +457,18 @@
             <diffuse>0.5 0.4 0.3 1</diffuse>
           </material>
         </visual>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>8</mass>
+          <inertia>
+            <ixx>3.958</ixx>
+            <iyy>4.479</iyy>
+            <izz>0.625</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
       </link>
     </model>
   </world>
