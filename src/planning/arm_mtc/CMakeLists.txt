@@ -63,8 +63,6 @@ install(DIRECTORY
 
 # Install Python scripts
 install(PROGRAMS
-  scripts/pick_place_demo.py
-  scripts/simple_move_demo.py
   scripts/planning_scene_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
