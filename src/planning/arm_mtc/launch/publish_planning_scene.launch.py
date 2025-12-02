@@ -6,7 +6,7 @@ Publishes collision objects (tables and cylinder) to the MoveIt planning scene
 using configuration from pick_place_scene.yaml
 
 Usage:
-    ros2 launch arm_perception publish_planning_scene.launch.py
+    ros2 launch arm_mtc publish_planning_scene.launch.py
 
 Prerequisites:
     - MoveIt move_group must be running
@@ -21,14 +21,14 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # Load scene configuration YAML
     scene_config = os.path.join(
-        get_package_share_directory('arm_perception'),
+        get_package_share_directory('arm_mtc'),
         'config',
         'pick_place_scene.yaml'
     )
 
     # Planning Scene Publisher Node
     publisher_node = Node(
-        package='arm_perception',
+        package='arm_mtc',
         executable='planning_scene_publisher.py',
         name='planning_scene_publisher',
         output='screen',

@@ -33,24 +33,6 @@ find_package(moveit_task_constructor_core REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rclcpp_action REQUIRED)
 
-# C++ MTC Pick and Place executable
-add_executable(mtc_pick_place src/pick_place_task.cpp)
-ament_target_dependencies(mtc_pick_place
-  rclcpp
-  moveit_task_constructor_core
-  moveit_ros_planning_interface
-  rclcpp_action
-  control_msgs
-  geometry_msgs
-  tf2_geometry_msgs
-  tf2_eigen
-)
-
-install(TARGETS
-  mtc_pick_place
-  DESTINATION lib/${PROJECT_NAME}
-)
-
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
@@ -59,8 +41,6 @@ install(PROGRAMS
   scripts/object_recognition_node.py
   scripts/perception_node.py
   scripts/dynamic_object_tracker.py
-  scripts/planning_scene_publisher.py
-
   DESTINATION lib/${PROJECT_NAME}
 )
 
