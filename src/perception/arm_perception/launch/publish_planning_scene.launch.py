@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Launch file for Test Environment Publisher
+Launch file for Planning Scene Publisher
 
-Spawns test tables and cylinder into the MoveIt planning scene
+Publishes collision objects (tables and cylinder) to the MoveIt planning scene
 using configuration from pick_place_scene.yaml
 
 Usage:
-    ros2 launch arm_perception spawn_test_environment.launch.py
+    ros2 launch arm_perception publish_planning_scene.launch.py
 
 Prerequisites:
     - MoveIt move_group must be running
@@ -26,13 +26,13 @@ def generate_launch_description():
         'pick_place_scene.yaml'
     )
 
-    # Test Environment Publisher Node
-    spawner_node = Node(
+    # Planning Scene Publisher Node
+    publisher_node = Node(
         package='arm_perception',
-        executable='test_environment_publisher.py',
-        name='test_environment_publisher',
+        executable='planning_scene_publisher.py',
+        name='planning_scene_publisher',
         output='screen',
         parameters=[scene_config]
     )
 
-    return LaunchDescription([spawner_node])
+    return LaunchDescription([publisher_node])

@@ -58,13 +58,9 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/object_recognition_node.py
   scripts/perception_node.py
-  scripts/planning_scene_updater.py
   scripts/dynamic_object_tracker.py
-  scripts/test_environment_publisher.py
-  scripts/test_workspace.py
-  scripts/pick_and_place_cylinder.py
-  scripts/pick_and_place_action.py
-  scripts/mtc_solution_executor.py
+  scripts/planning_scene_publisher.py
+
   DESTINATION lib/${PROJECT_NAME}
 )
 

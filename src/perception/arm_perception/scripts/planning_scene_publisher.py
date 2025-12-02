@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Test Environment Publisher for Gripper Testing
+Planning Scene Publisher for Pick-and-Place Operations
 
-Publishes a table and a cylinder to the MoveIt planning scene for testing
-gripper pick and place operations.
+Publishes collision objects (tables and cylinders) to the MoveIt planning scene
+for pick-and-place testing and demonstrations.
 
 Usage:
-    ros2 run arm_perception test_environment_publisher.py
+    ros2 run arm_perception planning_scene_publisher.py
 
 Author: LDR Humanoid Arm System
 """
@@ -19,11 +19,11 @@ from geometry_msgs.msg import Pose
 from std_msgs.msg import Header
 
 
-class TestEnvironmentPublisher(Node):
-    """Publishes test objects (table + cylinder) to MoveIt planning scene"""
+class PlanningScenePublisher(Node):
+    """Publishes collision objects (tables + cylinder) to MoveIt planning scene"""
 
     def __init__(self):
-        super().__init__('test_environment_publisher')
+        super().__init__('planning_scene_publisher')
 
         # Declare parameters from YAML
         self.declare_parameter('world_frame', 'base_link')
@@ -86,7 +86,7 @@ class TestEnvironmentPublisher(Node):
         self.create_timer(1.0, self.initial_publish)
         self.create_timer(2.0, self.publish_test_environment)
 
-        self.get_logger().info('Test Environment Publisher started')
+        self.get_logger().info('Planning Scene Publisher started')
         self.get_logger().info('Publishing source table, destination table, and cylinder to planning scene...')
         self.get_logger().info('Objects will be re-published every 2 seconds to keep them visible')
 
@@ -103,7 +103,7 @@ class TestEnvironmentPublisher(Node):
             cyl_x = self.table_x + self.cylinder_offset_x
             cyl_y = self.table_y + self.cylinder_offset_y
 
-            self.get_logger().info('✅ Test environment published successfully!')
+            self.get_logger().info('✅ Planning scene objects published successfully!')
             self.get_logger().info('Objects:')
             self.get_logger().info(
                 f'  - Source Table: {self.table_length}m x {self.table_width}m x {self.table_thickness}m '
@@ -228,12 +228,12 @@ class TestEnvironmentPublisher(Node):
             remove_obj.operation = CollisionObject.REMOVE
             self.collision_pub.publish(remove_obj)
 
-        self.get_logger().info('Test environment cleared')
+        self.get_logger().info('Planning scene objects cleared')
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = TestEnvironmentPublisher()
+    node = PlanningScenePublisher()
 
     try:
         rclpy.spin(node)

@@ -97,8 +97,8 @@ void MTCTaskNode::setupPlanningScene()
   if (!found)
   {
     RCLCPP_ERROR(LOGGER, "❌ test_cylinder not found in planning scene!");
-    RCLCPP_ERROR(LOGGER, "   Make sure test_environment_publisher.py is running:");
-    RCLCPP_ERROR(LOGGER, "   ros2 run arm_perception test_environment_publisher.py");
+    RCLCPP_ERROR(LOGGER, "   Make sure planning_scene_publisher.py is running:");
+    RCLCPP_ERROR(LOGGER, "   ros2 run arm_perception planning_scene_publisher.py");
   }
   else
   {

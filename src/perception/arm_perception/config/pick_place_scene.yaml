@@ -8,7 +8,7 @@
     source_table:
       name: "test_table"
       position:
-        x: -0.45      # Aligned with test_environment_publisher defaults
+        x: -0.45      # Aligned with planning_scene_publisher defaults
         y: 0.35       # Right side (left arm natural reach)
         z: 0.95       # Height
       dimensions:
@@ -20,7 +20,7 @@
     destination_table:
       name: "destination_table"
       position:
-        x: -0.45      # Moved farther (matches test_environment_publisher patch)
+        x: -0.45      # Moved farther (matches planning_scene_publisher patch)
         y: -0.35      # Left side (symmetric)
         z: 0.95       # Same height
       dimensions:
