@@ -1,46 +1,92 @@
 <?xml version="1.0" ?>
-<sdf version="1.8">
+<sdf version="1.10">
   <world name="whole_arm_manipulation_workspace">
 
-    <!-- Physics -->
-    <physics name='1ms' type='ignored'>
+    <!-- Physics Engine Configuration (ODE with optimized parameters) -->
+    <physics name='1ms' type='ode'>
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1</real_time_factor>
       <real_time_update_rate>1000</real_time_update_rate>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+          <sor>1.3</sor>
+        </solver>
+        <constraints>
+          <cfm>0.0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100.0</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
     </physics>
     <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system' />
     <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system' />
     <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system' />
     <gravity>0 0 -9.8000000000000007</gravity>
     <magnetic_field>5.5644999999999998e-06 2.2875799999999999e-05 -4.2388400000000002e-05</magnetic_field>
+    <atmosphere type='adiabatic' />
+    <scene>
+      <ambient>0.400000006 0.400000006 0.400000006 1</ambient>
+      <background>0.699999988 0.699999988 0.699999988 1</background>
+      <shadows>true</shadows>
+    </scene>
 
     <!-- Lighting -->
-    <light type="directional" name="sun">
-      <cast_shadows>true</cast_shadows>
+    <light name='sun' type='directional'>
       <pose>0 0 10 0 0 0</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>-0.5 0.10000000000000001 -0.90000000000000002</direction>
+      <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+      <specular>0.200000003 0.200000003 0.200000003 1</specular>
       <attenuation>
         <range>1000</range>
-        <constant>0.9</constant>
         <linear>0.01</linear>
+        <constant>0.90000000000000002</constant>
         <quadratic>0.001</quadratic>
       </attenuation>
-      <direction>-0.5 0.1 -0.9</direction>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
     </light>
 
     <!-- Ground Plane -->
-    <model name="ground_plane">
+    <model name='ground_plane'>
       <static>true</static>
-      <link name="link">
-        <collision name="collision">
+      <link name='link'>
+        <collision name='collision'>
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e7</kp>
+                <kd>1.0</kd>
+                <max_vel>0.01</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce>
+              <restitution_coefficient>0</restitution_coefficient>
+              <threshold>1e6</threshold>
+            </bounce>
+          </surface>
         </collision>
-        <visual name="visual">
+        <visual name='visual'>
           <geometry>
             <plane>
               <normal>0 0 1</normal>
@@ -48,12 +94,28 @@
             </plane>
           </geometry>
           <material>
-            <ambient>0.8 0.8 0.8 1</ambient>
-            <diffuse>0.8 0.8 0.8 1</diffuse>
-            <specular>0.8 0.8 0.8 1</specular>
+            <ambient>0.800000012 0.800000012 0.800000012 1</ambient>
+            <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+            <specular>0.800000012 0.800000012 0.800000012 1</specular>
           </material>
         </visual>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
       </link>
+      <pose>0 0 0 0 0 0</pose>
+      <self_collide>false</self_collide>
     </model>
 
     <!-- Source Table (matches pick_place_scene.yaml: test_table) -->
@@ -68,6 +130,26 @@
               <size>0.5 0.3 0.95</size>
             </box>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.8</mu>
+                <mu2>0.8</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e7</kp>
+                <kd>1.0</kd>
+                <max_vel>0.01</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce>
+              <restitution_coefficient>0</restitution_coefficient>
+              <threshold>1e6</threshold>
+            </bounce>
+          </surface>
         </collision>
         <visual name="visual">
           <geometry>
@@ -83,22 +165,36 @@
       </link>
     </model>
 
-    <!-- Lever/Switch placed on source table center -->
+    <!-- Lever object placed on source table center (pickable) -->
     <model name="lever">
       <pose>-0.45 0.35 1.025 0 0 0</pose>
       <link name="lever_arm">
         <collision name="collision">
           <geometry>
             <cylinder>
-              <radius>0.032</radius>
+              <radius>0.03035</radius>
               <length>0.15</length>
             </cylinder>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e6</kp>
+                <kd>1.0</kd>
+              </ode>
+            </contact>
+          </surface>
         </collision>
         <visual name="visual">
           <geometry>
             <cylinder>
-              <radius>0.032</radius>
+              <radius>0.03035</radius>
               <length>0.15</length>
             </cylinder>
           </geometry>
@@ -108,10 +204,18 @@
           </material>
         </visual>
         <inertial>
+          <pose>0 0 0 0 0 0</pose>
           <mass>0.2</mass>
+          <inertia>
+            <ixx>0.000375</ixx>
+            <iyy>0.000375</iyy>
+            <izz>0.0001024</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
         </inertial>
       </link>
-      
     </model>
 
     <!-- Destination Table (matches pick_place_scene.yaml: destination_table) -->
@@ -126,6 +230,26 @@
               <size>0.5 0.3 0.95</size>
             </box>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.8</mu>
+                <mu2>0.8</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e7</kp>
+                <kd>1.0</kd>
+                <max_vel>0.01</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce>
+              <restitution_coefficient>0</restitution_coefficient>
+              <threshold>1e6</threshold>
+            </bounce>
+          </surface>
         </collision>
         <visual name="visual">
           <geometry>

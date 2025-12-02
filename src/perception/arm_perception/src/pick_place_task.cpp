@@ -310,33 +310,36 @@ void MTCTaskNode::doTask()
      ***************************************************/
     {
       // Calculate gripper closing position based on object radius
-      // IMPORTANT: Gripper logic (from SRDF):
-      //   right_finger: -0.033m = OPEN (fully), +0.00026m = CLOSE (fully)
-      //   Positive = closing, Negative = opening
+      // IMPORTANT: Gripper logic (from SRDF and joint limits):
+      //   right_finger: -0.033m = OPEN (fully), +0.00026m = CLOSED (fully)
+      //   Positive values = closing motion, Negative values = opening motion
       //
-      // We need to calculate position where gripper touches object sides
-      // Object radius determines how far fingers can close before touching
+      // Strategy: Close gripper 5% more than object radius for firm grip
+      // Formula: gripper_position = -(object_radius * 0.95)
+      // This ensures fingers press slightly into object for secure grasp
 
-      const double safety_margin = -0.0005;  // 2mm safety margin
+      const double grip_compression = 0.95;  // Close 5% tighter than object radius
 
-      // Map object radius to gripper position
-      // When object_radius = 0.033m (max open), gripper should be at -0.033 (fully open)
-      // When object_radius = 0m (no object), gripper can be at +0.00026 (fully closed)
-      // Linear interpolation: position = -object_radius + safety_margin
-      double gripper_close_position = -(object_radius + safety_margin);
+      // Map object radius to gripper joint position with compression
+      // Examples:
+      //   object_radius = 0.033m → gripper_position ≈ -0.031m (slightly compressed)
+      //   object_radius = 0.016m → gripper_position ≈ -0.015m (5% tighter grip)
+      //   object_radius = 0.000m → gripper_position ≈ 0.000m (fully closed)
+      double gripper_close_position = -(object_radius * grip_compression);
 
-      // Clamp to joint limits to avoid exceeding hardware limits
-      const double GRIPPER_LIMIT_OPEN = -0.033;    // Maximum opening (most negative)
-      const double GRIPPER_LIMIT_CLOSED = 0.00026; // Maximum closing (most positive)
+      // Clamp to physical joint limits to prevent hardware damage
+      const double GRIPPER_LIMIT_OPEN = -0.033;    // Maximum opening (most negative value)
+      const double GRIPPER_LIMIT_CLOSED = 0.00026; // Maximum closing (most positive value)
       gripper_close_position = std::max(GRIPPER_LIMIT_OPEN,
                                        std::min(GRIPPER_LIMIT_CLOSED, gripper_close_position));
 
-      // Close gripper to calculated position (not fully closed)
-      // NOTE: Only control right finger - left finger is a mimic joint (multiplier=-1.0)
+      // Create MoveTo stage to close gripper around object
+      // NOTE: Only control right_finger - left_finger is mimic joint (multiplier=-1.0)
+      //       Setting right_finger automatically moves left_finger in opposite direction
       auto stage = std::make_unique<mtc::stages::MoveTo>("close hand", sampling_planner);
       stage->setGroup(hand_group);
 
-      // Set explicit joint goal for RIGHT finger only (left mimics automatically)
+      // Set joint goal for RIGHT finger only (left finger mimics automatically)
       std::map<std::string, double> gripper_positions;
       gripper_positions["left_palm_right_finger"] = gripper_close_position;
       stage->setGoal(gripper_positions);
@@ -464,33 +467,33 @@ void MTCTaskNode::doTask()
      *          Open Hand (release object)               *
      *****************************************************/
     {
-      // Open gripper to release object
-      // Right finger limits: [-0.033m (closed), +0.00026m (open)]
-      // NOTE: Only control right finger - left finger is a mimic joint (multiplier=-1.0)
+      // Open gripper fully to release object after placement
+      // IMPORTANT: Gripper logic (from SRDF and joint limits):
+      //   right_finger: -0.033m = OPEN (fully), +0.00026m = CLOSED (fully)
+      //   Negative values = opening motion, Positive values = closing motion
+      //
+      // Strategy: Open gripper to maximum position to ensure clean release
+      // This prevents object from sticking to gripper after placement
 
-      // Open gripper fully to release object
-      // IMPORTANT: Gripper logic (from SRDF):
-      //   right_finger: -0.033 = OPEN, +0.0002 = CLOSE
-      //   Negative values = opening
+      const double GRIPPER_LIMIT_OPEN = -0.033;    // Maximum opening (most negative value)
+      const double GRIPPER_LIMIT_CLOSED = 0.00026; // Maximum closing (most positive value)
 
-      double gripper_open_position = -0.03;  // Negative = open (not fully to avoid limits)
+      // Set gripper to fully open position for complete object release
+      double gripper_open_position = GRIPPER_LIMIT_OPEN;  // Fully open (-0.033m)
 
-      // Clamp to joint limits
-      const double GRIPPER_LIMIT_OPEN = -0.033;    // Maximum opening (most negative)
-      const double GRIPPER_LIMIT_CLOSED = 0.00026; // Maximum closing (most positive)
-      gripper_open_position = std::max(GRIPPER_LIMIT_OPEN,
-                                      std::min(GRIPPER_LIMIT_CLOSED, gripper_open_position));
-
+      // Create MoveTo stage to open gripper and release object
+      // NOTE: Only control right_finger - left_finger is mimic joint (multiplier=-1.0)
+      //       Setting right_finger automatically moves left_finger in opposite direction
       auto stage = std::make_unique<mtc::stages::MoveTo>("open hand", sampling_planner);
       stage->setGroup(hand_group);
 
-      // Set explicit joint goal for RIGHT finger only (left mimics automatically)
+      // Set joint goal for RIGHT finger only (left finger mimics automatically)
       std::map<std::string, double> gripper_positions;
       gripper_positions["left_palm_right_finger"] = gripper_open_position;
       stage->setGoal(gripper_positions);
 
-      RCLCPP_INFO(LOGGER, "Open hand: object_radius=%.4f, position=%.4f (limits: [%.4f, %.4f])",
-                  object_radius, gripper_open_position, GRIPPER_LIMIT_CLOSED, GRIPPER_LIMIT_OPEN);
+      RCLCPP_INFO(LOGGER, "Open hand: position=%.4fm (fully open at limit: %.4fm)",
+                  gripper_open_position, GRIPPER_LIMIT_OPEN);
 
       place->insert(std::move(stage));
     }
