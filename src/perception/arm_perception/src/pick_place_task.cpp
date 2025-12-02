@@ -327,12 +327,6 @@ void MTCTaskNode::doTask()
       //   object_radius = 0.000m → gripper_position ≈ 0.000m (fully closed)
       double gripper_close_position = -(object_radius * grip_compression);
 
-      // Clamp to physical joint limits to prevent hardware damage
-      const double GRIPPER_LIMIT_OPEN = -0.033;    // Maximum opening (most negative value)
-      const double GRIPPER_LIMIT_CLOSED = 0.00026; // Maximum closing (most positive value)
-      gripper_close_position = std::max(GRIPPER_LIMIT_OPEN,
-                                       std::min(GRIPPER_LIMIT_CLOSED, gripper_close_position));
-
       // Create MoveTo stage to close gripper around object
       // NOTE: Only control right_finger - left_finger is mimic joint (multiplier=-1.0)
       //       Setting right_finger automatically moves left_finger in opposite direction
@@ -344,8 +338,8 @@ void MTCTaskNode::doTask()
       gripper_positions["left_palm_right_finger"] = gripper_close_position;
       stage->setGoal(gripper_positions);
 
-      RCLCPP_INFO(LOGGER, "Close hand: object_radius=%.4fm, position=%.4fm (limits: [%.4f, %.4f])",
-                  object_radius, gripper_close_position, GRIPPER_LIMIT_OPEN, GRIPPER_LIMIT_CLOSED);
+      RCLCPP_INFO(LOGGER, "Close hand: object_radius=%.4fm, position=%.4fm )",
+                  object_radius, gripper_close_position);
 
       grasp->insert(std::move(stage));
     }
@@ -476,7 +470,6 @@ void MTCTaskNode::doTask()
       // This prevents object from sticking to gripper after placement
 
       const double GRIPPER_LIMIT_OPEN = -0.033;    // Maximum opening (most negative value)
-      const double GRIPPER_LIMIT_CLOSED = 0.00026; // Maximum closing (most positive value)
 
       // Set gripper to fully open position for complete object release
       double gripper_open_position = GRIPPER_LIMIT_OPEN;  // Fully open (-0.033m)
