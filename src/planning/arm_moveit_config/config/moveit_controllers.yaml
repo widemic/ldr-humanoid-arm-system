@@ -22,5 +22,6 @@ moveit_simple_controller_manager:
     type: FollowJointTrajectory
     joints:
       - left_palm_right_finger
+      - left_palm_left_finger
     action_ns: follow_joint_trajectory
-    default: false
+    default: true

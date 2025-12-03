@@ -1,0 +1,75 @@
+mtc_node:
+  ros__parameters:
+    # General parameters
+    # Note: execute and max_solutions are set via launch file arguments
+    max_solutions: 10
+
+    # Controller parameters (must match moveit_controllers.yaml)
+    controller_names:
+      - "arm_controller"
+      - "hand_controller"
+
+    # Robot configuration (must match SRDF)
+    arm_group_name: "arm"
+    gripper_group_name: "hand"
+    gripper_frame: "left_hand"  # End effector link (parent_link in SRDF)
+    gripper_open_pose: "open"   # Named pose in SRDF
+    gripper_close_pose: "close" # Named pose in SRDF
+    arm_home_pose: "home"       # Named pose in SRDF
+
+    # Scene frame (must match robot's planning frame from SRDF)
+    world_frame: "base_link"
+
+    # Object parameters
+    object_name: "target_object"
+    object_type: "cylinder"  # "cylinder" or "box"
+    object_dimensions: [0.10, 0.025]  # [height, radius] for cylinder - smaller object
+    object_pose: [0.0, 0.4, 1.15, 0.0, 0.0, 0.0]  # [x, y, z, roll, pitch, yaw] - closer and slightly lower
+    object_reference_frame: "base_link"
+
+    # Support surface
+    surface_name: "table"
+    surface_dimensions: [0.8, 0.6, 0.1]  # [length, width, height]
+    surface_pose: [0.0, 0.4, 1.0, 0.0, 0.0, 0.0]  # [x, y, z, roll, pitch, yaw] - table top at 1m height
+
+    # Grasp and place parameters
+    # Grasp frame transform: offset from gripper_frame to grasp point
+    # [x, y, z, roll, pitch, yaw] - transform to align gripper with object
+    grasp_frame_transform: [0.0, 0.0, 0.15, 0.0, 1.5708, 0.0]  # Rotate 90deg pitch, 15cm offset for grasp point
+
+    # Place pose: where to place the object
+    place_pose: [0.2, 0.3, 1.15, 0.0, 0.0, 0.0]  # [x, y, z, roll, pitch, yaw] - near pick height
+    place_pose_z_offset_factor: 0.5  # Multiply by object height to offset place pose
+
+    # Motion planning parameters
+    approach_object_min_dist: 0.001  # Very small minimum (1mm) to allow close grasps
+    approach_object_max_dist: 0.10  # Max approach distance
+    lift_object_min_dist: 0.001  # Very small minimum (1mm)
+    lift_object_max_dist: 0.05  # Small lift distance (5cm)
+    lower_object_min_dist: 0.001
+    lower_object_max_dist: 0.05
+    retreat_min_distance: 0.001
+    retreat_max_distance: 0.10
+
+    # Timeout parameters (seconds)
+    move_to_pick_timeout: 10.0
+    move_to_place_timeout: 10.0
+
+    # Grasp generation parameters
+    grasp_pose_angle_delta: 0.2618  # ~15 degrees in radians
+    grasp_pose_max_ik_solutions: 8
+    grasp_pose_min_solution_distance: 1.0
+
+    # Place generation parameters
+    place_pose_max_ik_solutions: 8
+
+    # Cartesian planner parameters
+    cartesian_max_velocity_scaling: 0.5
+    cartesian_max_acceleration_scaling: 0.5
+    cartesian_step_size: 0.001  # 1mm step size
+
+    # Direction vectors (relative to frames)
+    approach_object_direction_z: 1.0  # Approach along gripper z-axis (forward)
+    lift_object_direction_z: 1.0      # Lift upward in world frame
+    lower_object_direction_z: -1.0    # Lower downward in world frame
+    retreat_direction_z: -1.0         # Retreat backward along gripper z-axis

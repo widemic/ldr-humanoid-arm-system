@@ -47,7 +47,8 @@ arm_controller:
     allow_integration_in_goal_trajectories: true
 
 
-# Hand Controller - controls right finger (left finger mimics)
+# Hand Controller - controls gripper fingers via joint trajectory
+# Note: Only controls left_palm_right_finger; left_palm_left_finger mimics automatically
 hand_controller:
   ros__parameters:
     joints:
@@ -59,3 +60,13 @@ hand_controller:
     state_interfaces:
       - position
       - velocity
+      - effort
+
+    # Simple tolerances
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0  # No goal time constraint
+
+    # Allow external trajectory commands
+    allow_partial_joints_goal: false
+    allow_integration_in_goal_trajectories: true
