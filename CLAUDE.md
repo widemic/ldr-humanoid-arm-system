@@ -127,6 +127,108 @@ ros2 topic echo /joint_states
 ros2 service call /controller_manager/list_controllers controller_manager_msgs/srv/ListControllers
 ```
 
+## MoveIt Task Constructor (MTC)
+
+The system includes MoveIt Task Constructor for advanced task-level manipulation planning.
+
+### Running MTC Demos
+
+**Simple approach-retreat demo:**
+```bash
+# Launch MTC environment with simple demo
+ros2 launch arm_demos mtc_demo.launch.py demo:=simple
+
+# With Gazebo simulation
+ros2 launch arm_demos mtc_demo.launch.py demo:=simple use_sim:=true
+```
+
+**Pick-and-place demo (future - requires gripper):**
+```bash
+ros2 launch arm_demos mtc_demo.launch.py demo:=pick_place
+```
+
+**Launch MTC environment only (for custom scripts):**
+```bash
+ros2 launch arm_demos mtc_demo.launch.py demo:=none
+```
+
+### MTC Configuration Files
+
+**[src/planning/arm_moveit_config/config/mtc_capabilities.yaml](src/planning/arm_moveit_config/config/mtc_capabilities.yaml)** - MTC capabilities for move_group
+- ExecuteTaskSolutionCapability for task execution
+- Planning and execution parameters
+- Cartesian path configuration
+
+**[src/planning/arm_moveit_config/config/mtc_solvers.yaml](src/planning/arm_moveit_config/config/mtc_solvers.yaml)** - Stage solver configurations
+- Cartesian planner settings
+- Joint interpolation parameters
+- OMPL and Pilz planner configurations
+- Workspace bounds
+
+### MTC Demo Scripts
+
+**[src/applications/arm_demos/scripts/mtc_simple_demo.py](src/applications/arm_demos/scripts/mtc_simple_demo.py)** - Basic MTC demonstration
+- Shows fundamental MTC concepts
+- Stages: CurrentState → MoveTo(home) → MoveRelative(approach) → MoveRelative(retreat) → MoveTo(home)
+- Good starting point for learning MTC
+
+**[src/applications/arm_demos/scripts/mtc_pick_place_demo.py](src/applications/arm_demos/scripts/mtc_pick_place_demo.py)** - Advanced pick-and-place
+- Complete pick-and-place pipeline
+- Includes grasp generation and object attachment
+- Will be fully functional when gripper is integrated
+
+### MTC Stage Types
+
+Common stage types available:
+- **CurrentState** - Initialize task from current robot state
+- **MoveTo** - Move to named pose or joint configuration
+- **MoveRelative** - Move relative to current pose (Cartesian or joint space)
+- **Connect** - Connect two task states with motion planning
+- **GenerateGraspPose** - Generate candidate grasp poses for objects
+- **GeneratePlacePose** - Generate candidate place poses
+- **ComputeIK** - Compute inverse kinematics for poses
+- **ModifyPlanningScene** - Attach/detach objects, allow/forbid collisions
+
+### Creating Custom MTC Tasks
+
+```python
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from moveit.task_constructor import core, stages
+from geometry_msgs.msg import Vector3Stamped
+
+class MyCustomTask(Node):
+    def __init__(self):
+        super().__init__('my_task')
+        self.task = core.Task("my_custom_task")
+        self.task.loadRobotModel(self.get_logger())
+
+        # Set properties
+        self.task.setProperty("group", "arm")
+        self.task.setProperty("ik_frame", "wrist_roll_link")
+
+        # Create planners
+        cartesian = core.CartesianPath()
+        cartesian.setStepSize(0.01)
+
+        sampling = core.PipelinePlanner()
+
+        # Build task stages
+        current = stages.CurrentState("current")
+        self.task.add(current)
+
+        # Add your custom stages here...
+
+    def plan(self):
+        self.task.plan()
+        return self.task.numSolutions() > 0
+
+    def execute(self):
+        if self.task.numSolutions() > 0:
+            self.task.execute(self.task.solutions()[0])
+```
+
 ## Package Architecture
 
 ### Active Packages (Functional)
@@ -155,6 +257,10 @@ ros2 service call /controller_manager/list_controllers controller_manager_msgs/s
 
 **[arm_system_bringup](src/bringup/arm_system_bringup/)** - System integration
 - Complete demo: `launch/moveit_gazebo.launch.py` (Gazebo + MoveIt + RViz)
+
+**[arm_demos](src/applications/arm_demos/)** - Demo applications and examples
+- MTC demos: `scripts/mtc_simple_demo.py`, `scripts/mtc_pick_place_demo.py`
+- Launch: `launch/mtc_demo.launch.py` (MTC environment + demos)
 
 ### Placeholder Packages (Not Yet Implemented)
 - Hardware interfaces (`arm_hardware`)
@@ -194,7 +300,27 @@ if plan:
 - Interactive RViz visualization
 - Predefined poses (home, etc.)
 
-**Both paths share the same controller interface:** `arm_controller/follow_joint_trajectory` action
+**Path 3: MoveIt Task Constructor (MTC)**
+```python
+from moveit.task_constructor import core, stages
+
+task = core.Task("my_task")
+task.loadRobotModel()
+
+# Add stages: CurrentState → MoveTo → MoveRelative → etc.
+current = stages.CurrentState("current")
+task.add(current)
+
+# Plan and execute
+task.plan()
+task.execute(task.solutions()[0])
+```
+- Sequential task planning with reusable stages
+- Pick-and-place automation
+- Complex multi-step manipulation
+- Stage-based composition (approach, grasp, lift, place, retreat)
+
+**All paths share the same controller interface:** `arm_controller/follow_joint_trajectory` action
 
 ### Controller Stack
 
@@ -220,6 +346,10 @@ User Code → arm_controller (JointTrajectoryController)
 - [src/planning/arm_moveit_config/config/joint_limits.yaml](src/planning/arm_moveit_config/config/joint_limits.yaml) - Planning limits
 - [src/planning/arm_moveit_config/config/arm_description.srdf](src/planning/arm_moveit_config/config/arm_description.srdf) - Planning group, poses, collision pairs
 
+**MoveIt Task Constructor:**
+- [src/planning/arm_moveit_config/config/mtc_capabilities.yaml](src/planning/arm_moveit_config/config/mtc_capabilities.yaml) - MTC capabilities and execution parameters
+- [src/planning/arm_moveit_config/config/mtc_solvers.yaml](src/planning/arm_moveit_config/config/mtc_solvers.yaml) - Stage solver configurations (cartesian, sampling, interpolation)
+
 **Robot model:**
 - [src/robot_description/arm_description/urdf/arm.urdf.xacro](src/robot_description/arm_description/urdf/arm.urdf.xacro) - Main entry (use_sim:=true/false)
 - [src/robot_description/arm_description/urdf/macros/ros2_control.xacro](src/robot_description/arm_description/urdf/macros/ros2_control.xacro) - Control interface
@@ -244,6 +374,15 @@ User Code → arm_controller (JointTrajectoryController)
 - KDL kinematics solver is default (TRAC-IK available as alternative)
 - SRDF defines ~40+ disabled collision pairs for performance
 - Test planning with RViz interactive markers before coding
+
+### Working with MoveIt Task Constructor
+- MTC tasks are composed of sequential stages
+- Each stage generates or forwards robot states
+- Use SerialContainer for sequential execution, ParallelContainer for alternatives
+- Stages can be configured with properties (group, IK frame, timeout, etc.)
+- Always start with CurrentState stage to initialize from robot's current state
+- Use introspection (`task.toString()`) to debug task structure
+- MTC requires move_group with ExecuteTaskSolutionCapability enabled
 
 ### Working with Launch Files
 - Use TimerAction for sequential initialization (see [moveit_gazebo.launch.py](src/bringup/arm_system_bringup/launch/moveit_gazebo.launch.py))

@@ -49,6 +49,12 @@
   <exec_depend>gazebo_msgs</exec_depend>
   <exec_depend>python3-yaml</exec_depend>
 
+  <!-- MoveIt Task Constructor dependencies -->
+  <exec_depend>moveit_task_constructor_core</exec_depend>
+  <exec_depend>moveit_task_constructor_msgs</exec_depend>
+  <exec_depend>moveit_task_constructor_capabilities</exec_depend>
+  <exec_depend>moveit_task_constructor_visualization</exec_depend>
+
 
   <export>
       <build_type>ament_cmake</build_type>

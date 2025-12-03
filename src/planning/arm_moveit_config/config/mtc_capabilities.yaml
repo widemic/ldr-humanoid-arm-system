@@ -1,0 +1,50 @@
+# MoveIt Task Constructor Capabilities Configuration
+# This file defines the capabilities that will be loaded by move_group for MTC support
+
+# Enable MTC task execution capability
+capabilities:
+  - move_group/ExecuteTaskSolutionCapability
+
+# MTC-specific parameters
+move_group:
+  # Enable task planning and execution
+  capabilities: ["move_group/ExecuteTaskSolutionCapability"]
+
+  # Execution parameters
+  execution:
+    # Maximum time to wait for trajectory execution to complete (seconds)
+    allowed_execution_duration_scaling: 1.2
+
+    # Monitor execution at this rate (Hz)
+    trajectory_execution_monitor_rate: 20.0
+
+    # Allowed goal tolerance for execution
+    allowed_goal_duration_margin: 0.5
+
+  # Planning parameters for MTC
+  planning:
+    # Default planning pipeline for MTC tasks
+    default_planning_pipeline: ompl
+
+    # Planning attempts
+    planning_attempts: 10
+
+    # Planning time (seconds)
+    planning_time: 5.0
+
+    # Max velocity scaling for task execution
+    max_velocity_scaling_factor: 1.0
+
+    # Max acceleration scaling for task execution
+    max_acceleration_scaling_factor: 1.0
+
+  # Cartesian path planning for MTC stages
+  cartesian:
+    # Resolution for cartesian path interpolation (meters)
+    step_size: 0.01
+
+    # Jump threshold for cartesian paths (0 = disabled)
+    jump_threshold: 0.0
+
+    # Minimum fraction of path that must be collision-free
+    min_fraction: 0.9

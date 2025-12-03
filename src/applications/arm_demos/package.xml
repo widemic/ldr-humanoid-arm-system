@@ -14,6 +14,10 @@
   <exec_depend>arm_moveit_config</exec_depend>
   <exec_depend>arm_control</exec_depend>
 
+  <!-- MoveIt Task Constructor -->
+  <exec_depend>moveit_task_constructor_core</exec_depend>
+  <exec_depend>moveit_task_constructor_msgs</exec_depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
