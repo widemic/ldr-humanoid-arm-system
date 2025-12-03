@@ -32,7 +32,17 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python scripts
 install(PROGRAMS
   scripts/external_camera_node.py
+  scripts/opencv_grasp_detector.py
+  scripts/webcam_grasp_detector.py
+  scripts/robust_object_detector.py
+  scripts/ml_grasp_detector.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
 )
 
 # Install config files
