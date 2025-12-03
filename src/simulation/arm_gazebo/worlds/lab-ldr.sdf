@@ -1,9 +1,22 @@
 <sdf version='1.10'>
   <world name='lab'>
-    <physics name='1ms' type='ignored'>
+    <physics name='1ms' type='ode'>
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1</real_time_factor>
       <real_time_update_rate>1000</real_time_update_rate>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+          <sor>1.3</sor>
+        </solver>
+        <constraints>
+          <cfm>0.0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100.0</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
     </physics>
     <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system' />
     <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system' />
@@ -28,10 +41,23 @@
           </geometry>
           <surface>
             <friction>
-              <ode />
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
             </friction>
-            <bounce />
-            <contact />
+            <contact>
+              <ode>
+                <kp>1e7</kp>
+                <kd>1.0</kd>
+                <max_vel>0.01</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce>
+              <restitution_coefficient>0</restitution_coefficient>
+              <threshold>1e6</threshold>
+            </bounce>
           </surface>
         </collision>
         <visual name='visual'>
@@ -129,5 +155,111 @@
         <falloff>0</falloff>
       </spot>
     </light>
+    <!-- Source Table (matches pick_place_scene.yaml: test_table) -->
+    <model name="test_table">
+      <static>true</static>
+      <!-- Size 0.5 x 0.3 x 0.95 so surface sits at z=0.95 while resting on ground -->
+      <pose>-0.45 0.35 0.475 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5 0.3 0.95</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5 0.3 0.95</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.4 0.3 1</ambient>
+            <diffuse>0.5 0.4 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Lever object placed on source table center (pickable) -->
+    <model name="lever">
+      <pose>-0.45 0.35 1.025 0 0 0</pose>
+      <link name="lever_arm">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.03035</radius>
+              <length>0.15</length>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e6</kp>
+                <kd>1.0</kd>
+              </ode>
+            </contact>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.03035</radius>
+              <length>0.15</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.9 0.1 0.1 1</ambient>
+            <diffuse>0.9 0.1 0.1 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.000375</ixx>
+            <iyy>0.000375</iyy>
+            <izz>0.0001024</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+      </link>
+    </model>
+
+    <!-- Destination Table (matches pick_place_scene.yaml: destination_table) -->
+    <model name="destination_table">
+      <static>true</static>
+      <!-- Same size/height as source table -->
+      <pose>-0.45 -0.35 0.475 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5 0.3 0.95</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5 0.3 0.95</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.4 0.3 1</ambient>
+            <diffuse>0.5 0.4 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
   </world>
 </sdf>

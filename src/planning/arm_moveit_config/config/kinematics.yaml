@@ -4,4 +4,4 @@ arm:
   kinematics_solver_timeout: 0.050000000000000003
   default_acceleration_scaling_factor: 1.0
   default_velocity_scaling_factor: 1.0
-  position_only_ik: true
+  position_only_ik: false

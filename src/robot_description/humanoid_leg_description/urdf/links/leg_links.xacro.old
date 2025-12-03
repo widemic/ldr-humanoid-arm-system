@@ -1,0 +1,300 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="leg_links" params="prefix">
+
+    <!-- LEFT LEG LINKS -->
+
+    <!-- Left Hip Yoke Link -->
+        <link name="${prefix}left_hip_yoke_link">
+      <inertial>
+        <origin xyz="0.035933 0.047017 0.000007" rpy="0 0 0"/>
+        <mass value="0.649617"/>
+        <inertia ixx="0.000543" ixy="0.000296" ixz="0.0" iyy="0.000415" iyz="0.0" izz="0.000773"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_102L_L_HIP_YOKE.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.262745 0.282353 0.301961 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_102L_L_HIP_YOKE.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Left Hip Roll Link -->
+        <link name="${prefix}left_hip_roll_link">
+      <inertial>
+        <origin xyz="-0.002148 -0.008862 0.023677" rpy="0 0 0"/>
+        <mass value="0.510235"/>
+        <inertia ixx="0.000401" ixy="0.000015" ixz="-0.000005" iyy="0.000344" iyz="-0.000091" izz="0.000265"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/RS03_3.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.615686 0.811765 0.929412 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/RS03_3.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Left Hip Pitch Link -->
+        <link name="${prefix}left_hip_pitch_link">
+      <inertial>
+        <origin xyz="-0.002147 0.008861 0.023677" rpy="0 0 0"/>
+        <mass value="0.510235"/>
+        <inertia ixx="0.000401" ixy="-0.000015" ixz="-0.000005" iyy="0.000344" iyz="0.000091" izz="0.000265"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/RS03_4.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.615686 0.811765 0.929412 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/RS03_4.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Left Femur Link -->
+        <link name="${prefix}left_femur_link">
+      <inertial>
+        <origin xyz="-0.000002 0.010843 -0.124089" rpy="0 0 0"/>
+        <mass value="1.163281"/>
+        <inertia ixx="0.009533" ixy="0.0" ixz="-0.0" iyy="0.008901" iyz="-0.00066" izz="0.001334"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_301L_L_LEG_FEMUR.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.439216 0.474510 0.501961 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_301L_L_LEG_FEMUR.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Left Shin Link -->
+        <link name="${prefix}left_shin_link">
+      <inertial>
+        <origin xyz="-0.000004 -0.010748 -0.123998" rpy="0 0 0"/>
+        <mass value="1.163281"/>
+        <inertia ixx="0.009532" ixy="0.0" ixz="0.0" iyy="0.008903" iyz="0.000659" izz="0.001334"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_402L_L_LEG_SHIN.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.615686 0.811765 0.929412 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_402L_L_LEG_SHIN.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Left Foot Link -->
+        <link name="${prefix}left_foot_link">
+      <inertial>
+        <origin xyz="0.029027 -0.000449 -0.02356" rpy="0 0 0"/>
+        <mass value="0.239425"/>
+        <inertia ixx="0.000206" ixy="-0.000002" ixz="0.000053" iyy="0.000563" iyz="-0.0" izz="0.000597"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_501L_L_LEG_FOOT.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.972549 0.529412 0.003922 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_501L_L_LEG_FOOT.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- RIGHT LEG LINKS -->
+
+    <!-- Right Hip Yoke Link -->
+        <link name="${prefix}right_hip_yoke_link">
+      <inertial>
+        <origin xyz="0.035932 -0.047017 0.000007" rpy="0 0 0"/>
+        <mass value="0.649617"/>
+        <inertia ixx="0.000543" ixy="-0.000296" ixz="0.0" iyy="0.000415" iyz="0.0" izz="0.000773"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_102R_R_HIP_YOKE.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.262745 0.282353 0.301961 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_102R_R_HIP_YOKE.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Right Hip Roll Link -->
+        <link name="${prefix}right_hip_roll_link">
+      <inertial>
+        <origin xyz="-0.002148 -0.008862 0.023677" rpy="0 0 0"/>
+        <mass value="0.510235"/>
+        <inertia ixx="0.000401" ixy="0.000015" ixz="-0.000005" iyy="0.000344" iyz="-0.000091" izz="0.000265"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/RS03_3.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.615686 0.811765 0.929412 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/RS03_3.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Right Hip Pitch Link -->
+        <link name="${prefix}right_hip_pitch_link">
+      <inertial>
+        <origin xyz="-0.002147 0.008861 0.023677" rpy="0 0 0"/>
+        <mass value="0.510235"/>
+        <inertia ixx="0.000401" ixy="-0.000015" ixz="-0.000005" iyy="0.000344" iyz="0.000091" izz="0.000265"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/RS03_4.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.615686 0.811765 0.929412 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/RS03_4.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Right Femur Link -->
+        <link name="${prefix}right_femur_link">
+      <inertial>
+        <origin xyz="-0.000002 -0.010843 -0.124089" rpy="0 0 0"/>
+        <mass value="1.163281"/>
+        <inertia ixx="0.009533" ixy="0.0" ixz="-0.0" iyy="0.008901" iyz="0.00066" izz="0.001334"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_301R_R_LEG_FEMUR.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.439216 0.474510 0.501961 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_301R_R_LEG_FEMUR.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Right Shin Link -->
+        <link name="${prefix}right_shin_link">
+      <inertial>
+        <origin xyz="-0.000004 0.010748 -0.123998" rpy="0 0 0"/>
+        <mass value="1.163281"/>
+        <inertia ixx="0.009532" ixy="0.0" ixz="0.0" iyy="0.008903" iyz="-0.000659" izz="0.001334"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_401R_R_LEG_SHIN.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.615686 0.811765 0.929412 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_401R_R_LEG_SHIN.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Right Foot Link -->
+        <link name="${prefix}right_foot_link">
+      <inertial>
+        <origin xyz="0.029027 0.000449 -0.02356" rpy="0 0 0"/>
+        <mass value="0.239425"/>
+        <inertia ixx="0.000206" ixy="0.000002" ixz="0.000053" iyy="0.000563" iyz="0.0" izz="0.000597"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_501R_R_LEG_FOOT.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.972549 0.529412 0.003922 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_D_501R_R_LEG_FOOT.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+  </xacro:macro>
+
+</robot>

@@ -9,7 +9,7 @@ controller_manager:
       type: joint_trajectory_controller/JointTrajectoryController
 
     hand_controller:
-      type: position_controllers/GripperActionController
+      type: joint_trajectory_controller/JointTrajectoryController
 
 arm_controller:
   ros__parameters:
@@ -25,24 +25,16 @@ arm_controller:
     state_interfaces:
       - position
       - velocity
+    allow_nonzero_velocity_at_trajectory_end: true
 
 hand_controller:
   ros__parameters:
-    joint: left_palm_right_finger
+    joints:
+      - left_palm_right_finger
 
-    # Action monitoring
-    action_monitor_rate: 20.0
+    command_interfaces:
+      - position
 
-    # Goal tolerances
-    goal_time: 0.0
-    goal_tolerance: 0.001
-
-    # Stall detection
-    stall_velocity_threshold: 0.001
-    stall_timeout: 0.5
-
-    # Maximum effort
-    max_effort: 10.0
-
-    # Allow stalling
-    allow_stalling: true
+    state_interfaces:
+      - position
+      - velocity

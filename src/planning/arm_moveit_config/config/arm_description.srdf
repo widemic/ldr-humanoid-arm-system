@@ -42,12 +42,12 @@
         <joint name="left_wrist_rs02" value="-0.1561"/>
     </group_state>
     <group_state name="open" group="hand">
-        <joint name="left_palm_left_finger" value="0.033"/>
-        <joint name="left_palm_right_finger" value="-0.033"/>
+        <joint name="left_palm_left_finger" value="0.040"/>
+        <joint name="left_palm_right_finger" value="-0.040"/>
     </group_state>
     <group_state name="close" group="hand">
-        <joint name="left_palm_left_finger" value="-0.0041"/>
-        <joint name="left_palm_right_finger" value="0.0002"/>
+        <joint name="left_palm_left_finger" value="-0.0"/>
+        <joint name="left_palm_right_finger" value="0.0"/>
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="hand" parent_link="left_hand" group="hand"/>

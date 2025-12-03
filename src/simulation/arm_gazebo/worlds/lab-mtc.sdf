@@ -1,0 +1,475 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <world name="whole_arm_manipulation_workspace">
+
+    <!--
+      Physics Engine Configuration (ODE - Open Dynamics Engine)
+      ==========================================================
+      Optimized parameters for real-time robotic manipulation simulation
+
+      Time stepping:
+        - max_step_size: 0.001s (1ms) - Small time step for accurate simulation
+        - real_time_factor: 1.0 - Real-time simulation (no speedup/slowdown)
+        - real_time_update_rate: 1000 Hz - Physics updated 1000 times per second
+
+      ODE Solver Configuration:
+        - type: 'quick' - Fast iterative solver, good for real-time performance
+        - iters: 50 - Number of solver iterations (higher = more accurate but slower)
+        - sor: 1.3 - Successive Over-Relaxation parameter (1.0-1.3 optimal range)
+
+      Constraint Parameters:
+        - cfm: 0.0 - Constraint Force Mixing (0 = rigid, higher = softer constraints)
+        - erp: 0.2 - Error Reduction Parameter (0.1-0.8 range, 0.2 = 20% error correction per step)
+        - contact_max_correcting_vel: 100.0 m/s - Max velocity for contact penetration correction
+        - contact_surface_layer: 0.001m (1mm) - Penetration tolerance before contact is registered
+    -->
+    <physics name='1ms' type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+          <sor>1.3</sor>
+        </solver>
+        <constraints>
+          <cfm>0.0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100.0</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
+    </physics>
+    <!-- Gazebo Harmonic System Plugins -->
+    <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system' />
+    <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system' />
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system' />
+
+    <!--
+      World Physical Properties
+      =========================
+      - gravity: Standard Earth gravity (9.8 m/s² downward in Z-axis)
+      - magnetic_field: Earth's magnetic field in Gazebo coordinates (Tesla)
+                        Used for magnetometer sensors if present
+      - atmosphere: Adiabatic atmosphere model (no heat exchange)
+    -->
+    <gravity>0 0 -9.8000000000000007</gravity>
+    <magnetic_field>5.5644999999999998e-06 2.2875799999999999e-05 -4.2388400000000002e-05</magnetic_field>
+    <atmosphere type='adiabatic' />
+
+    <!--
+      Scene Rendering Configuration
+      =============================
+      - ambient: Ambient lighting (RGBA) - soft gray for realistic indoor lighting
+      - background: Background color (RGBA) - light gray sky
+      - shadows: Enable shadow rendering for depth perception
+    -->
+    <scene>
+      <ambient>0.400000006 0.400000006 0.400000006 1</ambient>
+      <background>0.699999988 0.699999988 0.699999988 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <!--
+      Directional Light (Sun)
+      =======================
+      Simulates natural sunlight for realistic rendering
+      - pose: Light position (10m above ground, centered)
+      - direction: Light direction vector [-0.5, 0.1, -0.9] (angled downward)
+      - intensity: 1.0 (standard sun brightness)
+      - diffuse: Main light color (80% white)
+      - specular: Specular highlights (20% white for subtle reflections)
+      - cast_shadows: Enabled for depth perception
+    -->
+    <light name='sun' type='directional'>
+      <pose>0 0 10 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>-0.5 0.10000000000000001 -0.90000000000000002</direction>
+      <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+      <specular>0.200000003 0.200000003 0.200000003 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.01</linear>
+        <constant>0.90000000000000002</constant>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+
+    <!--
+      Ground Plane (Floor)
+      ====================
+      Infinite horizontal plane representing the floor
+      Static object (no dynamics, fixed in place)
+
+      Physical Properties:
+      ____________________
+      Friction:
+        - mu, mu2: 1.0 - High friction (typical concrete/tile floor)
+                         Prevents objects from sliding excessively
+
+      Contact Dynamics:
+        - kp: 1e7 N/m (10 MN/m) - Very high contact stiffness (rigid surface)
+        - kd: 1.0 N·s/m - Contact damping (energy dissipation)
+        - max_vel: 0.01 m/s - Maximum penetration correction velocity
+        - min_depth: 0.001m (1mm) - Minimum penetration before contact force applied
+
+      Bounce:
+        - restitution_coefficient: 0 - No bounce (completely inelastic collisions)
+        - threshold: 1e6 - Energy threshold for bounce detection
+
+      Inertial Properties:
+        - mass: 1 kg (nominal, ignored for static objects)
+        - inertia: Identity matrix (nominal values)
+    -->
+    <model name='ground_plane'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e7</kp>
+                <kd>1.0</kd>
+                <max_vel>0.01</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce>
+              <restitution_coefficient>0</restitution_coefficient>
+              <threshold>1e6</threshold>
+            </bounce>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.800000012 0.800000012 0.800000012 1</ambient>
+            <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+            <specular>0.800000012 0.800000012 0.800000012 1</specular>
+          </material>
+        </visual>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>0 0 0 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+
+    <!--
+      Source Table (Pick Location)
+      =============================
+      Wooden table where objects are initially placed for pick-and-place operations
+      Matches MoveIt planning scene: "test_table"
+
+      Geometry:
+        - Size: 0.5m (X) × 0.3m (Y) × 0.95m (Z)
+        - Center pose: [-0.45, 0.35, 0.475] (center of mass at half-height)
+        - Surface height: z = 0.95m (top surface where objects rest)
+
+      Physical Properties:
+      ____________________
+      Friction:
+        - mu, mu2: 0.8 - Medium-high friction (typical wooden surface)
+                         Lower than floor (1.0) to simulate smoother wood
+                         Sufficient to prevent objects from sliding during manipulation
+
+      Contact Dynamics:
+        - kp: 1e7 N/m (10 MN/m) - Very high stiffness (rigid wooden table)
+        - kd: 1.0 N·s/m - Standard contact damping
+        - max_vel: 0.01 m/s - Prevents excessive penetration correction
+        - min_depth: 0.001m (1mm) - Contact detection threshold
+
+      Bounce:
+        - restitution_coefficient: 0 - No bounce (objects don't rebound off table)
+        - threshold: 1e6 - Energy threshold for bounce
+
+      Inertial Properties (nominal, ignored for static objects):
+        - mass: 50 kg - Typical wooden table weight
+        - Moments of inertia (calculated for solid box):
+          * Ixx = (1/12)m(h² + d²) = (1/12)(50)(0.95² + 0.3²) = 3.958 kg·m²
+          * Iyy = (1/12)m(h² + w²) = (1/12)(50)(0.95² + 0.5²) = 4.479 kg·m²
+          * Izz = (1/12)m(w² + d²) = (1/12)(50)(0.5² + 0.3²) = 0.625 kg·m²
+
+      Static: true (table is fixed, cannot be moved by robot)
+      Note: Inertial properties are included for completeness but ignored by physics engine
+    -->
+    <model name="test_table">
+      <pose>-0.45 0.35 0.475 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5 0.3 0.95</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.8</mu>
+                <mu2>0.8</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e7</kp>
+                <kd>1.0</kd>
+                <max_vel>0.01</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce>
+              <restitution_coefficient>0</restitution_coefficient>
+              <threshold>1e6</threshold>
+            </bounce>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5 0.3 0.95</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.4 0.3 1</ambient>
+            <diffuse>0.5 0.4 0.3 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>8</mass>
+          <inertia>
+            <ixx>3.958</ixx>
+            <iyy>4.479</iyy>
+            <izz>0.625</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+      </link>
+    </model>
+
+    <!--
+      Lever Object (Pickable Cylinder)
+      ================================
+      Manipulable object for pick-and-place demonstration
+      Dynamic object (responds to physics and robot interaction)
+
+      Geometry:
+        - Shape: Cylinder (vertical orientation)
+        - Radius: 0.03035m (~60.7mm diameter)
+        - Length: 0.15m (150mm height)
+        - Initial pose: [-0.45, 0.35, 1.025] (centered on test_table surface)
+                        z = 1.025 = table_surface(0.95) + cylinder_half_length(0.075)
+
+      Physical Properties:
+      ____________________
+      Mass & Inertia:
+        - mass: 0.2 kg (200g) - Lightweight metal/plastic cylinder
+        - Moments of inertia (calculated for solid cylinder):
+          * Ixx = Iyy = (1/12)m(3r² + L²) = (1/12)(0.2)(3×0.03035² + 0.15²)
+                      = 0.000375 kg·m²  (transverse axes)
+          * Izz = (1/2)mr² = (1/2)(0.2)(0.03035²)
+                = 0.0001024 kg·m²  (longitudinal axis)
+
+      Friction:
+        - mu, mu2: 1.0 - High friction (metal/textured surface)
+                         Higher than table (0.8) for secure gripper grasp
+                         Prevents slipping in gripper during manipulation
+
+      Contact Dynamics:
+        - kp: 1e6 N/m (1 MN/m) - Lower stiffness than static objects
+                                 Allows slight deformation for realistic grip
+                                 10× softer than table/ground (1e7)
+        - kd: 1.0 N·s/m - Standard contact damping
+
+      Dynamic behavior:
+        - Responds to gravity (falls if not supported)
+        - Can be grasped, lifted, and moved by robot gripper
+        - Collides realistically with environment
+    -->
+    <model name="lever">
+      <pose>-0.45 0.35 1.025 0 0 0</pose>
+      <link name="lever_arm">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.03035</radius>
+              <length>0.15</length>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e6</kp>
+                <kd>1.0</kd>
+              </ode>
+            </contact>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.03035</radius>
+              <length>0.15</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.9 0.1 0.1 1</ambient>
+            <diffuse>0.9 0.1 0.1 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.000375</ixx>
+            <iyy>0.000375</iyy>
+            <izz>0.0001024</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+      </link>
+    </model>
+
+    <!--
+      Destination Table (Place Location)
+      ==================================
+      Target table for pick-and-place operations (object placement destination)
+      Matches MoveIt planning scene: "destination_table"
+      Identical physical properties to source table for consistent behavior
+
+      Geometry:
+        - Size: 0.5m (X) × 0.3m (Y) × 0.95m (Z)
+        - Center pose: [-0.45, -0.35, 0.475] (0.7m away from source table in Y-axis)
+        - Surface height: z = 0.95m (same as source table)
+
+      Physical Properties:
+      ____________________
+      Friction:
+        - mu, mu2: 0.8 - Medium-high friction (wooden surface, same as source table)
+                         Ensures consistent object behavior during placement
+
+      Contact Dynamics:
+        - kp: 1e7 N/m (10 MN/m) - Very high stiffness (rigid table)
+        - kd: 1.0 N·s/m - Standard contact damping
+        - max_vel: 0.01 m/s - Prevents excessive penetration correction
+        - min_depth: 0.001m (1mm) - Contact detection threshold
+
+      Bounce:
+        - restitution_coefficient: 0 - No bounce (objects settle immediately)
+        - threshold: 1e6 - Energy threshold for bounce
+
+      Inertial Properties (nominal, ignored for static objects):
+        - mass: 50 kg - Identical to source table
+        - Moments of inertia (same as test_table):
+          * Ixx = 3.958 kg·m²
+          * Iyy = 4.479 kg·m²
+          * Izz = 0.625 kg·m²
+
+      Static: true (table is fixed, cannot be moved by robot)
+
+      Note: Identical to test_table for symmetric pick-and-place behavior
+      Note: Inertial properties included for completeness but ignored by physics engine
+    -->
+    <model name="destination_table">
+      <pose>-0.45 -0.35 0.475 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5 0.3 0.95</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.8</mu>
+                <mu2>0.8</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e7</kp>
+                <kd>1.0</kd>
+                <max_vel>0.01</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce>
+              <restitution_coefficient>0</restitution_coefficient>
+              <threshold>1e6</threshold>
+            </bounce>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5 0.3 0.95</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.4 0.3 1</ambient>
+            <diffuse>0.5 0.4 0.3 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>8</mass>
+          <inertia>
+            <ixx>3.958</ixx>
+            <iyy>4.479</iyy>
+            <izz>0.625</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+      </link>
+    </model>
+  </world>
+</sdf>
