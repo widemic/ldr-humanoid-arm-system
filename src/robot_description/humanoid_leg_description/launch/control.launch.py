@@ -27,8 +27,15 @@ def generate_launch_description():
         arguments=["leg_controller", "--controller-manager", "/controller_manager"],
         output="screen"
     )
-
+    # Leg controller spawner
+    spawner_left_arm = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["left_arm_controller", "--controller-manager", "/controller_manager"],
+        output="screen"
+    )
     return LaunchDescription([
         spawner_jsb,
         spawner_leg,
+        spawner_left_arm,
     ])

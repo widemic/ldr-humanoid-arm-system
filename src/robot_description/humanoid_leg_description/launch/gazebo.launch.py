@@ -221,6 +221,24 @@ def generate_launch_description():
         )]
     )
 
+
+    left_arm_controller_spawner = TimerAction(
+        period=6.0,  # Wait 6 seconds (after joint_state_broadcaster)
+        actions=[Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=[
+                "left_arm_controller",
+                "--controller-manager",
+                "/controller_manager",
+                "--ros-args",
+                "--params-file",
+                controllers_file,
+            ],
+            parameters=[{'use_sim_time': use_sim_time}],
+            output="screen",
+        )]
+    )
     # Create launch description and populate
     ld = LaunchDescription(declared_arguments)
 
@@ -237,5 +255,6 @@ def generate_launch_description():
     # Add controller spawners with delays
     ld.add_action(joint_state_broadcaster_spawner)
     ld.add_action(leg_controller_spawner)
+    ld.add_action(left_arm_controller_spawner)
 
     return ld
