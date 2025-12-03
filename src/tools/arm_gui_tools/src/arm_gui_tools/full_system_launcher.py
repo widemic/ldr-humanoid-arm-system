@@ -119,6 +119,9 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self.monitor_timer.timeout.connect(self._cleanup_finished_processes)
         self.monitor_timer.start(1000)
 
+        # Add Reset All Processes button
+        self._setup_reset_button()
+
     def _load_ui(self):
         """Load the Qt Designer file either from install or source tree."""
         try:
@@ -383,7 +386,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
         return None
 
     def _terminate_process(self, tool):
-        """Send SIGINT (then SIGTERM) to the stored process."""
+        """Send SIGINT (then SIGTERM, then SIGKILL) to the stored process."""
         process = tool['process']
         if not process:
             return False
@@ -398,7 +401,15 @@ class LauncherWindow(QtWidgets.QMainWindow):
         except ProcessLookupError:
             pass
         except subprocess.TimeoutExpired:
-            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            try:
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                # Last resort
+                try:
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                except Exception:
+                    pass
         finally:
             tool['process'] = None
 
@@ -425,6 +436,39 @@ class LauncherWindow(QtWidgets.QMainWindow):
     @staticmethod
     def _set_tool_status(tool, text):
         tool['status_label'].setText(text)
+
+    def _setup_reset_button(self):
+        """Create and place the 'Reset All Processes' button in the processes group."""
+        group_box = self.findChild(QtWidgets.QGroupBox, 'group_processes')
+        grid_layout = group_box.layout() if group_box else None
+        if not isinstance(grid_layout, QtWidgets.QGridLayout):
+            return
+
+        reset_btn = QtWidgets.QPushButton('Reset All Processes', self)
+        reset_btn.setObjectName('button_reset_all')
+        reset_btn.setStyleSheet('background-color: #d9534f; color: white; font-weight: bold;')
+        reset_btn.clicked.connect(self._reset_all_processes)
+
+        row = grid_layout.rowCount()
+        # place the button across the available columns
+        grid_layout.addWidget(reset_btn, row, 0, 1, 4)
+
+    def _reset_all_processes(self):
+        """Stop all running tools and show a summary message."""
+        # ensure we don't count already-exited processes
+        self._cleanup_finished_processes()
+        stopped = 0
+        for name in list(self.tools.keys()):
+            tool = self.tools[name]
+            if self._is_running(tool):
+                self.stop_tool(name)
+                stopped += 1
+
+        QtWidgets.QMessageBox.information(
+            self,
+            'Reset Complete',
+            f'Stopped {stopped} process(es).'
+        )
 
 
 def main():
