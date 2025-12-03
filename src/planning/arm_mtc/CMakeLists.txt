@@ -22,6 +22,8 @@ find_package(shape_msgs REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(moveit_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 # Include directories
 include_directories(
@@ -63,6 +65,9 @@ ament_target_dependencies(mtc_node2
 add_executable(mtc_pick_place_cylinder src/mtc_pick_place_cylinder.cpp)
 
  ament_target_dependencies(mtc_pick_place_cylinder
+# Build pick_place_task executable
+add_executable(pick_place_task src/pick_place_task.cpp)
+ament_target_dependencies(pick_place_task
   rclcpp
   moveit_task_constructor_core
   moveit_task_constructor_msgs
@@ -73,6 +78,18 @@ add_executable(mtc_pick_place_cylinder src/mtc_pick_place_cylinder.cpp)
   tf2_eigen
   tf2_geometry_msgs
 )
+  moveit_msgs
+  std_msgs
+)
+
+# Install C++ executables
+install(TARGETS
+  pick_place_task
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
 
 # Install executables
 install(TARGETS
@@ -93,6 +110,7 @@ install(DIRECTORY
 install(PROGRAMS
   scripts/simple_pick.py
   scripts/mtc_orchestrator.py
+  scripts/planning_scene_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

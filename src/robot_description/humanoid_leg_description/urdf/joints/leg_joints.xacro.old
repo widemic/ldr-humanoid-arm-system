@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="leg_joints" params="prefix">
+
+    <!-- LEFT LEG JOINTS -->
+
+    <!-- Left Hip Pitch Joint (torso → hip yoke) -->
+    <joint name="${prefix}left_hip_pitch" type="revolute">
+      <parent link="${prefix}torso_link"/>
+      <child link="${prefix}left_hip_yoke_link"/>
+      <origin xyz="-0.056000 -0.000737 -0.072993" rpy="-1.570796 0 -1.570796"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-1.570796" upper="1.919862" effort="120" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Left Hip Roll Joint (hip yoke → hip roll actuator) -->
+    <joint name="${prefix}left_hip_roll" type="revolute">
+      <parent link="${prefix}left_hip_yoke_link"/>
+      <child link="${prefix}left_hip_roll_link"/>
+      <origin xyz="-0.028250 0.030000 -0.071000" rpy="3.141593 1.570796 0"/>
+      <axis xyz="0 0 -1.0"/>
+      <limit lower="-2.268928" upper="0" effort="60" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Left Hip Yaw Joint (hip roll actuator → femur) -->
+    <joint name="${prefix}left_hip_yaw" type="revolute">
+      <parent link="${prefix}left_hip_roll_link"/>
+      <child link="${prefix}left_hip_pitch_link"/>
+      <origin xyz="0 -0.142750 -0.029800" rpy="1.570796 0 0"/>
+      <axis xyz="0 0 -1"/>
+      <limit lower="-1.570796" upper="1.570796" effort="60" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Left Knee Joint (femur → shin) -->
+    <joint name="${prefix}left_knee" type="revolute">
+      <parent link="${prefix}left_hip_pitch_link"/>
+      <child link="${prefix}left_femur_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-1.570796" upper="1.570796" effort="60" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Left Ankle Joint (shin → foot) -->
+    <joint name="${prefix}left_ankle" type="revolute">
+      <parent link="${prefix}left_femur_link"/>
+      <child link="${prefix}left_shin_link"/>
+      <origin xyz="0.043200 -0.021000 0.212000" rpy="-1.570796 0 -1.570796"/>
+      <axis xyz="0 0 1.0"/>
+      <limit lower="0" upper="2.705260" effort="120" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Left Foot Joint (shin → foot) -->
+    <joint name="${prefix}left_foot" type="revolute">
+      <parent link="${prefix}left_shin_link"/>
+      <child link="${prefix}left_foot_link"/>
+      <origin xyz="-0.031300 -0.292500 -0.057200" rpy="0 0 0"/>
+      <axis xyz="0 0 1.0"/>
+      <limit lower="-0.785398" upper="0.296706" effort="17" velocity="12.566"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- RIGHT LEG JOINTS -->
+
+    <!-- Right Hip Pitch Joint (torso → hip yoke) -->
+    <joint name="${prefix}right_hip_pitch" type="revolute">
+      <parent link="${prefix}torso_link"/>
+      <child link="${prefix}right_hip_yoke_link"/>
+      <origin xyz="0.056000 -0.000737 -0.072993" rpy="1.570796 0 -1.570796"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-1.919862" upper="1.570796" effort="120" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Right Hip Roll Joint (hip yoke → hip roll actuator) -->
+    <joint name="${prefix}right_hip_roll" type="revolute">
+      <parent link="${prefix}right_hip_yoke_link"/>
+      <child link="${prefix}right_hip_roll_link"/>
+      <origin xyz="-0.028250 -0.030000 -0.071000" rpy="0 -1.570796 0"/>
+      <axis xyz="0 0 -1.0"/>
+      <limit lower="0" upper="2.268928" effort="60" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Right Hip Yaw Joint (hip roll actuator → femur) -->
+    <joint name="${prefix}right_hip_yaw" type="revolute">
+      <parent link="${prefix}right_hip_roll_link"/>
+      <child link="${prefix}right_hip_pitch_link"/>
+      <origin xyz="0 -0.142750 -0.029800" rpy="1.570796 0 0"/>
+      <axis xyz="0 0 -1"/>
+      <limit lower="-1.570796" upper="1.570796" effort="60" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Right Knee Joint (femur → shin) -->
+    <joint name="${prefix}right_knee" type="revolute">
+      <parent link="${prefix}right_hip_pitch_link"/>
+      <child link="${prefix}right_femur_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-1.570796" upper="1.570796" effort="60" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Right Ankle Joint (femur → shin) -->
+    <joint name="${prefix}right_ankle" type="revolute">
+      <parent link="${prefix}right_femur_link"/>
+      <child link="${prefix}right_shin_link"/>
+      <origin xyz="0.020600 -0.021000 0.212000" rpy="1.570796 0 -1.570796"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-2.705260" upper="0" effort="120" velocity="6.283"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+    <!-- Right Foot Joint (shin → foot) -->
+    <joint name="${prefix}right_foot" type="revolute">
+      <parent link="${prefix}right_shin_link"/>
+      <child link="${prefix}right_foot_link"/>
+      <origin xyz="-0.031300 0.292500 0.034000" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-0.296706" upper="0.785398" effort="17" velocity="12.566"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
+  </xacro:macro>
+
+</robot>

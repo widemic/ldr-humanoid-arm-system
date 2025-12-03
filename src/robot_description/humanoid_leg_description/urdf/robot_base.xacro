@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kbot_humanoid">
+
+  <!-- Include separate component files -->
+  <!-- <xacro:include filename="$(find humanoid_leg_description)/urdf/links/torso_links.xacro" /> -->
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/links/leg_links.xacro" />
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/joints/leg_joints.xacro" />
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/macros/materials.xacro" />
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/macros/gazebo_materials.xacro" />
+
+  <!-- Arguments -->
+  <xacro:arg name="prefix" default="" />
+
+  <!-- Materials -->
+  <xacro:materials />
+
+  <!-- Base Link (Floating Base) - Positioned so feet are at ground level -->
+  <!-- Total height from base to feet is approximately 0.813m (estimated from joint chain) -->
+  <link name="$(arg prefix)base_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000002"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.01"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Fixed joint from base_link to base (leg structure root) -->
+  <!-- This joint lifts the leg structure so feet are at ground level (z=0) -->
+  <joint name="$(arg prefix)base_link_to_base" type="fixed">
+    <parent link="$(arg prefix)base_link"/>
+    <child link="$(arg prefix)base"/>
+    <origin xyz="0 0 0.813" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Gazebo Materials for all links -->
+  <xacro:gazebo_materials prefix="$(arg prefix)" />
+
+</robot>

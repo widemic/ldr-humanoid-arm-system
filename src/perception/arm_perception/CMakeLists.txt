@@ -5,6 +5,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# C++17 required for MTC
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
@@ -21,9 +25,13 @@ find_package(pcl_conversions REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_eigen REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(moveit_task_constructor_core REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
+find_package(rclcpp_action REQUIRED)
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
@@ -32,9 +40,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/object_recognition_node.py
   scripts/perception_node.py
-  scripts/planning_scene_updater.py
   scripts/dynamic_object_tracker.py
-  scripts/test_environment_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

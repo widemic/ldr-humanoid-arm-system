@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="torso_links" params="prefix">
+
+    <!-- Torso Link -->
+    <link name="${prefix}torso_link">
+      <inertial>
+        <origin xyz="-0.000648 -0.021862 0.139062" rpy="0 0 0"/>
+        <mass value="15.671944"/>
+        <inertia ixx="0.129007" ixy="0.000037" ixz="0.000067" iyy="0.062803" iyz="0.003542" izz="0.113542"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_B_102B_TORSO_BOTTOM.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.615686 0.811765 0.929412 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/KB_B_102B_TORSO_BOTTOM.collision.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- IMU Link -->
+    <link name="${prefix}imu_link">
+      <inertial>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+        <mass value="0.05"/>
+        <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/imu.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.5 0.5 0.5 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://humanoid_leg_description/meshes/imu.stl" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- IMU Joint -->
+    <joint name="${prefix}imu_joint" type="fixed">
+      <parent link="${prefix}torso_link"/>
+      <child link="${prefix}imu_link"/>
+      <origin xyz="0.03 0.0 0.232" rpy="0 0 0"/>
+    </joint>
+
+  </xacro:macro>
+
+</robot>

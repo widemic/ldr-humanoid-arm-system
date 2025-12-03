@@ -32,6 +32,8 @@
   <depend>eigen3_cmake_module</depend>
 
   <!-- Package dependencies -->
+  <depend>moveit_msgs</depend>
+  <depend>std_msgs</depend>
   <depend>arm_description</depend>
   <depend>arm_moveit_config</depend>
 
