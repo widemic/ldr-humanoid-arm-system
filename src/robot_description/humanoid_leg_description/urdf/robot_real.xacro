@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Bring in base structure -->
+    <xacro:include filename="$(find humanoid_leg_description)/urdf/robot_base.xacro" />
+
+    <!-- TODO: Add real hardware ros2_control interface here -->
+    <!-- For now, this is a placeholder for future real robot implementation -->
+
+</robot>
