@@ -138,8 +138,8 @@
         <parent link="left_palm" />
         <child link="left_palm_right_finger_link" />
         <axis xyz="-1 0 0" />
-        <limit lower="-0.033" upper="0.0" effort="10" velocity="0.05" />
-        <safety_controller soft_upper_limit="0.0" soft_lower_limit="-0.033" k_velocity="0" />
+        <limit lower="-0.04" upper="0.0" effort="10" velocity="0.05" />
+        <safety_controller soft_upper_limit="0.0" soft_lower_limit="-0.04" k_velocity="0" />
         <dynamics damping="0.1" friction="0.1" />
     </joint>
  
@@ -149,8 +149,8 @@
         <parent link="left_palm" />
         <child link="left_palm_left_finger_link" />
         <axis xyz="-1 0 0" />
-        <limit lower="0.0" upper="0.033" effort="10" velocity="0.05" />
-        <safety_controller soft_upper_limit="0.033" soft_lower_limit="0.0" k_velocity="0" />
+        <limit lower="0.0" upper="0.04" effort="10" velocity="0.05" />
+        <safety_controller soft_upper_limit="0.04" soft_lower_limit="0.0" k_velocity="0" />
         <mimic joint="left_palm_right_finger" multiplier="-1.0" offset="0" />
         <dynamics damping="0.1" friction="1.0" />
     </joint>
