@@ -65,6 +65,17 @@ ament_target_dependencies(mtc_node2
 add_executable(mtc_pick_place_cylinder src/mtc_pick_place_cylinder.cpp)
 
  ament_target_dependencies(mtc_pick_place_cylinder
+ rclcpp
+  moveit_task_constructor_core
+  moveit_task_constructor_msgs
+  moveit_ros_planning_interface
+  moveit_core
+  geometry_msgs
+  shape_msgs
+  tf2_eigen
+  tf2_geometry_msgs
+)
+
 # Build pick_place_task executable
 add_executable(pick_place_task src/pick_place_task.cpp)
 ament_target_dependencies(pick_place_task
@@ -77,7 +88,6 @@ ament_target_dependencies(pick_place_task
   shape_msgs
   tf2_eigen
   tf2_geometry_msgs
-)
   moveit_msgs
   std_msgs
 )
