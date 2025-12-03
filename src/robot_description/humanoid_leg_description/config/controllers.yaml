@@ -11,18 +11,16 @@ controller_manager:
 leg_controller:
   ros__parameters:
     joints:
-      - left_hip_pitch
-      - left_hip_roll
-      - left_hip_yaw
-      - left_knee
-      - left_ankle
-      - left_foot
-      - right_hip_pitch
-      - right_hip_roll
-      - right_hip_yaw
-      - right_knee
-      - right_ankle
-      - right_foot
+      - dof_left_hip_pitch_04
+      - dof_left_hip_roll_03
+      - dof_left_hip_yaw_03
+      - dof_left_knee_04
+      - dof_left_ankle_02
+      - dof_right_hip_pitch_04
+      - dof_right_hip_roll_03
+      - dof_right_hip_yaw_03
+      - dof_right_knee_04
+      - dof_right_ankle_02
     command_interfaces:
       - position
     state_interfaces:
