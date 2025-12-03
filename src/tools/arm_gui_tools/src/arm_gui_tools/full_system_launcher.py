@@ -21,6 +21,7 @@ OCTOMAP_CMD = 'ros2 launch arm_system_bringup moveit_octomap_only.launch.py'
 OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
 YOLO_TRACKING_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/yolov8_native_tracking.py'
 VISUAL_ODOMETRY_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/visual_odometry_exact.py'
+PERCEPTIION_CMD = 'ros2 launch arm_perception perception.launch.py'
 
 
 class LauncherWindow(QtWidgets.QMainWindow):
@@ -105,6 +106,11 @@ class LauncherWindow(QtWidgets.QMainWindow):
             start_button='button_vo_start',
             stop_button='button_vo_stop',
             status_label='label_vo_status',
+            name='perception',
+            command=PERCEPTIION_CMD,
+            start_button='button_perception_start',
+            stop_button='button_perception_stop',
+            status_label='label_perception_status',
         )
 
         self.monitor_timer = QtCore.QTimer(self)

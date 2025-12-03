@@ -14,8 +14,8 @@ controller_manager:
         - left_elbow_rs03
         - left_wrist_rs02
         - left_hand_rs02
-        - left_palm_right_finger
-        - left_palm_left_finger
+        # - left_palm_right_finger
+        # - left_palm_left_finger
       gains:
         left_shoulder_pitch_rs04: {p: 100.0, d: 1.0}
         left_shoulder_roll_rs04: {p: 100.0, d: 1.0}
@@ -23,5 +23,5 @@ controller_manager:
         left_elbow_rs03: {p: 50.0, d: 1.0}
         left_wrist_rs02: {p: 50.0, d: 1.0}
         left_hand_rs02: {p: 50.0, d: 1.0}
-        left_palm_right_finger: {p: 30.0, d: 1.0}
-        left_palm_left_finger: {p: 30.0, d: 1.0}
+        # left_palm_right_finger: {p: 30.0, d: 1.0}
+        # left_palm_left_finger: {p: 30.0, d: 1.0}

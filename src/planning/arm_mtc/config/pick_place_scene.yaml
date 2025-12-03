@@ -1,0 +1,81 @@
+/**:
+  ros__parameters:
+    # ========== WORLD CONFIGURATION ==========
+    world_frame: "base_link"
+
+    # ========== TABLE CONFIGURATION ==========
+    # Source table (where cylinder starts)
+    source_table:
+      name: "test_table"
+      position:
+        x: -0.45      # Aligned with planning_scene_publisher defaults
+        y: 0.35       # Right side (left arm natural reach)
+        z: 0.95       # Height
+      dimensions:
+        length: 0.5   # Front-to-back (X)
+        width: 0.3    # Left-to-right (Y)
+        thickness: 0.02  # Height (Z)
+
+    # Destination table (where cylinder will be placed)
+    destination_table:
+      name: "destination_table"
+      position:
+        x: -0.45      # Moved farther (matches planning_scene_publisher patch)
+        y: -0.35      # Left side (symmetric)
+        z: 0.95       # Same height
+      dimensions:
+        length: 0.5
+        width: 0.3
+        thickness: 0.02
+
+    # ========== OBJECT CONFIGURATION ==========
+    # Cylinder object to grasp
+    cylinder:
+      name: "test_cylinder"
+      dimensions:
+        height: 0.15    # 15cm tall
+        radius: 0.03    # 3cm radius
+      position_offset:
+        x: 0.0          # Offset from table center (X)
+        y: 0.0          # Offset from table center (Y)
+
+    # ========== GRASP CONFIGURATION ==========
+    grasp:
+      angle_delta: 0.785398  # M_PI/4 = 45 degrees between grasp poses (reduced from 30)
+      max_ik_solutions: 64   # Increased from 10 to explore more solutions
+      min_solution_distance: 0.5  # Reduced from 1.0 to allow closer solutions
+      tcp_offset:
+        x: 0.0        # Lateral offset
+        y: 0.0        # Lateral offset
+        z: 0.0        # For top-down grasp, use left_palm directly (no offset)
+
+    # ========== MOTION CONFIGURATION ==========
+    motion:
+      lift_object:
+        min_distance: 0.005   # 0.5cm minimum lift
+        max_distance: 0.1     # 10cm maximum lift
+      retreat_after_place:
+        min_distance: 0.12    # 12cm minimum retreat
+        max_distance: 0.25    # 25cm maximum retreat
+
+    # ========== PLANNER CONFIGURATION ==========
+    planner:
+      goal_joint_tolerance: 0.00001  # 1e-5 radians
+      cartesian_step_size: 0.01      # 1cm steps
+      max_velocity_scaling: 1.0
+      max_acceleration_scaling: 1.0
+      max_planning_solutions: 10
+
+    # ========== POSE NAMES ==========
+    poses:
+      hand_open: "open"
+      hand_close: "close"
+      arm_ready: "ready"
+      arm_home: "home"
+
+    # ========== GROUP NAMES ==========
+    groups:
+      arm: "arm"
+      hand: "hand"
+      eef: "hand"
+      hand_frame: "left_palm"

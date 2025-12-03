@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Bring in base structure -->
+    <xacro:include filename="$(find humanoid_leg_description)/urdf/robot_base.xacro" />
+
+    <!-- ros2_control interfaces for Gazebo simulation -->
+    <!-- Load ros2_control macro -->
+    <xacro:include filename="$(find humanoid_leg_description)/urdf/macros/ros2_control_gazebo.xacro"/>
+    <xacro:ros2_control_gazebo prefix="$(arg prefix)" />
+
+    <!-- Gazebo plugins -->
+    <gazebo>
+        <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <robot_param_node>robot_state_publisher</robot_param_node>
+            <parameters>$(find humanoid_leg_description)/config/controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+</robot>

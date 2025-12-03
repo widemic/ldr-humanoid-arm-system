@@ -13,6 +13,12 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Install Python executables
 install(PROGRAMS
+  src/${PROJECT_NAME}/power_monitor_gui.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME power_monitor_gui
+)
+
+install(PROGRAMS
   src/${PROJECT_NAME}/joint_monitor.py
   DESTINATION lib/${PROJECT_NAME}
   RENAME joint_monitor

@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <joint name="base_joint" type="fixed">
+        <parent link="base" />
+        <child link="KD_B_102B_TORSO_BTM" />
+        <origin xyz="0 0 0" rpy="0 0 1.5708" />
+    </joint>
+    
+    <joint name="dof_left_hip_pitch_04" type="revolute">
+        <origin xyz="0.056001 0.002025 -0.073841" rpy="-1.570796 0 1.570796" />
+        <parent link="KD_B_102B_TORSO_BTM" />
+        <child link="KD_D_102L_L_Hip_Yoke_Drive" />
+        <limit effort="120" velocity="17.488" lower="-1.047198" upper="2.216568" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_right_shoulder_pitch_03" type="revolute">
+        <origin xyz="-0.120999 0.002025 0.336659" rpy="0 -1.570796 0" />
+        <parent link="KD_B_102B_TORSO_BTM" />
+        <child link="KC_C_101R_ShldYokeDrive" />
+        <limit effort="60" velocity="18.849" lower="-3.490658" upper="1.047198" />
+        <axis xyz="0 0 -1" />
+    </joint>
+    
+    <joint name="dof_left_shoulder_pitch_03" type="revolute">
+        <origin xyz="0.121001 0.002025 0.336659" rpy="0 1.570796 0" />
+        <parent link="KD_B_102B_TORSO_BTM" />
+        <child link="KD_C_101L_ShldYokeDrive" />
+        <limit effort="60" velocity="18.849" lower="-1.047198" upper="3.490658" />
+        <axis xyz="0 0 -1" />
+    </joint>
+    
+    <joint name="dof_left_hip_roll_03" type="revolute">
+        <origin xyz="-0.028250 0.030000 -0.071000" rpy="3.141593 -1.570796 0" />
+        <parent link="KD_D_102L_L_Hip_Yoke_Drive" />
+        <child link="L_Hip_Roll_RS03" />
+        <limit effort="60" velocity="18.849" lower="-0.209440" upper="2.268928" />
+        <axis xyz="0 0 -1" />
+    </joint>
+    
+    <joint name="dof_right_hip_pitch_04" type="revolute">
+        <origin xyz="-0.055999 0.002025 -0.073841" rpy="1.570796 0 1.570796" />
+        <parent link="KD_B_102B_TORSO_BTM" />
+        <child link="KD_D_102R" />
+        <limit effort="120" velocity="17.488" lower="-2.216568" upper="1.047198" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_right_shoulder_roll_03" type="revolute">
+        <origin xyz="0 -0.024250 0.080000" rpy="1.570796 1.570796 0" />
+        <parent link="KC_C_101R_ShldYokeDrive" />
+        <child link="RS03_3" />
+        <limit effort="60" velocity="18.849" lower="-1.658063" upper="0.436332" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="frame_imu_site" type="fixed" dont_collapse="true">
+        <origin xyz="0.003707 -0.010539 0.394701" rpy="0.011111 0 0" />
+        <parent link="KD_B_102B_TORSO_BTM" />
+        <child link="imu" />
+    </joint>
+    
+    <joint name="dof_left_shoulder_roll_03" type="revolute">
+        <origin xyz="0 -0.024250 0.080000" rpy="1.570796 -1.570796 0" />
+        <parent link="KD_C_101L_ShldYokeDrive" />
+        <child link="RS03_4" />
+        <limit effort="60" velocity="18.849" lower="-0.436332" upper="1.658063" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_right_hip_roll_03" type="revolute">
+        <origin xyz="-0.028250 -0.030000 -0.071000" rpy="0 -1.570796 0" />
+        <parent link="KD_D_102R" />
+        <child link="L_Hip_Roll_RS03_2" />
+        <limit effort="60" velocity="18.849" lower="-2.268928" upper="0.209440" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_left_hip_yaw_03" type="revolute">
+        <origin xyz="0 -0.143000 0.025250" rpy="1.570796 0 -3.141593" />
+        <parent link="L_Hip_Roll_RS03" />
+        <child link="KD_D_301L_L_Femur_Lower_Drive" />
+        <limit effort="60" velocity="18.849" lower="-1.570796" upper="1.570796" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_right_shoulder_yaw_02" type="revolute">
+        <origin xyz="-0.013000 -0.142500 -0.031670" rpy="-1.570796 0 0" />
+        <parent link="RS03_3" />
+        <child link="KC_C_202R" />
+        <limit effort="17" velocity="37.699" lower="-1.671886" upper="1.671886" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_left_shoulder_yaw_02" type="revolute">
+        <origin xyz="0.013000 -0.142500 -0.030750" rpy="-1.570796 0 0" />
+        <parent link="RS03_4" />
+        <child link="KD_C_301L_LowerBicepDrive" />
+        <limit effort="17" velocity="37.699" lower="-1.671886" upper="1.671886" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_right_hip_yaw_03" type="revolute">
+        <origin xyz="0 -0.143000 -0.025250" rpy="-1.570796 0 0" />
+        <parent link="L_Hip_Roll_RS03_2" />
+        <child link="KD_D_301R" />
+        <limit effort="60" velocity="18.849" lower="-1.570796" upper="1.570796" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_left_knee_04" type="revolute">
+        <origin xyz="-0.021000 0.021000 -0.212000" rpy="1.570796 0 1.570796" />
+        <parent link="KD_D_301L_L_Femur_Lower_Drive" />
+        <child link="KD_D_401L_L_Shin_Drive" />
+        <limit effort="120" velocity="17.488" lower="0" upper="2.705260" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_right_elbow_02" type="revolute">
+        <origin xyz="0.019000 -0.010000 -0.137000" rpy="-1.570796 0 1.570796" />
+        <parent link="KC_C_202R" />
+        <child link="KC_C_401R_R_UpForearmDrive" />
+        <limit effort="17" velocity="37.699" lower="0" upper="2.478368" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_left_elbow_02" type="revolute">
+        <origin xyz="-0.019000 -0.010000 -0.137000" rpy="1.570796 0 1.570796" />
+        <parent link="KD_C_301L_LowerBicepDrive" />
+        <child link="KC_C_401L_Up_Forearm_Drive" />
+        <limit effort="17" velocity="37.699" lower="-2.478368" upper="0" />
+        <axis xyz="0 0 1" />
+    </joint>
+    
+    <joint name="dof_left_ankle_02" type="revolute">
+        <origin xyz="-0.030000 -0.290000 0.000950" rpy="3.141593 0 0" />
+        <parent link="KD_D_401L_L_Shin_Drive" />
+        <child link="LFootBushing_GPF_1517_12" />
+        <limit effort="17" velocity="37.699" lower="-1.134464" upper="0.261799" />
+        <axis xyz="0 0 -1" />
+    </joint>
+    
+    <joint name="dof_right_knee_04" type="revolute">
+        <origin xyz="0.021000 0.021000 -0.212000" rpy="1.570796 0 1.570796" />
+        <parent link="KD_D_301R" />
+        <child link="KD_D_401R" />
+        <limit effort="120" velocity="17.488" lower="-2.705260" upper="0" />
+        <axis xyz="0 0 -1" />
+    </joint>
+    
+    <joint name="dof_right_ankle_02" type="revolute">
+        <origin xyz="-0.030000 -0.290000 -0.000950" rpy="0 0 0" />
+        <parent link="KD_D_401R" />
+        <child link="RFootBushing_GPF_1517_12" />
+        <limit effort="17" velocity="37.699" lower="-0.261799" upper="1.134464" />
+        <axis xyz="0 0 -1" />
+    </joint>
+    
+    <joint name="dof_right_wrist_00" type="revolute">
+        <origin xyz="0.017350 0.103000 0.018000" rpy="-1.570796 1.570796 0" />
+        <parent link="KC_C_401R_R_UpForearmDrive" />
+        <child link="PRT0001" />
+        <limit effort="14" velocity="27.227" lower="-1.378810" upper="1.378810" />
+        <axis xyz="0 0 -1" />
+    </joint>
+    
+    <joint name="dof_left_wrist_00" type="revolute">
+        <origin xyz="0.017350 -0.103000 0.018000" rpy="1.570796 -1.570796 0" />
+        <parent link="KC_C_401L_Up_Forearm_Drive" />
+        <child link="PRT0001_2" />
+        <limit effort="14" velocity="27.227" lower="-1.378810" upper="1.378810" />
+        <axis xyz="0 0 -1" />
+    </joint>
+    
+</robot>

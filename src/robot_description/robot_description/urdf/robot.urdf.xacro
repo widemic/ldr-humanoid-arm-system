@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kbot_humanoid">
+
+  
+  <!-- Include separate component files -->
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/links/torso_links.xacro" />
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/links/leg_links.xacro" />
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/joints/leg_joints.xacro" />
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/macros/materials.xacro" />
+  <xacro:include filename="$(find humanoid_leg_description)/urdf/macros/gazebo_materials.xacro" />
+
+  <!-- Arguments -->
+  <xacro:arg name="use_sim" default="true" />
+  <xacro:arg name="use_fake_hardware" default="false" />
+  <xacro:arg name="prefix" default="" />
+
+  <!-- Materials -->
+  <xacro:materials />
+
+  <!-- Base Link (Floating Base) -->
+  <link name="$(arg prefix)base_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000002"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.01"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Fixed joint to torso -->
+  <joint name="$(arg prefix)base_to_torso" type="fixed">
+    <parent link="$(arg prefix)base_link"/>
+    <child link="$(arg prefix)torso_link"/>
+    <origin xyz="0 0 0.813" rpy="0 0 1.5708"/>
+  </joint>
+
+  <!-- Torso Links -->
+  <xacro:torso_links prefix="$(arg prefix)" />
+
+  <!-- Leg Joints -->
+  <xacro:leg_joints prefix="$(arg prefix)" />
+
+  <!-- Leg Links -->
+  <xacro:leg_links prefix="$(arg prefix)" />
+
+  <!-- Gazebo Materials for all links -->
+  <xacro:gazebo_materials prefix="$(arg prefix)" />
+
+  <!-- Include ros2_control if in simulation -->
+  <xacro:if value="$(arg use_sim)">
+    <xacro:include filename="$(find robot_description)/urdf/macros/ros2_control_gazebo.xacro" />
+    <xacro:ros2_control_gazebo prefix="$(arg prefix)" />
+  </xacro:if>
+
+</robot>

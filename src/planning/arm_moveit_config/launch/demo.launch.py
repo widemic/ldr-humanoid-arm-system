@@ -72,8 +72,10 @@ def generate_launch_description():
             {
                 "octomap_frame": "base_link",
                 "octomap_resolution": 0.05,
-                "max_range": 5.0,
+                "max_range": 5.0
             },
+            # Enable MTC execution capability so /execute_task_solution is available
+            {"capabilities": "move_group/ExecuteTaskSolutionCapability"},
         ],
         arguments=["--ros-args", "--log-level", log_level],
     )
@@ -96,4 +98,10 @@ def generate_launch_description():
         condition=IfCondition(use_rviz),
     )
 
-    return LaunchDescription(declared_arguments + [robot_state_publisher, move_group, rviz])
+    return LaunchDescription(
+        declared_arguments
+        + [
+            robot_state_publisher, move_group,
+            rviz,
+        ]
+    )

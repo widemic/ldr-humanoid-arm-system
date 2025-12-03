@@ -50,9 +50,17 @@ def generate_launch_description():
         output="screen"
     )
 
+    spawner_hand = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["hand_controller", "--controller-manager", "/controller_manager"],
+        output="screen"
+    )
+
     return LaunchDescription([
         rsp,
         # controller_manager,
         spawner_jsb,
-        spawner_arm
+        spawner_arm,
+        spawner_hand
     ])

@@ -31,22 +31,21 @@ arm_controller:
     allow_nonzero_velocity_at_trajectory_end: true
 hand_controller:
   ros__parameters:
-    # Control the main gripper joint (left finger mimics automatically)
     joint: left_palm_right_finger
 
     # Action monitoring
-    action_monitor_rate: 20.0  # Hz
+    action_monitor_rate: 20.0
 
     # Goal tolerances
-    goal_time: 0.0  # Unlimited time to reach goal
-    goal_tolerance: 0.001  # 1mm tolerance
+    goal_time: 0.0
+    goal_tolerance: 0.001
 
     # Stall detection
-    stall_velocity_threshold: 0.001  # m/s
-    stall_timeout: 0.5  # seconds
+    stall_velocity_threshold: 0.001
+    stall_timeout: 0.5
 
-    # Maximum effort (N for prismatic joints)
+    # Maximum effort
     max_effort: 10.0
 
-    # Allow stalling (useful for grasping)
+    # Allow stalling
     allow_stalling: true
