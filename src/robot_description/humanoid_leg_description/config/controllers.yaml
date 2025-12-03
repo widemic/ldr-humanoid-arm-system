@@ -8,6 +8,12 @@ controller_manager:
     leg_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
+    left_arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    right_arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
 leg_controller:
   ros__parameters:
     joints:
@@ -21,6 +27,36 @@ leg_controller:
       - dof_right_hip_yaw_03
       - dof_right_knee_04
       - dof_right_ankle_02
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    allow_nonzero_velocity_at_trajectory_end: true
+
+left_arm_controller:
+  ros__parameters:
+    joints:
+      - dof_left_shoulder_pitch_03
+      - dof_left_shoulder_roll_03
+      - dof_left_shoulder_yaw_02
+      - dof_left_elbow_02
+      - dof_left_wrist_00
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    allow_nonzero_velocity_at_trajectory_end: true
+
+right_arm_controller:
+  ros__parameters:
+    joints:
+      - dof_right_shoulder_pitch_03
+      - dof_right_shoulder_roll_03
+      - dof_right_shoulder_yaw_02
+      - dof_right_elbow_02
+      - dof_right_wrist_00
     command_interfaces:
       - position
     state_interfaces:
