@@ -106,6 +106,8 @@ class LauncherWindow(QtWidgets.QMainWindow):
             start_button='button_vo_start',
             stop_button='button_vo_stop',
             status_label='label_vo_status',
+        )
+        self._register_tool(
             name='perception',
             command=PERCEPTIION_CMD,
             start_button='button_perception_start',
