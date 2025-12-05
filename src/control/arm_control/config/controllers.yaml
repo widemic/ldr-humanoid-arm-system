@@ -33,9 +33,9 @@ arm_controller:
     # TUNING STATUS: After fixing command interface conflict
     # Format: [shoulder_pitch, shoulder_roll, shoulder_yaw, elbow, wrist, hand]
     pid:
-      kp: [750.0, 450.0, 0.0, 0.0, 60.0, 20.0]   # Reduced for stability
-      ki: [15.0, 15.0, 0.0, 0.0, 1.5, 0.9]         # Disable until stable
-      kd: [32.0, 25.0, 0.0, 0.0, 0.1, 0.05] # Increased damping to reduce oscillation
+      kp: [750.0, 450.0, 90.0, 0.0, 60.0, 20.0]   # Reduced for stability
+      ki: [15.0, 15.0, 2.5, 0.0, 1.5, 0.9]         # Disable until stable
+      kd: [32.0, 25.0, 1.0, 0.0, 0.1, 0.05] # Increased damping to reduce oscillation
 
     # Effort limits per joint (Nm)
     # These are RATED (continuous) torque limits from actuator_specs.yaml

@@ -25,7 +25,7 @@ import sys
 import math
 
 class SingleJointTuner(Node):
-    def __init__(self, joint_index, oscillation_period=3.0, amplitude=0.5, max_velocity=1.0):
+    def __init__(self, joint_index, oscillation_period=3.0, amplitude=0.5, max_velocity=1.0, direction=1):
         super().__init__('single_joint_tuner')
 
         # Joint names for reference
@@ -48,6 +48,7 @@ class SingleJointTuner(Node):
         self.oscillation_period = oscillation_period
         self.amplitude = amplitude
         self.max_velocity = max_velocity
+        self.direction = 1 if direction >= 0 else -1
 
         # Publisher for commands
         self.publisher = self.create_publisher(
@@ -72,7 +73,7 @@ class SingleJointTuner(Node):
 
         # Test motion: oscillate between two positions
         self.position_a = 0.0
-        self.position_b = amplitude
+        self.position_b = amplitude * self.direction
         self.toggle = False
 
         # For smooth motion
@@ -232,6 +233,12 @@ def main():
         default=1.0,
         help='Maximum velocity in radians/second. Default: 1.0'
     )
+    parser.add_argument(
+        '--direction', '-d',
+        type=int,
+        default=1,
+        help='Direction of oscillation: 1 for positive, -1 for negative. Default: 1'
+    )
 
     args = parser.parse_args()
 
@@ -243,7 +250,8 @@ def main():
             joint_index=args.joint,
             oscillation_period=args.period,
             amplitude=args.amplitude,
-            max_velocity=args.velocity
+            max_velocity=args.velocity,
+            direction=args.direction
         )
         rclpy.spin(node)
     except KeyboardInterrupt:
