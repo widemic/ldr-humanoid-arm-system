@@ -249,6 +249,17 @@ controller_interface::CallbackReturn ArmController::on_configure(
     std::bind(&ArmController::on_parameter_change, this, std::placeholders::_1));
   RCLCPP_INFO(logger, "Dynamic PID tuning enabled - use ros2 param set to change gains on the fly");
 
+  //===========================================================================
+  // STEP 6: Create debug publishers for PlotJuggler visualization
+  //===========================================================================
+  // These publishers continuously publish desired positions and errors
+  // This makes it easy to visualize tracking performance in PlotJuggler
+  debug_desired_pub_ = get_node()->create_publisher<std_msgs::msg::Float64MultiArray>(
+    "~/debug/desired_positions", 10);
+  debug_error_pub_ = get_node()->create_publisher<std_msgs::msg::Float64MultiArray>(
+    "~/debug/position_errors", 10);
+  RCLCPP_INFO(logger, "Debug publishers created for visualization");
+
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -423,6 +434,12 @@ controller_interface::return_type ArmController::update(
   //===========================================================================
   // STEP 2: For each joint, compute PID and send effort command
   //===========================================================================
+  // Prepare debug messages for PlotJuggler
+  std_msgs::msg::Float64MultiArray desired_msg;
+  std_msgs::msg::Float64MultiArray error_msg;
+  desired_msg.data.resize(joint_names_.size());
+  error_msg.data.resize(joint_names_.size());
+
   for (size_t i = 0; i < joint_names_.size(); ++i) {
     // Read current joint state from Gazebo/hardware
     // State interfaces have 2 values per joint: [position, velocity]
@@ -432,6 +449,10 @@ controller_interface::return_type ArmController::update(
     // Get desired position from our internal storage
     // ⚠️ We do NOT read from command interfaces (we don't claim position interface)
     const double desired_position = position_commands_[i];
+
+    // Store for debug publishing
+    desired_msg.data[i] = desired_position;
+    error_msg.data[i] = desired_position - current_position;
 
     // Compute PID control: converts position error → torque/effort
     // PID formula: effort = Kp*error + Ki*integral - Kd*velocity
@@ -469,6 +490,13 @@ controller_interface::return_type ArmController::update(
       RCLCPP_ERROR(get_node()->get_logger(), "Failed to write effort for elbow!");
     }
   }
+
+  //===========================================================================
+  // STEP 4: Publish debug data for PlotJuggler visualization
+  //===========================================================================
+  // This publishes continuously at 100Hz for smooth plotting
+  debug_desired_pub_->publish(desired_msg);
+  debug_error_pub_->publish(error_msg);
 
   return controller_interface::return_type::OK;
 }

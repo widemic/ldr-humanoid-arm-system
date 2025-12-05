@@ -94,6 +94,10 @@ private:
   rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr command_subscriber_;
   realtime_tools::RealtimeBuffer<std::vector<double>> position_command_buffer_;
 
+  // Debug publishers for PlotJuggler visualization
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr debug_desired_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr debug_error_pub_;
+
   // FollowJointTrajectory action server (for MoveIt integration)
   using FollowJTrajAction = control_msgs::action::FollowJointTrajectory;
   using GoalHandle = rclcpp_action::ServerGoalHandle<FollowJTrajAction>;
