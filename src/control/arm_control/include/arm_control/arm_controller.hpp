@@ -87,6 +87,26 @@ private:
   };
   std::vector<EffortLimits> effort_limits_;
 
+  // Torque-Speed curve point: [speed_rpm, max_torque_nm]
+  struct TorqueSpeedPoint {
+    double speed_rpm;
+    double max_torque_nm;
+  };
+
+  // Thermal curve point: [torque_nm, max_duration_seconds]
+  struct ThermalCurvePoint {
+    double torque_nm;
+    double max_duration_seconds;  // -1 means continuous/infinite
+  };
+
+  // Motor characteristics (per joint) - loaded from YAML curves
+  struct MotorCharacteristics {
+    std::vector<TorqueSpeedPoint> torque_speed_curve;
+    std::vector<ThermalCurvePoint> thermal_curve;
+    bool has_curves{false};  // True if curves were loaded from config
+  };
+  std::vector<MotorCharacteristics> motor_characteristics_;
+
   // Thermal tracking (per joint)
   struct ThermalState {
     double high_effort_duration{0.0};  // Time spent above rated torque (seconds)
@@ -100,6 +120,22 @@ private:
     double max{20.0};     // Peak velocity limit (rad/s)
   };
   std::vector<VelocityLimits> velocity_limits_;
+
+  /**
+   * @brief Interpolate max torque from torque-speed curve at given speed
+   * @param joint_index Index of the joint
+   * @param speed_rpm Current speed in RPM
+   * @return Maximum allowed torque at this speed (Nm)
+   */
+  double interpolate_torque_speed_curve(size_t joint_index, double speed_rpm) const;
+
+  /**
+   * @brief Interpolate allowed duration from thermal curve at given torque
+   * @param joint_index Index of the joint
+   * @param torque_nm Current torque in Nm
+   * @return Maximum allowed duration at this torque (seconds, -1 = infinite)
+   */
+  double interpolate_thermal_curve(size_t joint_index, double torque_nm) const;
 
   // PID state (per joint)
   struct PIDState {

@@ -53,6 +53,29 @@ arm_controller:
       rated: [17.49, 17.49, 18.85, 18.85, 37.70, 37.70]  # Continuous operation speed
       max: [20.94, 20.94, 20.42, 20.42, 42.94, 42.94]    # Peak (no-load) speed (from URDF, for reference)
 
+    # Torque-Speed Curves per motor type (from datasheet)
+    # Format: [speed_rpm, torque_nm, speed_rpm, torque_nm, ...]
+    # Interpolated at runtime to determine max available torque at current speed
+    torque_speed_curves:
+      # RS04: 120 Nm @ low speed, declining to 0 Nm at 200 rpm
+      rs04: [0.0, 120.0, 105.0, 120.0, 167.0, 40.0, 200.0, 0.0]
+      # RS03: 60 Nm @ 160 rpm → 20 Nm @ 180 rpm → 0 Nm @ 195 rpm
+      rs03: [160.0, 60.0, 180.0, 20.0, 195.0, 0.0]
+      # RS02: 12 Nm @ 115 rpm → 6 Nm @ 360 rpm → 0 Nm @ 410 rpm
+      rs02: [115.0, 12.0, 360.0, 6.0, 410.0, 0.0]
+
+    # Thermal Curves per motor type (from datasheet)
+    # Format: [torque_nm, duration_seconds, torque_nm, duration_seconds, ...]
+    # -1 duration means continuous operation (at or below rated torque)
+    # Interpolated at runtime to determine max duration at current torque level
+    thermal_curves:
+      # RS04: Continuous at 40 Nm, decreasing duration for higher torques
+      rs04: [40.0, -1.0, 46.0, 2500.0, 50.0, 1600.0, 60.0, 700.0, 70.0, 350.0, 80.0, 160.0, 90.0, 90.0, 100.0, 40.0, 110.0, 20.0, 120.0, 10.0]
+      # RS03: 30 Nm → 190s, 40 Nm → 126s, 50 Nm → 12s, 60 Nm → 6s
+      rs03: [20.0, -1.0, 30.0, 190.0, 40.0, 126.0, 50.0, 12.0, 60.0, 6.0]
+      # RS02: Detailed thermal curve from 6.5 Nm to 17 Nm
+      rs02: [6.0, -1.0, 6.5, 3000.0, 7.0, 1300.0, 9.0, 370.0, 11.0, 100.0, 13.0, 35.0, 15.0, 18.0, 17.0, 10.0]
+
 
 # Hand Controller - controls gripper fingers via joint trajectory
 # Note: Only controls left_palm_right_finger; left_palm_left_finger mimics automatically

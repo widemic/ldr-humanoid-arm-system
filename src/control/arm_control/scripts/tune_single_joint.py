@@ -25,7 +25,7 @@ import sys
 import math
 
 class SingleJointTuner(Node):
-    def __init__(self, joint_index, oscillation_period=3.0, amplitude=0.5):
+    def __init__(self, joint_index, oscillation_period=3.0, amplitude=0.5, max_velocity=1.0):
         super().__init__('single_joint_tuner')
 
         # Joint names for reference
@@ -47,6 +47,7 @@ class SingleJointTuner(Node):
         self.joint_name = self.joint_names[joint_index]
         self.oscillation_period = oscillation_period
         self.amplitude = amplitude
+        self.max_velocity = max_velocity
 
         # Publisher for commands
         self.publisher = self.create_publisher(
@@ -74,6 +75,11 @@ class SingleJointTuner(Node):
         self.position_b = amplitude
         self.toggle = False
 
+        # For smooth motion
+        self.target_position = 0.0
+        self.command_position = 0.0
+        self.last_update_time = self.get_clock().now()
+
         # Performance metrics
         self.max_error = 0.0
         self.max_effort = 0.0
@@ -81,11 +87,64 @@ class SingleJointTuner(Node):
         # Print header
         self.print_header()
 
-        # Create timer for oscillating motion
-        self.timer = self.create_timer(self.oscillation_period, self.send_command)
+        # Create timer for target switching
+        self.timer = self.create_timer(self.oscillation_period, self.toggle_target)
+
+        # Create timer for smooth command updates (100 Hz)
+        self.command_timer = self.create_timer(0.01, self.update_command)
 
         # Create timer for status updates
         self.status_timer = self.create_timer(0.1, self.print_status)
+
+    def toggle_target(self):
+        """Switch target position"""
+        if self.toggle:
+            self.target_position = self.position_b
+            direction = "→"
+        else:
+            self.target_position = self.position_a
+            direction = "←"
+
+        self.get_logger().info(
+            f'{direction} Target: {self.target_position:+.3f} rad '
+            f'({math.degrees(self.target_position):+.1f}°) | '
+            f'Max error: {self.max_error:.4f} rad | '
+            f'Max effort: {self.max_effort:.1f} Nm'
+        )
+
+        # Reset max trackers for next cycle
+        self.max_error = 0.0
+        self.max_effort = 0.0
+
+        self.toggle = not self.toggle
+
+    def update_command(self):
+        """Update command with velocity limiting (100 Hz)"""
+        current_time = self.get_clock().now()
+        dt = (current_time - self.last_update_time).nanoseconds / 1e9
+        self.last_update_time = current_time
+
+        if dt <= 0:
+            return
+
+        # Calculate position error to target
+        error = self.target_position - self.command_position
+
+        # Limit velocity
+        max_step = self.max_velocity * dt
+        if abs(error) > max_step:
+            step = max_step if error > 0 else -max_step
+        else:
+            step = error
+
+        self.command_position += step
+        self.desired_position = self.command_position
+
+        # Send command
+        msg = Float64MultiArray()
+        msg.data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        msg.data[self.joint_index] = self.command_position
+        self.publisher.publish(msg)
 
     def print_header(self):
         print("\n" + "="*70)
@@ -94,6 +153,7 @@ class SingleJointTuner(Node):
         print(f"\nTuning joint {self.joint_index}: {self.joint_name}")
         print(f"Oscillation period: {self.oscillation_period}s")
         print(f"Amplitude: ±{self.amplitude} rad (±{math.degrees(self.amplitude):.1f}°)")
+        print(f"Max velocity: {self.max_velocity} rad/s ({math.degrees(self.max_velocity):.1f}°/s)")
         print("\nWhile this runs, adjust PID gains using:")
         print(f"  ros2 param set /arm_controller pid.kp \"[100, 100, 80, NEW_KP, 60, 60]\"")
         print(f"  ros2 param set /arm_controller pid.kd \"[2.0, 2.0, 1.5, NEW_KD, 1.0, 1.0]\"")
@@ -127,36 +187,6 @@ class SingleJointTuner(Node):
         except (ValueError, IndexError):
             # Joint not found in message yet
             pass
-
-    def send_command(self):
-        """Send oscillating command to the target joint"""
-        msg = Float64MultiArray()
-        # Keep all joints at 0.0 except the one we're tuning
-        msg.data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-        # Oscillate the target joint
-        if self.toggle:
-            self.desired_position = self.position_b
-            direction = "→"
-        else:
-            self.desired_position = self.position_a
-            direction = "←"
-
-        msg.data[self.joint_index] = self.desired_position
-
-        self.publisher.publish(msg)
-        self.get_logger().info(
-            f'{direction} Command: {self.desired_position:+.3f} rad '
-            f'({math.degrees(self.desired_position):+.1f}°) | '
-            f'Max error: {self.max_error:.4f} rad | '
-            f'Max effort: {self.max_effort:.1f} Nm'
-        )
-
-        # Reset max trackers for next cycle
-        self.max_error = 0.0
-        self.max_effort = 0.0
-
-        self.toggle = not self.toggle
 
     def print_status(self):
         """Print current joint state (10 Hz)"""
@@ -196,6 +226,12 @@ def main():
         default=0.5,
         help='Oscillation amplitude in radians. Default: 0.5 (~28°)'
     )
+    parser.add_argument(
+        '--velocity', '-v',
+        type=float,
+        default=1.0,
+        help='Maximum velocity in radians/second. Default: 1.0'
+    )
 
     args = parser.parse_args()
 
@@ -206,7 +242,8 @@ def main():
         node = SingleJointTuner(
             joint_index=args.joint,
             oscillation_period=args.period,
-            amplitude=args.amplitude
+            amplitude=args.amplitude,
+            max_velocity=args.velocity
         )
         rclpy.spin(node)
     except KeyboardInterrupt:

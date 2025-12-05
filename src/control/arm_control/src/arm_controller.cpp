@@ -71,6 +71,9 @@
 #include "arm_control/arm_controller.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <limits>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -109,6 +112,18 @@ controller_interface::CallbackReturn ArmController::on_init()
     auto_declare<double>("effort_limits.peak_duration", 2.0);
     auto_declare<std::vector<double>>("velocity_limits.rated", std::vector<double>());
     auto_declare<std::vector<double>>("velocity_limits.max", std::vector<double>());
+
+    // Torque-speed curves per motor type (RS02, RS03, RS04)
+    // Format: [speed_rpm, torque_nm, speed_rpm, torque_nm, ...]
+    auto_declare<std::vector<double>>("torque_speed_curves.rs02", std::vector<double>());
+    auto_declare<std::vector<double>>("torque_speed_curves.rs03", std::vector<double>());
+    auto_declare<std::vector<double>>("torque_speed_curves.rs04", std::vector<double>());
+
+    // Thermal curves per motor type (RS02, RS03, RS04)
+    // Format: [torque_nm, duration_s, torque_nm, duration_s, ...]
+    auto_declare<std::vector<double>>("thermal_curves.rs02", std::vector<double>());
+    auto_declare<std::vector<double>>("thermal_curves.rs03", std::vector<double>());
+    auto_declare<std::vector<double>>("thermal_curves.rs04", std::vector<double>());
   } catch (const std::exception & e) {
     RCLCPP_ERROR(
       get_node()->get_logger(), "Exception during on_init: %s", e.what());
@@ -143,6 +158,7 @@ controller_interface::CallbackReturn ArmController::on_configure(
   pid_states_.resize(num_joints);       // PID state (integral, last_error) per joint
   effort_limits_.resize(num_joints);    // Effort limits (rated, max) per joint
   velocity_limits_.resize(num_joints);  // Velocity limits (rated, max) per joint
+  motor_characteristics_.resize(num_joints);  // Motor curves per joint
   thermal_states_.resize(num_joints);   // Thermal tracking per joint
   position_commands_.resize(num_joints, 0.0);      // Desired positions (from topic/action)
   last_position_commands_.resize(num_joints, 0.0); // Previous commands for change detection
@@ -262,6 +278,91 @@ controller_interface::CallbackReturn ArmController::on_configure(
       RCLCPP_WARN(
         logger, "  ⚠️  VERY HIGH Kp DETECTED: %.2f (testing PID functionality)",
         pid_gains_[i].kp);
+    }
+  }
+
+  //===========================================================================
+  // STEP 4b: Load torque-speed and thermal curves from YAML configuration
+  //===========================================================================
+  // Motor curves are defined per motor type (RS02, RS03, RS04)
+  // Joint names contain motor type suffix (e.g., "left_elbow_rs03")
+  // Format: [speed_rpm, torque_nm, speed_rpm, torque_nm, ...]
+  //         [torque_nm, duration_s, torque_nm, duration_s, ...]
+
+  // Load curves for each motor type
+  std::map<std::string, std::vector<TorqueSpeedPoint>> torque_speed_curves_by_type;
+  std::map<std::string, std::vector<ThermalCurvePoint>> thermal_curves_by_type;
+
+  auto load_torque_speed_curve = [&](const std::string& motor_type) {
+    try {
+      auto values = get_node()->get_parameter("torque_speed_curves." + motor_type).as_double_array();
+      std::vector<TorqueSpeedPoint> curve;
+      for (size_t j = 0; j + 1 < values.size(); j += 2) {
+        curve.push_back({values[j], values[j + 1]});
+      }
+      if (!curve.empty()) {
+        torque_speed_curves_by_type[motor_type] = curve;
+        RCLCPP_INFO(logger, "Loaded torque-speed curve for %s: %zu points", motor_type.c_str(), curve.size());
+      }
+    } catch (const std::exception&) {
+      // Curve not defined, will use fallback
+    }
+  };
+
+  auto load_thermal_curve = [&](const std::string& motor_type) {
+    try {
+      auto values = get_node()->get_parameter("thermal_curves." + motor_type).as_double_array();
+      std::vector<ThermalCurvePoint> curve;
+      for (size_t j = 0; j + 1 < values.size(); j += 2) {
+        curve.push_back({values[j], values[j + 1]});
+      }
+      if (!curve.empty()) {
+        thermal_curves_by_type[motor_type] = curve;
+        RCLCPP_INFO(logger, "Loaded thermal curve for %s: %zu points", motor_type.c_str(), curve.size());
+      }
+    } catch (const std::exception&) {
+      // Curve not defined, will use fallback
+    }
+  };
+
+  // Load all motor type curves
+  for (const auto& motor_type : {"rs02", "rs03", "rs04"}) {
+    load_torque_speed_curve(motor_type);
+    load_thermal_curve(motor_type);
+  }
+
+  // Assign curves to each joint based on motor type in joint name
+  for (size_t i = 0; i < num_joints; ++i) {
+    const std::string& joint_name = joint_names_[i];
+
+    // Detect motor type from joint name (e.g., "left_elbow_rs03" -> "rs03")
+    std::string motor_type;
+    if (joint_name.find("rs02") != std::string::npos) {
+      motor_type = "rs02";
+    } else if (joint_name.find("rs03") != std::string::npos) {
+      motor_type = "rs03";
+    } else if (joint_name.find("rs04") != std::string::npos) {
+      motor_type = "rs04";
+    }
+
+    if (!motor_type.empty()) {
+      // Assign torque-speed curve
+      if (torque_speed_curves_by_type.count(motor_type)) {
+        motor_characteristics_[i].torque_speed_curve = torque_speed_curves_by_type[motor_type];
+        motor_characteristics_[i].has_curves = true;
+      }
+      // Assign thermal curve
+      if (thermal_curves_by_type.count(motor_type)) {
+        motor_characteristics_[i].thermal_curve = thermal_curves_by_type[motor_type];
+        motor_characteristics_[i].has_curves = true;
+      }
+
+      if (motor_characteristics_[i].has_curves) {
+        RCLCPP_INFO(logger, "Joint %zu (%s): Using %s motor curves (torque-speed: %zu pts, thermal: %zu pts)",
+          i, joint_name.c_str(), motor_type.c_str(),
+          motor_characteristics_[i].torque_speed_curve.size(),
+          motor_characteristics_[i].thermal_curve.size());
+      }
     }
   }
 
@@ -490,33 +591,79 @@ controller_interface::return_type ArmController::update(
       dt);
 
     // ===========================================================================
-    // THERMAL-AWARE TORQUE LIMITING
+    // TORQUE-SPEED LIMITING (From Motor Curves or Fallback Approximation)
     // ===========================================================================
-    // Strategy: Allow peak torque for brief periods, then enforce rated torque
-    // - If |effort| <= rated → always allow (thermal cooldown)
-    // - If |effort| > rated → track duration, clamp to max, enforce peak_duration limit
+    // Uses actual motor curves if loaded from YAML, otherwise uses piecewise linear fallback
+    // Curves are in RPM, so convert velocity from rad/s to RPM
+    const double abs_velocity = std::abs(current_velocity);
+    const double abs_velocity_rpm = abs_velocity * 60.0 / (2.0 * M_PI);  // rad/s to RPM
+    double velocity_scaled_torque_limit;
+
+    if (motor_characteristics_[i].has_curves && !motor_characteristics_[i].torque_speed_curve.empty()) {
+      // Use loaded curve with interpolation
+      velocity_scaled_torque_limit = interpolate_torque_speed_curve(i, abs_velocity_rpm);
+    } else {
+      // Fallback: Piecewise linear approximation
+      // Calculate speed at which max torque is available (from datasheet: 105 rpm for RS04)
+      const double max_torque_speed = velocity_limits_[i].rated * 0.628;  // ~105/167 ratio
+
+      if (abs_velocity <= max_torque_speed) {
+        velocity_scaled_torque_limit = effort_limits_[i].max;
+      } else if (abs_velocity <= velocity_limits_[i].rated) {
+        const double speed_fraction = (abs_velocity - max_torque_speed) /
+                                      (velocity_limits_[i].rated - max_torque_speed);
+        velocity_scaled_torque_limit = effort_limits_[i].max -
+                                       (effort_limits_[i].max - effort_limits_[i].rated) * speed_fraction;
+      } else if (abs_velocity <= velocity_limits_[i].max) {
+        const double speed_fraction = (velocity_limits_[i].max - abs_velocity) /
+                                      (velocity_limits_[i].max - velocity_limits_[i].rated);
+        velocity_scaled_torque_limit = effort_limits_[i].rated * speed_fraction;
+      } else {
+        velocity_scaled_torque_limit = effort_limits_[i].rated * 0.5;
+      }
+    }
+
+    // ===========================================================================
+    // THERMAL-AWARE TORQUE LIMITING (From Motor Curves or Fallback Approximation)
+    // ===========================================================================
+    // Uses actual thermal curves if loaded from YAML, otherwise uses exponential fallback
 
     const double abs_effort = std::abs(effort);
-    double effort_limit = effort_limits_[i].max;  // Start with max (peak) limit
+    double thermal_effort_limit = velocity_scaled_torque_limit;  // Start with velocity-limited max
+    double allowed_duration;
+
+    if (motor_characteristics_[i].has_curves && !motor_characteristics_[i].thermal_curve.empty()) {
+      // Use loaded thermal curve with interpolation
+      allowed_duration = interpolate_thermal_curve(i, abs_effort);
+    } else {
+      // Fallback: Exponential approximation
+      if (abs_effort <= effort_limits_[i].rated) {
+        allowed_duration = std::numeric_limits<double>::infinity();
+      } else {
+        const double normalized_effort = (abs_effort - effort_limits_[i].rated) /
+                                         (effort_limits_[i].max - effort_limits_[i].rated);
+        allowed_duration = std::clamp(2500.0 * std::exp(-5.5 * normalized_effort), 10.0, 2500.0);
+      }
+    }
 
     // Track thermal accumulation
     if (abs_effort > effort_limits_[i].rated) {
       // High effort - accumulate thermal load
       thermal_states_[i].high_effort_duration += dt;
 
-      // Check if we've exceeded peak duration
-      if (thermal_states_[i].high_effort_duration > effort_limits_[i].peak_duration) {
+      // Check if we've exceeded allowed duration for this effort level
+      if (thermal_states_[i].high_effort_duration > allowed_duration) {
         // Thermal limit reached - restrict to rated torque
-        effort_limit = effort_limits_[i].rated;
+        thermal_effort_limit = effort_limits_[i].rated;
 
         // Log warning (throttled to once per second)
         RCLCPP_WARN_THROTTLE(
           get_node()->get_logger(),
           *get_node()->get_clock(), 1000,
-          "Joint %zu (%s) thermal limit: %.1fs at high effort, clamping to rated %.1f Nm",
+          "Joint %zu (%s) thermal limit: %.1fs at %.1f Nm (max %.1fs), clamping to rated %.1f Nm",
           i, joint_names_[i].c_str(),
-          thermal_states_[i].high_effort_duration,
-          effort_limits_[i].rated);
+          thermal_states_[i].high_effort_duration, abs_effort,
+          allowed_duration, effort_limits_[i].rated);
       }
     } else {
       // Low effort - thermal cooldown (exponential decay)
@@ -526,8 +673,10 @@ controller_interface::return_type ArmController::update(
         thermal_states_[i].high_effort_duration - dt * 2.0);
     }
 
-    // Apply thermal-aware limit
-    effort = std::clamp(effort, -effort_limit, effort_limit);
+    // Apply combined velocity + thermal limit
+    // The most restrictive limit wins
+    const double final_effort_limit = std::min(velocity_scaled_torque_limit, thermal_effort_limit);
+    effort = std::clamp(effort, -final_effort_limit, final_effort_limit);
 
     // Velocity monitoring: Warn if joint exceeds rated velocity
     // Note: We don't clamp velocity here (it's feedback, not a command)
@@ -986,6 +1135,97 @@ rcl_interfaces::msg::SetParametersResult ArmController::on_parameter_change(
   }
 
   return result;
+}
+
+//=============================================================================
+// MOTOR CURVES: Interpolate torque-speed curve
+//=============================================================================
+double ArmController::interpolate_torque_speed_curve(size_t joint_index, double speed_rpm) const
+{
+  const auto& curve = motor_characteristics_[joint_index].torque_speed_curve;
+
+  // If no curve data, return max torque (fallback)
+  if (curve.empty()) {
+    return effort_limits_[joint_index].max;
+  }
+
+  const double abs_speed = std::abs(speed_rpm);
+
+  // Below first point - return first point's torque
+  if (abs_speed <= curve.front().speed_rpm) {
+    return curve.front().max_torque_nm;
+  }
+
+  // Above last point - return 0 (beyond no-load speed)
+  if (abs_speed >= curve.back().speed_rpm) {
+    return 0.0;
+  }
+
+  // Linear interpolation between curve points
+  for (size_t i = 0; i + 1 < curve.size(); ++i) {
+    if (abs_speed >= curve[i].speed_rpm && abs_speed <= curve[i + 1].speed_rpm) {
+      const double t = (abs_speed - curve[i].speed_rpm) /
+                       (curve[i + 1].speed_rpm - curve[i].speed_rpm);
+      return curve[i].max_torque_nm + t * (curve[i + 1].max_torque_nm - curve[i].max_torque_nm);
+    }
+  }
+
+  // Fallback (shouldn't reach here)
+  return effort_limits_[joint_index].max;
+}
+
+//=============================================================================
+// MOTOR CURVES: Interpolate thermal curve
+//=============================================================================
+double ArmController::interpolate_thermal_curve(size_t joint_index, double torque_nm) const
+{
+  const auto& curve = motor_characteristics_[joint_index].thermal_curve;
+
+  // If no curve data, use default exponential approximation
+  if (curve.empty()) {
+    // Fallback to exponential formula
+    const double abs_torque = std::abs(torque_nm);
+    if (abs_torque <= effort_limits_[joint_index].rated) {
+      return std::numeric_limits<double>::infinity();  // Continuous operation
+    }
+    const double normalized = (abs_torque - effort_limits_[joint_index].rated) /
+                              (effort_limits_[joint_index].max - effort_limits_[joint_index].rated);
+    return std::clamp(2500.0 * std::exp(-5.5 * normalized), 10.0, 2500.0);
+  }
+
+  const double abs_torque = std::abs(torque_nm);
+
+  // Below first point (rated torque) - continuous operation
+  if (abs_torque <= curve.front().torque_nm) {
+    return std::numeric_limits<double>::infinity();
+  }
+
+  // Above last point (max torque) - use last point's duration
+  if (abs_torque >= curve.back().torque_nm) {
+    return curve.back().max_duration_seconds;
+  }
+
+  // Linear interpolation between curve points
+  for (size_t i = 0; i + 1 < curve.size(); ++i) {
+    if (abs_torque >= curve[i].torque_nm && abs_torque <= curve[i + 1].torque_nm) {
+      // Check for continuous operation marker (-1)
+      if (curve[i].max_duration_seconds < 0) {
+        // Between continuous and first thermal limit
+        const double t = (abs_torque - curve[i].torque_nm) /
+                         (curve[i + 1].torque_nm - curve[i].torque_nm);
+        // Interpolate from infinity (approximated as 10000s) to next point
+        return 10000.0 + t * (curve[i + 1].max_duration_seconds - 10000.0);
+      }
+
+      const double t = (abs_torque - curve[i].torque_nm) /
+                       (curve[i + 1].torque_nm - curve[i].torque_nm);
+      return curve[i].max_duration_seconds +
+             t * (curve[i + 1].max_duration_seconds - curve[i].max_duration_seconds);
+    }
+  }
+
+  // Fallback (shouldn't reach here)
+  return effort_limits_[joint_index].peak_duration;
 }
 
 }  // namespace arm_control

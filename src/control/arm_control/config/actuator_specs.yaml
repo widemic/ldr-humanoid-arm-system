@@ -222,6 +222,22 @@ actuators:
       thermal_time_constant: 720
       max_temperature: 85.0
 
+      # Torque-Speed Curve (from datasheet)
+      # Format: [speed_rpm, max_torque_nm]
+      torque_speed_curve:
+        - [160.0, 60.0]   # 60 Nm @ 160 rpm
+        - [180.0, 20.0]   # 20 Nm @ 180 rpm
+        - [195.0, 0.0]    # 0 Nm @ 195 rpm (no-load speed)
+
+      # Thermal Curve (torque vs max duration before thermal limit)
+      # Format: [torque_nm, max_duration_seconds]
+      thermal_curve:
+        - [20.0, -1.0]    # Rated torque: continuous (-1 = infinite)
+        - [30.0, 190.0]   # 30 Nm for 190 seconds
+        - [40.0, 126.0]   # 40 Nm for 126 seconds
+        - [50.0, 12.0]    # 50 Nm for 12 seconds
+        - [60.0, 6.0]     # 60 Nm for 6 seconds (max torque)
+
       # Electromagnetic Brake (Virtual - for simulation)
       has_brake: true
       brake_holding_torque: 80.0   # Nm (slightly higher than max torque)
@@ -290,6 +306,22 @@ actuators:
       thermal_time_constant: 720
       max_temperature: 85.0
 
+      # Torque-Speed Curve (from datasheet)
+      # Format: [speed_rpm, max_torque_nm]
+      torque_speed_curve:
+        - [160.0, 60.0]   # 60 Nm @ 160 rpm
+        - [180.0, 20.0]   # 20 Nm @ 180 rpm
+        - [195.0, 0.0]    # 0 Nm @ 195 rpm (no-load speed)
+
+      # Thermal Curve (torque vs max duration before thermal limit)
+      # Format: [torque_nm, max_duration_seconds]
+      thermal_curve:
+        - [20.0, -1.0]    # Rated torque: continuous (-1 = infinite)
+        - [30.0, 190.0]   # 30 Nm for 190 seconds
+        - [40.0, 126.0]   # 40 Nm for 126 seconds
+        - [50.0, 12.0]    # 50 Nm for 12 seconds
+        - [60.0, 6.0]     # 60 Nm for 6 seconds (max torque)
+
       # Electromagnetic Brake (Virtual - for simulation)
       has_brake: true
       brake_holding_torque: 80.0   # Nm (slightly higher than max torque)
@@ -357,6 +389,25 @@ actuators:
 
       thermal_time_constant: 600
       max_temperature: 85.0
+
+      # Torque-Speed Curve (from datasheet)
+      # Format: [speed_rpm, max_torque_nm]
+      torque_speed_curve:
+        - [115.0, 12.0]   # 12 Nm @ 115 rpm
+        - [360.0, 6.0]    # 6 Nm @ 360 rpm
+        - [410.0, 0.0]    # 0 Nm @ 410 rpm (no-load speed)
+
+      # Thermal Curve (torque vs max duration before thermal limit)
+      # Format: [torque_nm, max_duration_seconds]
+      thermal_curve:
+        - [6.0, -1.0]     # Rated torque: continuous (-1 = infinite)
+        - [6.5, 3000.0]   # 6.5 Nm for 3000 seconds
+        - [7.0, 1300.0]   # 7 Nm for 1300 seconds
+        - [9.0, 370.0]    # 9 Nm for 370 seconds
+        - [11.0, 100.0]   # 11 Nm for 100 seconds
+        - [13.0, 35.0]    # 13 Nm for 35 seconds
+        - [15.0, 18.0]    # 15 Nm for 18 seconds
+        - [17.0, 10.0]    # 17 Nm for 10 seconds (max torque)
 
       # Electromagnetic Brake (Virtual - for simulation)
       has_brake: true
