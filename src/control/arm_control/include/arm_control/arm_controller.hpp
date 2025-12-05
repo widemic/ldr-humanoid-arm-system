@@ -83,8 +83,16 @@ private:
   struct EffortLimits {
     double rated{100.0};  // Continuous torque limit (Nm)
     double max{300.0};    // Peak torque limit (Nm)
+    double peak_duration{2.0};  // Max duration for peak torque (seconds)
   };
   std::vector<EffortLimits> effort_limits_;
+
+  // Thermal tracking (per joint)
+  struct ThermalState {
+    double high_effort_duration{0.0};  // Time spent above rated torque (seconds)
+    double last_update_time{0.0};      // Last time we updated thermal state
+  };
+  std::vector<ThermalState> thermal_states_;
 
   // Velocity limits (per joint)
   struct VelocityLimits {

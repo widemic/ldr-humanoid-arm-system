@@ -43,7 +43,8 @@ arm_controller:
     # Format: [shoulder_pitch, shoulder_roll, shoulder_yaw, elbow, wrist, hand]
     effort_limits:
       rated: [40.0, 40.0, 20.0, 20.0, 6.0, 6.0]   # Continuous operation limits
-      max: [120.0, 120.0, 60.0, 60.0, 17.0, 17.0]  # Peak torque (from URDF, for reference)
+      max: [120.0, 120.0, 60.0, 60.0, 17.0, 17.0]  # Peak torque (allowed for brief periods)
+      peak_duration: 2.0  # Max duration for peak torque (seconds) before thermal limiting kicks in
 
     # Velocity limits per joint (rad/s)
     # URDF defines max (no-load) speed, controller enforces rated (continuous) speed

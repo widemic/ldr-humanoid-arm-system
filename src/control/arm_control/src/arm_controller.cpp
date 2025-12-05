@@ -106,6 +106,7 @@ controller_interface::CallbackReturn ArmController::on_init()
     auto_declare<std::vector<double>>("pid.kd", std::vector<double>());
     auto_declare<std::vector<double>>("effort_limits.rated", std::vector<double>());
     auto_declare<std::vector<double>>("effort_limits.max", std::vector<double>());
+    auto_declare<double>("effort_limits.peak_duration", 2.0);
     auto_declare<std::vector<double>>("velocity_limits.rated", std::vector<double>());
     auto_declare<std::vector<double>>("velocity_limits.max", std::vector<double>());
   } catch (const std::exception & e) {
@@ -142,6 +143,7 @@ controller_interface::CallbackReturn ArmController::on_configure(
   pid_states_.resize(num_joints);       // PID state (integral, last_error) per joint
   effort_limits_.resize(num_joints);    // Effort limits (rated, max) per joint
   velocity_limits_.resize(num_joints);  // Velocity limits (rated, max) per joint
+  thermal_states_.resize(num_joints);   // Thermal tracking per joint
   position_commands_.resize(num_joints, 0.0);      // Desired positions (from topic/action)
   last_position_commands_.resize(num_joints, 0.0); // Previous commands for change detection
 
@@ -219,6 +221,7 @@ controller_interface::CallbackReturn ArmController::on_configure(
   std::vector<double> kp_values, ki_values, kd_values;
   std::vector<double> rated_effort_values, max_effort_values;
   std::vector<double> rated_velocity_values, max_velocity_values;
+  double peak_duration = 2.0;  // Default 2 seconds
 
   try {
     kp_values = get_node()->get_parameter("pid.kp").as_double_array();
@@ -226,6 +229,7 @@ controller_interface::CallbackReturn ArmController::on_configure(
     kd_values = get_node()->get_parameter("pid.kd").as_double_array();
     rated_effort_values = get_node()->get_parameter("effort_limits.rated").as_double_array();
     max_effort_values = get_node()->get_parameter("effort_limits.max").as_double_array();
+    peak_duration = get_node()->get_parameter("effort_limits.peak_duration").as_double();
     rated_velocity_values = get_node()->get_parameter("velocity_limits.rated").as_double_array();
     max_velocity_values = get_node()->get_parameter("velocity_limits.max").as_double_array();
   } catch (const std::exception & e) {
@@ -243,11 +247,14 @@ controller_interface::CallbackReturn ArmController::on_configure(
     if (i < rated_velocity_values.size()) velocity_limits_[i].rated = rated_velocity_values[i];
     if (i < max_velocity_values.size()) velocity_limits_[i].max = max_velocity_values[i];
 
+    // Peak duration (from config, default 2 seconds)
+    effort_limits_[i].peak_duration = peak_duration;
+
     RCLCPP_INFO(
-      logger, "Joint %zu (%s): Kp=%.2f, Ki=%.4f, Kd=%.2f, Effort=[%.1f/%.1f Nm], Vel=[%.2f/%.2f rad/s]",
+      logger, "Joint %zu (%s): Kp=%.2f, Ki=%.4f, Kd=%.2f, Effort=[%.1f/%.1f Nm, %.1fs peak], Vel=[%.2f/%.2f rad/s]",
       i, joint_names_[i].c_str(),
       pid_gains_[i].kp, pid_gains_[i].ki, pid_gains_[i].kd,
-      effort_limits_[i].rated, effort_limits_[i].max,
+      effort_limits_[i].rated, effort_limits_[i].max, effort_limits_[i].peak_duration,
       velocity_limits_[i].rated, velocity_limits_[i].max);
 
     // EXTRA DEBUG: Highlight crazy high gains (for testing PID functionality)
@@ -482,9 +489,45 @@ controller_interface::return_type ArmController::update(
       pid_states_[i],
       dt);
 
-    // Clamp effort to rated (continuous) torque limit
-    // This prevents sustained high torques that would overheat the motor
-    effort = std::clamp(effort, -effort_limits_[i].rated, effort_limits_[i].rated);
+    // ===========================================================================
+    // THERMAL-AWARE TORQUE LIMITING
+    // ===========================================================================
+    // Strategy: Allow peak torque for brief periods, then enforce rated torque
+    // - If |effort| <= rated → always allow (thermal cooldown)
+    // - If |effort| > rated → track duration, clamp to max, enforce peak_duration limit
+
+    const double abs_effort = std::abs(effort);
+    double effort_limit = effort_limits_[i].max;  // Start with max (peak) limit
+
+    // Track thermal accumulation
+    if (abs_effort > effort_limits_[i].rated) {
+      // High effort - accumulate thermal load
+      thermal_states_[i].high_effort_duration += dt;
+
+      // Check if we've exceeded peak duration
+      if (thermal_states_[i].high_effort_duration > effort_limits_[i].peak_duration) {
+        // Thermal limit reached - restrict to rated torque
+        effort_limit = effort_limits_[i].rated;
+
+        // Log warning (throttled to once per second)
+        RCLCPP_WARN_THROTTLE(
+          get_node()->get_logger(),
+          *get_node()->get_clock(), 1000,
+          "Joint %zu (%s) thermal limit: %.1fs at high effort, clamping to rated %.1f Nm",
+          i, joint_names_[i].c_str(),
+          thermal_states_[i].high_effort_duration,
+          effort_limits_[i].rated);
+      }
+    } else {
+      // Low effort - thermal cooldown (exponential decay)
+      // Cooldown at 2x the rate of heating for safety margin
+      thermal_states_[i].high_effort_duration = std::max(
+        0.0,
+        thermal_states_[i].high_effort_duration - dt * 2.0);
+    }
+
+    // Apply thermal-aware limit
+    effort = std::clamp(effort, -effort_limit, effort_limit);
 
     // Velocity monitoring: Warn if joint exceeds rated velocity
     // Note: We don't clamp velocity here (it's feedback, not a command)
