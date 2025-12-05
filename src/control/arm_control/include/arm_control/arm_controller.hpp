@@ -79,6 +79,20 @@ private:
   };
   std::vector<PIDGains> pid_gains_;
 
+  // Effort limits (per joint)
+  struct EffortLimits {
+    double rated{100.0};  // Continuous torque limit (Nm)
+    double max{300.0};    // Peak torque limit (Nm)
+  };
+  std::vector<EffortLimits> effort_limits_;
+
+  // Velocity limits (per joint)
+  struct VelocityLimits {
+    double rated{10.0};   // Continuous velocity limit (rad/s)
+    double max{20.0};     // Peak velocity limit (rad/s)
+  };
+  std::vector<VelocityLimits> velocity_limits_;
+
   // PID state (per joint)
   struct PIDState {
     double error_integral{0.0};

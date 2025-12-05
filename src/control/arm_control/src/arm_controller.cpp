@@ -104,6 +104,10 @@ controller_interface::CallbackReturn ArmController::on_init()
     auto_declare<std::vector<double>>("pid.kp", std::vector<double>());
     auto_declare<std::vector<double>>("pid.ki", std::vector<double>());
     auto_declare<std::vector<double>>("pid.kd", std::vector<double>());
+    auto_declare<std::vector<double>>("effort_limits.rated", std::vector<double>());
+    auto_declare<std::vector<double>>("effort_limits.max", std::vector<double>());
+    auto_declare<std::vector<double>>("velocity_limits.rated", std::vector<double>());
+    auto_declare<std::vector<double>>("velocity_limits.max", std::vector<double>());
   } catch (const std::exception & e) {
     RCLCPP_ERROR(
       get_node()->get_logger(), "Exception during on_init: %s", e.what());
@@ -136,6 +140,8 @@ controller_interface::CallbackReturn ArmController::on_configure(
   // Resize all internal storage vectors to match number of joints
   pid_gains_.resize(num_joints);        // PID parameters (Kp, Ki, Kd) per joint
   pid_states_.resize(num_joints);       // PID state (integral, last_error) per joint
+  effort_limits_.resize(num_joints);    // Effort limits (rated, max) per joint
+  velocity_limits_.resize(num_joints);  // Velocity limits (rated, max) per joint
   position_commands_.resize(num_joints, 0.0);      // Desired positions (from topic/action)
   last_position_commands_.resize(num_joints, 0.0); // Previous commands for change detection
 
@@ -211,26 +217,38 @@ controller_interface::CallbackReturn ArmController::on_configure(
   // - Low Kd (1-2) + moderate Kp (80-100) → stable
   // - Ki=0 sufficient for position holding
   std::vector<double> kp_values, ki_values, kd_values;
+  std::vector<double> rated_effort_values, max_effort_values;
+  std::vector<double> rated_velocity_values, max_velocity_values;
 
   try {
     kp_values = get_node()->get_parameter("pid.kp").as_double_array();
     ki_values = get_node()->get_parameter("pid.ki").as_double_array();
     kd_values = get_node()->get_parameter("pid.kd").as_double_array();
+    rated_effort_values = get_node()->get_parameter("effort_limits.rated").as_double_array();
+    max_effort_values = get_node()->get_parameter("effort_limits.max").as_double_array();
+    rated_velocity_values = get_node()->get_parameter("velocity_limits.rated").as_double_array();
+    max_velocity_values = get_node()->get_parameter("velocity_limits.max").as_double_array();
   } catch (const std::exception & e) {
     RCLCPP_WARN(logger, "PID parameters not fully specified, using defaults");
   }
 
-  // Apply PID gains to each joint (use defaults if not specified in YAML)
+  // Apply PID gains, effort limits, and velocity limits to each joint (use defaults if not specified in YAML)
   // Defaults from header: Kp=100.0, Ki=0.1, Kd=10.0
   for (size_t i = 0; i < num_joints; ++i) {
     if (i < kp_values.size()) pid_gains_[i].kp = kp_values[i];
     if (i < ki_values.size()) pid_gains_[i].ki = ki_values[i];
     if (i < kd_values.size()) pid_gains_[i].kd = kd_values[i];
+    if (i < rated_effort_values.size()) effort_limits_[i].rated = rated_effort_values[i];
+    if (i < max_effort_values.size()) effort_limits_[i].max = max_effort_values[i];
+    if (i < rated_velocity_values.size()) velocity_limits_[i].rated = rated_velocity_values[i];
+    if (i < max_velocity_values.size()) velocity_limits_[i].max = max_velocity_values[i];
 
     RCLCPP_INFO(
-      logger, "Joint %zu (%s): Kp=%.2f, Ki=%.4f, Kd=%.2f",
+      logger, "Joint %zu (%s): Kp=%.2f, Ki=%.4f, Kd=%.2f, Effort=[%.1f/%.1f Nm], Vel=[%.2f/%.2f rad/s]",
       i, joint_names_[i].c_str(),
-      pid_gains_[i].kp, pid_gains_[i].ki, pid_gains_[i].kd);
+      pid_gains_[i].kp, pid_gains_[i].ki, pid_gains_[i].kd,
+      effort_limits_[i].rated, effort_limits_[i].max,
+      velocity_limits_[i].rated, velocity_limits_[i].max);
 
     // EXTRA DEBUG: Highlight crazy high gains (for testing PID functionality)
     if (pid_gains_[i].kp > 1000.0) {
@@ -456,13 +474,28 @@ controller_interface::return_type ArmController::update(
 
     // Compute PID control: converts position error → torque/effort
     // PID formula: effort = Kp*error + Ki*integral - Kd*velocity
-    const double effort = compute_pid(
+    double effort = compute_pid(
       desired_position,
       current_position,
       current_velocity,
       pid_gains_[i],
       pid_states_[i],
       dt);
+
+    // Clamp effort to rated (continuous) torque limit
+    // This prevents sustained high torques that would overheat the motor
+    effort = std::clamp(effort, -effort_limits_[i].rated, effort_limits_[i].rated);
+
+    // Velocity monitoring: Warn if joint exceeds rated velocity
+    // Note: We don't clamp velocity here (it's feedback, not a command)
+    // But we log warnings to detect if trajectory planning is too aggressive
+    if (std::abs(current_velocity) > velocity_limits_[i].rated * 1.1) {  // 10% tolerance
+      RCLCPP_WARN_THROTTLE(
+        get_node()->get_logger(),
+        *get_node()->get_clock(), 1000,  // Log once per second max
+        "Joint %zu (%s) velocity %.2f rad/s exceeds rated limit %.2f rad/s",
+        i, joint_names_[i].c_str(), current_velocity, velocity_limits_[i].rated);
+    }
 
     // DEBUG: Log elbow joint details every update
     if (i == 3) {
@@ -825,6 +858,10 @@ bool ArmController::sample_trajectory(
     if (!next_point.velocities.empty() && traj_idx < next_point.velocities.size()) {
       velocities[i] = prev_point.velocities.empty() ? next_point.velocities[traj_idx] :
                       prev_point.velocities[traj_idx] + alpha * (next_point.velocities[traj_idx] - prev_point.velocities[traj_idx]);
+
+      // Clamp trajectory velocities to rated limits for safety
+      // This prevents MoveIt from commanding velocities that exceed continuous operation limits
+      velocities[i] = std::clamp(velocities[i], -velocity_limits_[i].rated, velocity_limits_[i].rated);
     }
   }
 

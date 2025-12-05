@@ -11,7 +11,7 @@
         <parent link="left_shoulder_pitch_rs04_actuator" />
         <child link="left_shoulder_pitch_rs04_flange" />
         <axis xyz="1 0 0" />
-        <limit lower="-3.14" upper="3.14" effort="120.0" velocity="17.49" />
+        <limit lower="-3.14" upper="3.14" effort="120.0" velocity="20.94" />
         <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
         <dynamics damping="0.5" friction="2.0" />
     </joint>
@@ -32,7 +32,7 @@
         <parent link="left_shoulder_roll_rs04_flange" />
         <child link="left_shoulder_roll_rs04_actuator" />
         <axis xyz="0 -1 0" />
-        <limit lower="-3.5" upper="0.6" effort="120.0" velocity="17.49" />
+        <limit lower="-3.5" upper="0.6" effort="120.0" velocity="20.94" />
         <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
         <dynamics damping="0.5" friction="2.0" />
     </joint>
@@ -53,7 +53,7 @@
         <parent link="left_shoulder_yaw_rs03_actuator" />
         <child link="left_shoulder_yaw_rs03_flange" />
         <axis xyz="0 0 1" />
-        <limit lower="-3.14" upper="3.14" effort="60.0" velocity="18.85" />
+        <limit lower="-3.14" upper="3.14" effort="60.0" velocity="20.42" />
         <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
         <dynamics damping="0.4" friction="1.5" />
     </joint>
@@ -80,7 +80,7 @@
         <parent link="left_elbow_rs03_actuator" />
         <child link="left_elbow_rs03_flange" />
         <axis xyz="-1 0 0" />
-        <limit lower="-1.3" upper="1.9" effort="60.0" velocity="18.85" />
+        <limit lower="-1.3" upper="1.9" effort="60.0" velocity="20.42" />
         <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
         <dynamics damping="0.4" friction="1.5" />
     </joint>
@@ -101,7 +101,7 @@
         <parent link="left_wrist_actuator" />
         <child link="left_wrist_rs02_flange" />
         <axis xyz="0 1 0" />
-        <limit lower="-3.14" upper="3.14" effort="17.0" velocity="37.70" />
+        <limit lower="-3.14" upper="3.14" effort="17.0" velocity="42.94" />
         <safety_controller soft_upper_limit="3.14" soft_lower_limit="-3.14" k_velocity="0" />
         <dynamics damping="0.25" friction="0.8" />
     </joint>
@@ -122,7 +122,7 @@
         <parent link="left_hand_rs02_actuator" />
         <child link="left_hand_rs02_flange" />
         <axis xyz="1 0 0" />
-        <limit lower="-1.5" upper="1.7" effort="17.0" velocity="37.70" />
+        <limit lower="-1.5" upper="1.7" effort="17.0" velocity="42.94" />
         <safety_controller soft_upper_limit="1.7" soft_lower_limit="-1.5" k_velocity="0" />
         <dynamics damping="0.25" friction="0.8" />
     </joint>

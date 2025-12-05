@@ -29,6 +29,21 @@ arm_controller:
       ki: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]          # Disable until stable
       kd: [2.0, 2.0, 1.5, 1.5, 1.0, 0.5]         # Very low Kd - velocity feedback is noisy in sim
 
+    # Effort limits per joint (Nm)
+    # These are RATED (continuous) torque limits from actuator_specs.yaml
+    # URDF defines max (peak) torque, controller enforces rated (continuous) torque
+    # Format: [shoulder_pitch, shoulder_roll, shoulder_yaw, elbow, wrist, hand]
+    effort_limits:
+      rated: [40.0, 40.0, 20.0, 20.0, 6.0, 6.0]   # Continuous operation limits
+      max: [120.0, 120.0, 60.0, 60.0, 17.0, 17.0]  # Peak torque (from URDF, for reference)
+
+    # Velocity limits per joint (rad/s)
+    # URDF defines max (no-load) speed, controller enforces rated (continuous) speed
+    # Format: [shoulder_pitch, shoulder_roll, shoulder_yaw, elbow, wrist, hand]
+    velocity_limits:
+      rated: [17.49, 17.49, 18.85, 18.85, 37.70, 37.70]  # Continuous operation speed
+      max: [20.94, 20.94, 20.42, 20.42, 42.94, 42.94]    # Peak (no-load) speed (from URDF, for reference)
+
 hand_controller:
   ros__parameters:
     joints:
