@@ -329,6 +329,28 @@ class LauncherWindow(QtWidgets.QMainWindow):
         tool = self.tools[name]
         self._cleanup_finished_processes()
 
+        # Block starting other tools if the full-system command is still the base (incomplete)
+        # or if the full-system process is not running.
+        if name != 'system':
+            system_tool = self.tools.get('system')
+            if system_tool:
+                # If the system command hasn't been completed (still the base), prevent start
+                if system_tool.get('command') == FULL_SYSTEM_BASE_CMD:
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        'System Command Incomplete',
+                        'Full system command is not configured. Select a simulation world or complete the system command before starting other tools.'
+                    )
+                    return
+                # If system is configured but not running, require it to be started first
+                if not self._is_running(system_tool):
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        'Full System Required',
+                        'Start the full system first before launching other tools.'
+                    )
+                    return
+
         if self._is_running(tool):
             self._set_tool_status(tool, 'Already running.')
             return
