@@ -28,6 +28,15 @@
   <!-- Build tool dependencies -->
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <!-- C++ controller dependencies -->
+  <depend>controller_interface</depend>
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>realtime_tools</depend>
+  <depend>control_msgs</depend>
+  <depend>rclcpp_action</depend>
 
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>cv_bridge</exec_depend>

@@ -1,0 +1,10 @@
+<library path="arm_control">
+  <class name="arm_control/ArmController"
+         type="arm_control::ArmController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>
+      Custom PID position controller for the LDR Humanoid Arm.
+      Implements basic PID control with configurable gains for simulation and hardware.
+    </description>
+  </class>
+</library>

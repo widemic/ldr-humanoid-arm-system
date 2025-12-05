@@ -6,7 +6,7 @@ controller_manager:
       publish_rate: 50
 
     arm_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: arm_control/ArmController
 
     hand_controller:
       type: joint_trajectory_controller/JointTrajectoryController
@@ -20,12 +20,14 @@ arm_controller:
       - left_elbow_rs03
       - left_wrist_rs02
       - left_hand_rs02
-    command_interfaces:
-      - position
-    state_interfaces:
-      - position
-      - velocity
-    allow_nonzero_velocity_at_trajectory_end: true
+
+    # PID gains per joint (Kp, Ki, Kd)
+    # TUNING STATUS: After fixing command interface conflict
+    # Format: [shoulder_pitch, shoulder_roll, shoulder_yaw, elbow, wrist, hand]
+    pid:
+      kp: [100.0, 100.0, 80.0, 80.0, 20.0, 10.0]  # Moderate Kp for responsiveness
+      ki: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]          # Disable until stable
+      kd: [2.0, 2.0, 1.5, 1.5, 1.0, 0.5]         # Very low Kd - velocity feedback is noisy in sim
 
 hand_controller:
   ros__parameters:

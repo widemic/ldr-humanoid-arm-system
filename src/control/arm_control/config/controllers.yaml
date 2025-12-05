@@ -7,7 +7,7 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
       publish_rate: 50.0
     arm_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: arm_control/ArmController
     hand_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
@@ -18,7 +18,7 @@ controller_manager:
 #     publish_rate: 50.0
 
 
-# Arm Trajectory Controller - main interface for motion control
+# Custom Arm Controller - PID position control
 arm_controller:
   ros__parameters:
     joints:
@@ -29,22 +29,13 @@ arm_controller:
       - left_wrist_rs02
       - left_hand_rs02
 
-    command_interfaces:
-      - position
-
-    state_interfaces:
-      - position
-      - velocity
-      - effort
-
-    # Simple tolerances
-    constraints:
-      stopped_velocity_tolerance: 0.01
-      goal_time: 0.0  # No goal time constraint
-
-    # Allow external trajectory commands
-    allow_partial_joints_goal: false
-    allow_integration_in_goal_trajectories: true
+    # PID gains per joint (Kp, Ki, Kd)
+    # TUNING STATUS: After fixing command interface conflict
+    # Format: [shoulder_pitch, shoulder_roll, shoulder_yaw, elbow, wrist, hand]
+    pid:
+      kp: [30.0, 30.0, 25.0, 25.0, 20.0, 20.0]   # Reduced for stability
+      ki: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]         # Disable until stable
+      kd: [15.0, 15.0, 12.0, 12.0, 8.0, 8.0]    # Increased damping to reduce oscillation
 
 
 # Hand Controller - controls gripper fingers via joint trajectory
