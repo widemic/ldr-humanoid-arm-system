@@ -409,6 +409,35 @@
                                     </property>
                                 </widget>
                             </item>
+                            <item row="10" column="0" colspan="4">
+                                <widget class="QGroupBox" name="group_controllers">
+                                    <property name="title">
+                                        <string>System Controllers Status</string>
+                                    </property>
+                                    <layout class="QVBoxLayout" name="controllers_layout">
+                                        <item>
+                                            <widget class="QListWidget" name="list_controllers">
+                                                <property name="minimumHeight">
+                                                    <number>80</number>
+                                                </property>
+                                                <property name="maximumHeight">
+                                                    <number>120</number>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                    </layout>
+                                </widget>
+                            </item>
+                            <item row="11" column="0" colspan="4">
+                                <widget class="QPushButton" name="button_reset_all">
+                                    <property name="text">
+                                        <string>Reset All Processes</string>
+                                    </property>
+                                    <property name="styleSheet">
+                                        <string>background-color: #d9534f; color: white; font-weight: bold;</string>
+                                    </property>
+                                </widget>
+                            </item>
                         </layout>
                     </widget>
                 </item>

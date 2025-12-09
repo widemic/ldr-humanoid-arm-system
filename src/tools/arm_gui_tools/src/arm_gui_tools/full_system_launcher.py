@@ -21,7 +21,7 @@ OCTOMAP_CMD = 'ros2 launch arm_system_bringup moveit_octomap_only.launch.py'
 OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
 YOLO_TRACKING_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/yolov8_native_tracking.py'
 VISUAL_ODOMETRY_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/visual_odometry_exact.py'
-PERCEPTIION_CMD = 'ros2 launch arm_perception perception.launch.py'
+PERCEPTION_CMD = 'ros2 launch arm_perception perception.launch.py'
 
 
 class LauncherWindow(QtWidgets.QMainWindow):
@@ -109,7 +109,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
         )
         self._register_tool(
             name='perception',
-            command=PERCEPTIION_CMD,
+            command=PERCEPTION_CMD,
             start_button='button_perception_start',
             stop_button='button_perception_stop',
             status_label='label_perception_status',
@@ -118,6 +118,27 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self.monitor_timer = QtCore.QTimer(self)
         self.monitor_timer.timeout.connect(self._cleanup_finished_processes)
         self.monitor_timer.start(1000)
+        ## wire the UI reset button
+        reset_btn = self.findChild(QtWidgets.QPushButton, 'button_reset_all')
+        if reset_btn:
+            reset_btn.clicked.connect(self._reset_all_processes)
+        
+        # Cached readiness flag (updated asynchronously in background)
+        self._system_ready = False
+        self._ros_check_process = None
+        
+        # Background ROS readiness checker (non-blocking QProcess, runs every 2s)
+        self._ros_check_timer = QtCore.QTimer(self)
+        self._ros_check_timer.timeout.connect(self._start_async_ros_check)
+        self._ros_check_timer.start(2000)
+        
+        # Controller status monitor (runs every 3s, delayed 1s to allow system init)
+        self._controller_monitor_timer = QtCore.QTimer(self)
+        self._controller_monitor_timer.timeout.connect(self._update_controller_list)
+        QtCore.QTimer.singleShot(1000, lambda: self._controller_monitor_timer.start(3000))
+            
+        # set all button states according to current system readiness
+        self._update_all_buttons()
 
     def _load_ui(self):
         """Load the Qt Designer file either from install or source tree."""
@@ -325,6 +346,10 @@ class LauncherWindow(QtWidgets.QMainWindow):
     def start_tool(self, name):
         tool = self.tools[name]
         self._cleanup_finished_processes()
+        
+        # Block starting other tools if system is not configured or running
+        if name != 'system' and not self._ensure_system_running():
+            return
 
         if self._is_running(tool):
             self._set_tool_status(tool, 'Already running.')
@@ -343,6 +368,10 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
         self._set_tool_status(tool, f'Running (pid {tool["process"].pid}).')
         self._update_tool_buttons(name)
+        
+        # If system just started, schedule controller list update after 2 seconds
+        if name == 'system':
+            QtCore.QTimer.singleShot(2000, self._update_controller_list)
 
     def stop_tool(self, name):
         tool = self.tools[name]
@@ -383,8 +412,8 @@ class LauncherWindow(QtWidgets.QMainWindow):
         return None
 
     def _terminate_process(self, tool):
-        """Send SIGINT (then SIGTERM) to the stored process."""
-        process = tool['process']
+        """Terminate the stored process, escalate to SIGKILL if needed."""
+        process = tool.get('process')
         if not process:
             return False
 
@@ -398,29 +427,337 @@ class LauncherWindow(QtWidgets.QMainWindow):
         except ProcessLookupError:
             pass
         except subprocess.TimeoutExpired:
-            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            try:
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                except Exception:
+                    pass
         finally:
             tool['process'] = None
 
         return True
 
     def _cleanup_finished_processes(self):
-        """Reset handles when processes exit on their own."""
+        """Reset handles when processes exit on their own and refresh UI state."""
         for name, tool in self.tools.items():
             if tool['process'] and tool['process'].poll() is not None:
                 tool['process'] = None
                 self._set_tool_status(tool, 'Exited.')
-                self._update_tool_buttons(name)
 
+        # Refresh all button states after cleanup (and update Reset button)
+        for name in self.tools.keys():
+            self._update_tool_buttons(name)
+        
+        # If system just started, update controller list
+        system_tool = self.tools.get('system')
+        if system_tool and self._is_running(system_tool) and self._is_ros_system_ready():
+            self._update_controller_list()
+
+    def _reset_all_processes(self):
+        """Stop every running tool gracefully, wait 5 seconds, then force-kill any remaining."""
+        self._cleanup_finished_processes()
+        
+        # Phase 1: Send SIGINT to all running tools
+        running_tools = []
+        for name in list(self.tools.keys()):
+            tool = self.tools[name]
+            if self._is_running(tool):
+                running_tools.append((name, tool))
+                try:
+                    os.killpg(os.getpgid(tool['process'].pid), signal.SIGINT)
+                    self._set_tool_status(tool, 'Stopping...')
+                except Exception:
+                    pass
+        
+        if not running_tools:
+            QtWidgets.QMessageBox.information(self, 'Reset Complete', 'No processes running.')
+            return
+        
+        # Phase 2: Show a warning dialog with countdown while waiting for processes to exit
+        self._reset_countdown = 5
+        self._reset_running_tools = running_tools
+        self._reset_still_running = running_tools.copy()
+        
+        # Create a timer to check process status and update countdown
+        self._reset_timer = QtCore.QTimer(self)
+        self._reset_timer.timeout.connect(self._reset_countdown_tick)
+        self._reset_timer.start(500)  # Check every 500ms
+        
+        # Show initial warning
+        self._reset_countdown_tick()
+
+    def _reset_countdown_tick(self):
+        """Called every 500ms to check process status and update countdown."""
+        # Check which processes are still running
+        still_running = []
+        for name, tool in self._reset_still_running:
+            if tool['process'] and tool['process'].poll() is None:
+                still_running.append((name, tool))
+        
+        self._reset_still_running = still_running
+        
+        # All processes exited
+        if not self._reset_still_running:
+            self._reset_timer.stop()
+            self._update_all_buttons()
+            QtWidgets.QMessageBox.information(
+                self,
+                'Reset Complete',
+                f'Stopped {len(self._reset_running_tools)} process(es) gracefully.'
+            )
+            return
+        
+        # Countdown reached 0 - force kill remaining
+        if self._reset_countdown <= 0:
+            self._reset_timer.stop()
+            force_killed = 0
+            for name, tool in self._reset_still_running:
+                if tool['process'] and tool['process'].poll() is None:
+                    try:
+                        os.killpg(os.getpgid(tool['process'].pid), signal.SIGKILL)
+                        force_killed += 1
+                        self._set_tool_status(tool, 'Force-killed.')
+                    except Exception:
+                        pass
+                    finally:
+                        tool['process'] = None
+            
+            self._update_all_buttons()
+            message = f'Stopped {len(self._reset_running_tools)} process(es): {len(self._reset_running_tools) - force_killed} gracefully, {force_killed} force-killed.'
+            QtWidgets.QMessageBox.information(self, 'Reset Complete', message)
+            return
+        
+        # Countdown continues; just decrement the timer
+        self._reset_countdown -= 0.5
+
+    
+    def _start_async_ros_check(self):
+        """Start an asynchronous QProcess to check ROS readiness (non-blocking)."""
+        # Skip if a check is already running
+        if self._ros_check_process is not None and self._ros_check_process.state() == QtCore.QProcess.Running:
+            return
+
+        # Build the ros2 command with setup script sourcing
+        setup = self._get_setup_script()
+        if setup:
+            cmd = f'source "{setup}" && ros2 node list'
+        else:
+            cmd = 'ros2 node list'
+
+        self._ros_check_process = QtCore.QProcess(self)
+        self._ros_check_process.setProgram('bash')
+        self._ros_check_process.setArguments(['-lc', cmd])
+        self._ros_check_process.finished.connect(self._on_ros_check_finished)
+        self._ros_check_process.start()
+
+    def _on_ros_check_finished(self, exitCode, exitStatus):
+        """Handle ROS readiness check completion."""
+        ready = False
+        try:
+            if self._ros_check_process is not None:
+                stdout = self._ros_check_process.readAllStandardOutput().data().decode('utf-8', errors='ignore')
+                ready = (exitCode == 0 and len(stdout.strip()) > 0)
+        except Exception:
+            ready = False
+        finally:
+            if self._ros_check_process is not None:
+                self._ros_check_process.deleteLater()
+            self._ros_check_process = None
+
+        # Update cached flag and refresh UI if value changed
+        if ready != self._system_ready:
+            self._system_ready = ready
+            self._update_all_buttons()
+
+    def _is_ros_system_ready(self):
+        """Return cached ROS system readiness (updated asynchronously every 2 seconds)."""
+        return bool(self._system_ready)
+
+    def _update_controller_list(self):
+        """Fetch and display the list of all ROS 2 controllers (active or not)."""
+        controllers_widget = self.findChild(QtWidgets.QListWidget, 'list_controllers')
+        if not controllers_widget:
+            return
+        
+        try:
+            # Build environment with ROS setup
+            env = os.environ.copy()
+            setup = self._get_setup_script()
+            if setup:
+                # Source the setup script and export variables
+                cmd = f'source "{setup}" && env'
+                result = subprocess.run(
+                    ['bash', '-c', cmd],
+                    capture_output=True,
+                    text=True,
+                    timeout=2
+                )
+                # Parse env output and update env dict
+                for line in result.stdout.split('\n'):
+                    if '=' in line:
+                        key, value = line.split('=', 1)
+                        env[key] = value
+            
+            # Run ros2 control list_controllers with the ROS environment
+            result = subprocess.run(
+                ['ros2', 'control', 'list_controllers'],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                env=env
+            )
+            
+            controllers = []
+            if result.returncode == 0 and result.stdout.strip():
+                output = result.stdout.strip()
+                lines = output.split('\n')
+                
+                # Parse all controller lines
+                # Format: "controller_name    controller_type/ControllerClass    status"
+                for line in lines:
+                    line = line.strip()
+                    # Skip empty lines and separator lines
+                    if not line or line.startswith('---'):
+                        continue
+                    
+                    # Split by whitespace: name is first, status is last
+                    parts = line.split()
+                    if len(parts) >= 3:
+                        # First part is controller name, last part is status
+                        name = parts[0]
+                        status = parts[-1]
+                        controllers.append((name, status))
+                    elif len(parts) >= 1:
+                        # If only 1 or 2 parts, use name with unknown status
+                        name = parts[0]
+                        controllers.append((name, 'unknown'))
+            
+            # Update the list widget
+            controllers_widget.clear()
+            
+            if controllers:
+                for name, status in controllers:
+                    item_text = f"{name} [{status}]"
+                    item = QtWidgets.QListWidgetItem(item_text)
+                    
+                    # Color based on status
+                    if 'active' in status.lower():
+                        item.setBackground(QtGui.QColor(144, 238, 144))  # Light green
+                    elif 'inactive' in status.lower():
+                        item.setBackground(QtGui.QColor(255, 200, 124))  # Light orange
+                    elif 'unconfigured' in status.lower():
+                        item.setBackground(QtGui.QColor(200, 200, 200))  # Gray
+                    else:
+                        item.setBackground(QtGui.QColor(220, 220, 220))  # Light gray
+                    
+                    controllers_widget.addItem(item)
+            else:
+                # Show placeholder if no controllers
+                item = QtWidgets.QListWidgetItem('No controllers found')
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsSelectable)
+                controllers_widget.addItem(item)
+        except subprocess.TimeoutExpired:
+            controllers_widget.clear()
+            item = QtWidgets.QListWidgetItem('Timeout fetching controllers')
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsSelectable)
+            controllers_widget.addItem(item)
+        except Exception as e:
+            controllers_widget.clear()
+            item = QtWidgets.QListWidgetItem(f'Error: {str(e)[:30]}')
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsSelectable)
+            controllers_widget.addItem(item)
+
+    def _ensure_system_running(self):
+        """Return True if the 'system' tool is configured and fully ready.
+        
+        Checks that the process is running AND waits briefly for ROS services to become available.
+        Shows a warning and blocks starting other tools otherwise.
+        """
+        system_tool = self.tools.get('system')
+        if not system_tool:
+            QtWidgets.QMessageBox.warning(
+                self,
+                'Full System Required',
+                'Full system tool is not configured in the launcher.'
+            )
+            return False
+
+        if system_tool.get('command') == FULL_SYSTEM_BASE_CMD:
+            QtWidgets.QMessageBox.warning(
+                self,
+                'System Command Incomplete',
+                'Full system command is not configured. Select a simulation world or complete the system command before starting other tools.'
+            )
+            return False
+
+        if not self._is_running(system_tool):
+            QtWidgets.QMessageBox.warning(
+                self,
+                'Full System Required',
+                'Start the full system first before launching other tools.'
+            )
+            return False
+        
+        # Check if ROS system is actually ready by testing a service call
+        if not self._is_ros_system_ready():
+            QtWidgets.QMessageBox.warning(
+                self,
+                'Full System Loading',
+                'Full system is starting but not fully initialized yet. Please wait a moment and try again.'
+            )
+            return False
+    
+        return True
+
+    def _update_tool_buttons(self, name):
+        """Set start/stop button enabled state for a single tool.
+
+        - Non-system tool 'Start' is enabled only when:
+            * the tool is not already running, and
+            * the full system is fully ready (ROS responds).
+        - The Reset button is enabled only when the full system is fully ready.
+        """
+        tool = self.tools[name]
+        running = self._is_running(tool)
+
+        # stop button enabled only when running
+        tool['stop_button'].setEnabled(running)
+
+        # Default start enabled if not running
+        start_enabled = not running
+
+        # For non-system tools, require the system to be fully ready
+        if name != 'system':
+            system_tool = self.tools.get('system')
+            system_is_ready = False
+            if system_tool and self._is_running(system_tool) and self._is_ros_system_ready():
+                system_is_ready = True
+            start_enabled = start_enabled and system_is_ready
+
+        tool['start_button'].setEnabled(start_enabled)
+
+        # Update Reset button: enabled only when full system is fully ready
+        reset_btn = self.findChild(QtWidgets.QPushButton, 'button_reset_all')
+        if reset_btn:
+            system_tool = self.tools.get('system')
+            reset_enabled = False
+            if system_tool and self._is_running(system_tool) and self._is_ros_system_ready():
+                reset_enabled = True
+            reset_btn.setEnabled(reset_enabled)
+            
+    def _update_all_buttons(self):
+        """Refresh start/stop/reset buttons for every registered tool."""
+        for name in self.tools.keys():
+            self._update_tool_buttons(name)
+    
     @staticmethod
     def _is_running(tool):
         return bool(tool['process'] and tool['process'].poll() is None)
 
-    def _update_tool_buttons(self, name):
-        tool = self.tools[name]
-        running = self._is_running(tool)
-        tool['start_button'].setEnabled(not running)
-        tool['stop_button'].setEnabled(running)
+    
 
     @staticmethod
     def _set_tool_status(tool, text):
