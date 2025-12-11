@@ -6,6 +6,7 @@ import shlex
 import signal
 import subprocess
 import sys
+import re
 from functools import partial
 from pathlib import Path
 
@@ -545,11 +546,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
             self._kill_external_ros_processes()
             self._cleanup_finished_processes()
 
-            QtWidgets.QMessageBox.information(
-                self,
-                'Reset Complete',
-                f'Stopped {len(self._reset_running_tools)} process(es) gracefully and cleaned up ROS-related processes.',
-            )
+            
             return
 
         # Countdown reached 0: force-kill remaining GUI-owned processes
@@ -572,13 +569,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
             # After force-killing GUI-owned processes, also clean up external ROS processes
             self._kill_external_ros_processes()
             self._cleanup_finished_processes()
-
-            message = (
-                f'Stopped {len(self._reset_running_tools)} process(es): '
-                f'{len(self._reset_running_tools) - force_killed} gracefully, {force_killed} force-killed. '
-                'All ROS-related processes have been cleaned up.'
-            )
-            QtWidgets.QMessageBox.information(self, 'Reset Complete', message)
+            
             return
 
         # Decrement countdown and keep waiting
@@ -710,24 +701,38 @@ class LauncherWindow(QtWidgets.QMainWindow):
                 self.controllers_list.addItem(item)
             return
 
-        for line in lines:
-            item = QtWidgets.QListWidgetItem(line)
-            parts = line.split()
-            status = parts[-1] if parts else ''
+        ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
 
-            # Simple coloring by status token
-            try:
-                status_lower = status.lower()
-                if 'active' in status_lower:
-                    item.setBackground(QtGui.QColor(144, 238, 144))  # light green
-                elif 'inactive' in status_lower:
-                    item.setBackground(QtGui.QColor(255, 200, 124))  # light orange
-                elif 'unconfigured' in status_lower:
-                    item.setBackground(QtGui.QColor(200, 200, 200))  # grey
-            except Exception:
-                pass
+        for raw_line in lines:
+            # Remove color codes
+            line = ANSI_ESCAPE.sub('', raw_line).strip()
+
+            # Expected format: <name> <type> <status>
+            parts = line.split()
+            if len(parts) < 3:
+                # Fallback: list raw cleaned line
+                self.controllers_list.addItem(QtWidgets.QListWidgetItem(line))
+                continue
+
+            name = parts[0]
+            status = parts[-1]
+
+            # Display only: "<name>    <status>"
+            display = f"{name}    {status}"
+
+            item = QtWidgets.QListWidgetItem(display)
+
+            # Color by status
+            status_lower = status.lower()
+            if 'active' in status_lower:
+                item.setBackground(QtGui.QColor(144, 238, 144))
+            elif 'inactive' in status_lower:
+                item.setBackground(QtGui.QColor(255, 200, 124))
+            elif 'unconfigured' in status_lower:
+                item.setBackground(QtGui.QColor(200, 200, 200))
 
             self.controllers_list.addItem(item)
+
 
     # ------------------------------------------------------------------
     # Button state management
