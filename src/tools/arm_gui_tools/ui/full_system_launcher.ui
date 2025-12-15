@@ -122,13 +122,33 @@
                                     </property>
                                 </widget>
                             </item>
+                            <!-- Restart button -->
                             <item row="0" column="3">
+                                <widget class="QPushButton" name="button_system_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <!-- Skip Stop All checkbox -->
+                            <item row="0" column="4">
+                                <widget class="QCheckBox" name="check_system_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="0" column="5">
                                 <widget class="QLabel" name="label_system_status">
                                     <property name="text">
                                         <string>Idle</string>
                                     </property>
                                 </widget>
                             </item>
+                            
                             <item row="1" column="0">
                                 <widget class="QLabel" name="label_rqt_name">
                                     <property name="text">
@@ -154,6 +174,24 @@
                                 </widget>
                             </item>
                             <item row="1" column="3">
+                                <widget class="QPushButton" name="button_rqt_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+
+                            <item row="1" column="4">
+                                <widget class="QCheckBox" name="check_rqt_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="1" column="5">
                                 <widget class="QLabel" name="label_rqt_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -185,6 +223,23 @@
                                 </widget>
                             </item>
                             <item row="2" column="3">
+                                <widget class="QPushButton" name="button_gazebo_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="2" column="4">
+                                <widget class="QCheckBox" name="check_gazebo_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="2" column="5">
                                 <widget class="QLabel" name="label_gazebo_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -216,6 +271,23 @@
                                 </widget>
                             </item>
                             <item row="3" column="3">
+                                <widget class="QPushButton" name="button_rviz_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="3" column="4">
+                                <widget class="QCheckBox" name="check_rviz_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="3" column="5">
                                 <widget class="QLabel" name="label_rviz_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -247,6 +319,23 @@
                                 </widget>
                             </item>
                             <item row="4" column="3">
+                                <widget class="QPushButton" name="button_moveit_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="4" column="4">
+                                <widget class="QCheckBox" name="check_moveit_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="4" column="5">
                                 <widget class="QLabel" name="label_moveit_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -278,6 +367,23 @@
                                 </widget>
                             </item>
                             <item row="5" column="3">
+                                <widget class="QPushButton" name="button_octomap_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="5" column="4">
+                                <widget class="QCheckBox" name="check_octomap_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="5" column="5">
                                 <widget class="QLabel" name="label_octomap_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -309,6 +415,23 @@
                                 </widget>
                             </item>
                             <item row="6" column="3">
+                                <widget class="QPushButton" name="button_object_detection_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="6" column="4">
+                                <widget class="QCheckBox" name="check_object_detection_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="6" column="5">
                                 <widget class="QLabel" name="label_object_detection_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -341,6 +464,23 @@
                                 </widget>
                             </item>
                             <item row="7" column="3">
+                                <widget class="QPushButton" name="button_perception_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="7" column="4">
+                                <widget class="QCheckBox" name="check_perception_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="7" column="5">
                                 <widget class="QLabel" name="label_perception_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -372,6 +512,23 @@
                                 </widget>
                             </item>
                             <item row="8" column="3">
+                                <widget class="QPushButton" name="button_yolo_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="8" column="4">
+                                <widget class="QCheckBox" name="check_yolo_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="8" column="5">
                                 <widget class="QLabel" name="label_yolo_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -403,6 +560,23 @@
                                 </widget>
                             </item>
                             <item row="9" column="3">
+                                <widget class="QPushButton" name="button_vo_restart">
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="text">
+                                        <string>Restart</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="9" column="4">
+                                <widget class="QCheckBox" name="check_vo_skip">
+                                    <property name="text">
+                                        <string>Skip Stop All</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="9" column="5">
                                 <widget class="QLabel" name="label_vo_status">
                                     <property name="text">
                                         <string>Idle</string>
@@ -431,7 +605,7 @@
                             <item row="11" column="0" colspan="4">
                                 <widget class="QPushButton" name="button_reset_all">
                                     <property name="text">
-                                        <string>Reset All Processes</string>
+                                        <string>Stop All Processes</string>
                                     </property>
                                     <property name="styleSheet">
                                         <string>background-color: #d9534f; color: white; font-weight: bold;</string>

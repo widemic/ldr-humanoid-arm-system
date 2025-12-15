@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""PyQt5 GUI with per-tool start/stop buttons for the full system, Gazebo, RViz, and related tools."""
+"""PyQt5 GUI with per-tool start/stop/restart buttons for the full system, Gazebo, RViz, and related tools.
+Also supports per-tool "Skip Stop All" checkbox to exclude selected tools from Stop All.
+"""
 
 import os
 import shlex
@@ -27,7 +29,7 @@ CONTROLLERS_CMD = 'ros2 control list_controllers'
 
 
 class LauncherWindow(QtWidgets.QMainWindow):
-    """GUI that starts/stops each ROS 2 tool in the background."""
+    """GUI that starts/stops/restarts each ROS 2 tool in the background."""
 
     def __init__(self):
         super().__init__()
@@ -50,9 +52,9 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self._controllers_process = None
         self._controllers_timer = None
 
-        # Reset state
+        # Stop-all state
         self._reset_timer = None
-        self._reset_countdown = 0
+        self._reset_countdown = 0.0
         self._reset_running_tools = []
         self._reset_still_running = []
 
@@ -65,76 +67,98 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self._setup_world_selector()
         self._update_launch_command()
 
-        # Register tools (buttons + status labels must exist in UI)
+        # ------------------------------------------------------------------
+        # Register tools (buttons + status labels + (optional) restart + skip must exist in UI)
+        # ------------------------------------------------------------------
         self._register_tool(
             name='system',
             command=self._build_launch_command(),
             start_button='button_system_start',
             stop_button='button_system_stop',
+            restart_button='button_system_restart',
             status_label='label_system_status',
+            skip_checkbox='check_system_skip',
         )
         self._register_tool(
             name='rqt',
             command=IMAGE_VIEW_CMD,
             start_button='button_rqt_start',
             stop_button='button_rqt_stop',
+            restart_button='button_rqt_restart',
             status_label='label_rqt_status',
+            skip_checkbox='check_rqt_skip',
         )
         self._register_tool(
             name='gazebo',
             command=GAZEBO_CMD,
             start_button='button_gazebo_start',
             stop_button='button_gazebo_stop',
+            restart_button='button_gazebo_restart',
             status_label='label_gazebo_status',
+            skip_checkbox='check_gazebo_skip',
         )
         self._register_tool(
             name='rviz',
             command=RVIZ_CMD,
             start_button='button_rviz_start',
             stop_button='button_rviz_stop',
+            restart_button='button_rviz_restart',
             status_label='label_rviz_status',
+            skip_checkbox='check_rviz_skip',
         )
         self._register_tool(
             name='moveit',
             command=MOVEIT_CMD,
             start_button='button_moveit_start',
             stop_button='button_moveit_stop',
+            restart_button='button_moveit_restart',
             status_label='label_moveit_status',
+            skip_checkbox='check_moveit_skip',
         )
         self._register_tool(
             name='octomap',
             command=OCTOMAP_CMD,
             start_button='button_octomap_start',
             stop_button='button_octomap_stop',
+            restart_button='button_octomap_restart',
             status_label='label_octomap_status',
+            skip_checkbox='check_octomap_skip',
         )
         self._register_tool(
             name='object_detection',
             command=OBJECT_DETECTION_CMD,
             start_button='button_object_detection_start',
             stop_button='button_object_detection_stop',
+            restart_button='button_object_detection_restart',
             status_label='label_object_detection_status',
-        )
-        self._register_tool(
-            name='yolo',
-            command=YOLO_TRACKING_CMD,
-            start_button='button_yolo_start',
-            stop_button='button_yolo_stop',
-            status_label='label_yolo_status',
-        )
-        self._register_tool(
-            name='vo',
-            command=VISUAL_ODOMETRY_CMD,
-            start_button='button_vo_start',
-            stop_button='button_vo_stop',
-            status_label='label_vo_status',
+            skip_checkbox='check_object_detection_skip',
         )
         self._register_tool(
             name='perception',
             command=PERCEPTION_CMD,
             start_button='button_perception_start',
             stop_button='button_perception_stop',
+            restart_button='button_perception_restart',
             status_label='label_perception_status',
+            skip_checkbox='check_perception_skip',
+        )
+        self._register_tool(
+            name='yolo',
+            command=YOLO_TRACKING_CMD,
+            start_button='button_yolo_start',
+            stop_button='button_yolo_stop',
+            restart_button='button_yolo_restart',
+            status_label='label_yolo_status',
+            skip_checkbox='check_yolo_skip',
+        )
+        self._register_tool(
+            name='vo',
+            command=VISUAL_ODOMETRY_CMD,
+            start_button='button_vo_start',
+            stop_button='button_vo_stop',
+            restart_button='button_vo_restart',
+            status_label='label_vo_status',
+            skip_checkbox='check_vo_skip',
         )
 
         # Periodic monitor for processes launched by this GUI
@@ -142,10 +166,10 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self.monitor_timer.timeout.connect(self._cleanup_finished_processes)
         self.monitor_timer.start(1000)
 
-        # Wire Reset button
-        reset_btn = self.findChild(QtWidgets.QPushButton, 'button_reset_all')
-        if reset_btn is not None:
-            reset_btn.clicked.connect(self._reset_all_processes)
+        # Wire Stop All button (objectName remains button_reset_all)
+        stop_all_btn = self.findChild(QtWidgets.QPushButton, 'button_reset_all')
+        if stop_all_btn is not None:
+            stop_all_btn.clicked.connect(self._reset_all_processes)
 
         # Controllers list widget
         self.controllers_list = self.findChild(QtWidgets.QListWidget, 'list_controllers')
@@ -355,15 +379,34 @@ class LauncherWindow(QtWidgets.QMainWindow):
     # Tool registration / process management
     # ------------------------------------------------------------------
 
-    def _register_tool(self, name, command, start_button, stop_button, status_label):
+    def _register_tool(
+        self,
+        name,
+        command,
+        start_button,
+        stop_button,
+        status_label,
+        restart_button=None,
+        skip_checkbox=None,
+    ):
         start_btn = self._require_widget(QtWidgets.QPushButton, start_button)
         stop_btn = self._require_widget(QtWidgets.QPushButton, stop_button)
         status_lbl = self._require_widget(QtWidgets.QLabel, status_label)
+
+        restart_btn = None
+        if restart_button is not None:
+            restart_btn = self._require_widget(QtWidgets.QPushButton, restart_button)
+
+        skip_cb = None
+        if skip_checkbox is not None:
+            skip_cb = self._require_widget(QtWidgets.QCheckBox, skip_checkbox)
 
         tool = {
             'command': command,
             'start_button': start_btn,
             'stop_button': stop_btn,
+            'restart_button': restart_btn,
+            'skip_checkbox': skip_cb,
             'status_label': status_lbl,
             'process': None,
         }
@@ -371,6 +414,9 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
         start_btn.clicked.connect(partial(self.start_tool, name))
         stop_btn.clicked.connect(partial(self.stop_tool, name))
+        if restart_btn is not None:
+            restart_btn.clicked.connect(partial(self.restart_tool, name))
+
         self._update_tool_buttons(name)
 
     def _require_widget(self, widget_cls, object_name):
@@ -417,6 +463,40 @@ class LauncherWindow(QtWidgets.QMainWindow):
             self._set_tool_status(tool, 'Not running.')
         self._update_tool_buttons(name)
 
+    def restart_tool(self, name):
+        """Stop (if running) then start again."""
+        tool = self.tools[name]
+        self._cleanup_finished_processes()
+
+        # For non-system tools, require full system ready
+        if name != 'system' and not self._ensure_system_running():
+            return
+
+        # Stop if running
+        if self._is_running(tool):
+            self._set_tool_status(tool, 'Restarting...')
+            self._terminate_process(tool)
+
+        # Start
+        try:
+            tool['process'] = self._start_process(tool['command'])
+        except Exception as exc:
+            QtWidgets.QMessageBox.critical(
+                self,
+                f'{name} restart failed',
+                f'Failed to restart command:\n{exc}',
+            )
+            self._set_tool_status(tool, 'Failed to restart.')
+            tool['process'] = None
+            self._update_tool_buttons(name)
+            return
+
+        self._set_tool_status(tool, f'Running (pid {tool["process"].pid}).')
+        self._update_tool_buttons(name)
+
+        if name == 'system':
+            QtCore.QTimer.singleShot(2000, self._start_controllers_query)
+
     def _start_process(self, command):
         """Launch a ROS command in the background using bash."""
         wrapped = self._wrap_with_setup(command)
@@ -459,7 +539,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
         try:
             os.killpg(os.getpgid(process.pid), signal.SIGINT)
-            process.wait(timeout=5)
+            process.wait(timeout=10)
         except ProcessLookupError:
             pass
         except subprocess.TimeoutExpired:
@@ -487,16 +567,20 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self._update_all_buttons()
 
     # ------------------------------------------------------------------
-    # Reset-all logic (GUI-launched + external ROS/Gazebo/MoveIt processes)
+    # Stop-all logic (GUI-launched + external ROS/Gazebo/MoveIt processes)
     # ------------------------------------------------------------------
 
     def _reset_all_processes(self):
-        """Stop all GUI-managed tools and then kill external ROS/Gazebo/MoveIt processes."""
+        """Stop all GUI-managed tools (except those checked 'Skip Stop All') then kill external ROS/Gazebo/MoveIt."""
         self._cleanup_finished_processes()
 
-        # Phase 1: send SIGINT to all running tools started via this GUI
         running_tools = []
         for name, tool in self.tools.items():
+            # Respect per-tool skip checkbox
+            skip_cb = tool.get('skip_checkbox')
+            if skip_cb is not None and skip_cb.isChecked():
+                continue
+
             if self._is_running(tool):
                 running_tools.append((name, tool))
                 try:
@@ -509,12 +593,11 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self._reset_still_running = running_tools.copy()
 
         if not running_tools:
-            # No GUI-owned processes, but still clean up any stray ROS-related processes
             self._kill_external_ros_processes()
             QtWidgets.QMessageBox.information(
                 self,
-                'Reset Complete',
-                'No GUI processes running. ROS-related processes have been cleaned up.',
+                'Stop All',
+                'No GUI processes running (or all were skipped). ROS-related processes have been cleaned up.',
             )
             return
 
@@ -526,11 +609,10 @@ class LauncherWindow(QtWidgets.QMainWindow):
         if not self._reset_timer.isActive():
             self._reset_timer.start(500)  # 500 ms
 
-        # Initial tick to update state immediately
         self._reset_countdown_tick()
 
     def _reset_countdown_tick(self):
-        """Called periodically to check process status and complete reset."""
+        """Called periodically to check process status and complete stop-all."""
         still_running = []
         for name, tool in self._reset_still_running:
             if tool['process'] and tool['process'].poll() is None:
@@ -542,11 +624,8 @@ class LauncherWindow(QtWidgets.QMainWindow):
             if self._reset_timer and self._reset_timer.isActive():
                 self._reset_timer.stop()
 
-            # Kill any remaining external ROS-related processes
             self._kill_external_ros_processes()
             self._cleanup_finished_processes()
-
-            
             return
 
         # Countdown reached 0: force-kill remaining GUI-owned processes
@@ -554,29 +633,36 @@ class LauncherWindow(QtWidgets.QMainWindow):
             if self._reset_timer and self._reset_timer.isActive():
                 self._reset_timer.stop()
 
-            force_killed = 0
             for name, tool in self._reset_still_running:
                 if tool['process'] and tool['process'].poll() is None:
                     try:
                         os.killpg(os.getpgid(tool['process'].pid), signal.SIGKILL)
-                        force_killed += 1
                         self._set_tool_status(tool, 'Force-killed.')
                     except Exception:
                         pass
                     finally:
                         tool['process'] = None
 
-            # After force-killing GUI-owned processes, also clean up external ROS processes
             self._kill_external_ros_processes()
             self._cleanup_finished_processes()
-            
             return
 
-        # Decrement countdown and keep waiting
         self._reset_countdown -= 0.5
 
     def _kill_external_ros_processes(self):
-        """Force-kill common ROS2 / Gazebo / MoveIt / perception processes not spawned by the GUI."""
+        """
+        Kill external ROS/Gazebo/MoveIt-related processes, BUT respect per-tool skip checkboxes.
+        If a tool is checked "Skip Stop All", we will not run pkill patterns that would match it.
+        """
+
+        def skipped(tool_name: str) -> bool:
+            t = self.tools.get(tool_name)
+            if not t:
+                return False
+            cb = t.get('skip_checkbox')
+            return bool(cb is not None and cb.isChecked())
+
+        # Start with the full list
         patterns = [
             'ros2 ',           # generic ros2 CLI and launch processes
             'gz ',             # Gazebo / gz sim
@@ -590,23 +676,53 @@ class LauncherWindow(QtWidgets.QMainWindow):
             'perception.launch.py',
         ]
 
+        # Remove patterns that correspond to tools the user wants to keep alive
+        if skipped('gazebo'):
+            patterns = [p for p in patterns if p not in ('gz ', 'gazebo')]
+
+        if skipped('rviz'):
+            patterns = [p for p in patterns if p != 'rviz2']
+
+        if skipped('moveit'):
+            patterns = [p for p in patterns if p != 'move_group']
+
+        if skipped('object_detection'):
+            patterns = [p for p in patterns if p != 'object_recognition_node.py']
+
+        if skipped('yolo'):
+            patterns = [p for p in patterns if p != 'yolov8_native_tracking.py']
+
+        if skipped('vo'):
+            patterns = [p for p in patterns if p != 'visual_odometry_exact.py']
+
+        if skipped('rqt'):
+            patterns = [p for p in patterns if p != 'image_tools showimage']
+
+        if skipped('perception'):
+            patterns = [p for p in patterns if p != 'perception.launch.py']
+
+        # Important: if the "system" is skipped, NEVER do broad kills like "ros2 "
+        if skipped('system'):
+            patterns = [p for p in patterns if p != 'ros2 ']
+
+        # Execute pkill for remaining patterns
         for pat in patterns:
             try:
                 subprocess.run(['pkill', '-f', pat], check=False)
             except Exception:
                 pass
-
     # ------------------------------------------------------------------
     # ROS readiness checker
     # ------------------------------------------------------------------
 
     def _start_async_ros_check(self):
         """Start an asynchronous QProcess to check ROS readiness (non-blocking)."""
-        # Skip if a check is already running
-        if self._ros_check_process is not None and self._ros_check_process.state() == QtCore.QProcess.Running:
+        if (
+            self._ros_check_process is not None
+            and self._ros_check_process.state() == QtCore.QProcess.Running
+        ):
             return
 
-        # Build the ros2 command with setup script sourcing
         setup = self._get_setup_script()
         if setup:
             cmd = f'source "{setup}" && ros2 node list'
@@ -625,7 +741,11 @@ class LauncherWindow(QtWidgets.QMainWindow):
         ready = False
         try:
             if self._ros_check_process is not None:
-                stdout = self._ros_check_process.readAllStandardOutput().data().decode('utf-8', errors='ignore')
+                stdout = (
+                    self._ros_check_process.readAllStandardOutput()
+                    .data()
+                    .decode('utf-8', errors='ignore')
+                )
                 ready = (exit_code == 0 and len(stdout.strip()) > 0)
         except Exception:
             ready = False
@@ -634,7 +754,6 @@ class LauncherWindow(QtWidgets.QMainWindow):
                 self._ros_check_process.deleteLater()
             self._ros_check_process = None
 
-        # Update cached flag and refresh UI if value changed
         if ready != self._system_ready:
             self._system_ready = ready
             self._update_all_buttons()
@@ -652,8 +771,10 @@ class LauncherWindow(QtWidgets.QMainWindow):
         if self.controllers_list is None:
             return
 
-        # Avoid overlapping runs
-        if self._controllers_process is not None and self._controllers_process.state() == QtCore.QProcess.Running:
+        if (
+            self._controllers_process is not None
+            and self._controllers_process.state() == QtCore.QProcess.Running
+        ):
             return
 
         setup = self._get_setup_script()
@@ -704,25 +825,17 @@ class LauncherWindow(QtWidgets.QMainWindow):
         ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
 
         for raw_line in lines:
-            # Remove color codes
             line = ANSI_ESCAPE.sub('', raw_line).strip()
-
-            # Expected format: <name> <type> <status>
             parts = line.split()
             if len(parts) < 3:
-                # Fallback: list raw cleaned line
                 self.controllers_list.addItem(QtWidgets.QListWidgetItem(line))
                 continue
 
             name = parts[0]
             status = parts[-1]
-
-            # Display only: "<name>    <status>"
             display = f"{name}    {status}"
-
             item = QtWidgets.QListWidgetItem(display)
 
-            # Color by status
             status_lower = status.lower()
             if 'active' in status_lower:
                 item.setBackground(QtGui.QColor(144, 238, 144))
@@ -733,17 +846,12 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
             self.controllers_list.addItem(item)
 
-
     # ------------------------------------------------------------------
     # Button state management
     # ------------------------------------------------------------------
 
     def _ensure_system_running(self):
-        """Return True if the 'system' tool is configured and fully ready.
-
-        Checks that the process is running AND ROS appears responsive. Shows a warning
-        and blocks starting other tools otherwise.
-        """
+        """Return True if the 'system' tool is configured and fully ready."""
         system_tool = self.tools.get('system')
         if not system_tool:
             QtWidgets.QMessageBox.warning(
@@ -780,37 +888,38 @@ class LauncherWindow(QtWidgets.QMainWindow):
         return True
 
     def _update_tool_buttons(self, name):
-        """Set start/stop button enabled state for a single tool."""
+        """Set start/stop/restart button enabled state for a single tool."""
         tool = self.tools[name]
         running = self._is_running(tool)
 
-        # Stop button enabled only when running
+        # Stop enabled only when running
         tool['stop_button'].setEnabled(running)
 
-        # Default start enabled if not running
+        # Start enabled when not running (and system ready for non-system tools)
         start_enabled = not running
+        system_tool = self.tools.get('system')
+        system_is_ready = bool(system_tool and self._is_running(system_tool) and self._is_ros_system_ready())
 
-        # For non-system tools, require the system to be fully ready
         if name != 'system':
-            system_tool = self.tools.get('system')
-            system_is_ready = bool(
-                system_tool and self._is_running(system_tool) and self._is_ros_system_ready()
-            )
             start_enabled = start_enabled and system_is_ready
 
         tool['start_button'].setEnabled(start_enabled)
 
-        # Update Reset button: enabled only when full system is fully ready
-        reset_btn = self.findChild(QtWidgets.QPushButton, 'button_reset_all')
-        if reset_btn is not None:
-            system_tool = self.tools.get('system')
-            reset_enabled = bool(
-                system_tool and self._is_running(system_tool) and self._is_ros_system_ready()
-            )
-            reset_btn.setEnabled(reset_enabled)
+        # Restart enabled when system ready (for non-system), and not during system-not-ready
+        restart_btn = tool.get('restart_button')
+        if restart_btn is not None:
+            if name == 'system':
+                restart_btn.setEnabled(True)
+            else:
+                restart_btn.setEnabled(system_is_ready)
+
+        # Stop All button enabled only when full system is fully ready (same behavior as before)
+        stop_all_btn = self.findChild(QtWidgets.QPushButton, 'button_reset_all')
+        if stop_all_btn is not None:
+            stop_all_btn.setEnabled(system_is_ready)
 
     def _update_all_buttons(self):
-        """Refresh start/stop/reset buttons for every registered tool."""
+        """Refresh start/stop/restart/stop-all buttons for every registered tool."""
         for name in self.tools.keys():
             self._update_tool_buttons(name)
 
