@@ -22,6 +22,7 @@ OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
 YOLO_TRACKING_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/yolov8_native_tracking.py'
 VISUAL_ODOMETRY_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/visual_odometry_exact.py'
 PERCEPTIION_CMD = 'ros2 launch arm_perception perception.launch.py'
+RVIZ_CAMERA_CMD = 'gz service -s /gui/move_to/pose --reqtype gz.msgs.GUICamera --reptype gz.msgs.Boolean --timeout 2000 --req "pose: {position: {x: -1.72, y: -0.44, z: 1.92} orientation: {x: -0.09, y: 0.3, z: 0.27, w: 0.9}}"'
 
 
 class LauncherWindow(QtWidgets.QMainWindow):
@@ -114,6 +115,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
             stop_button='button_perception_stop',
             status_label='label_perception_status',
         )
+        self._setup_rviz_camera_button()
 
         self.monitor_timer = QtCore.QTimer(self)
         self.monitor_timer.timeout.connect(self._cleanup_finished_processes)
@@ -298,6 +300,46 @@ class LauncherWindow(QtWidgets.QMainWindow):
         if system_tool:
             system_tool['command'] = command
 
+
+    def _setup_rviz_camera_button(self):
+        try:
+            self.rviz_camera_btn = self._require_widget(QtWidgets.QPushButton, 'rviz_camera_button')
+            self.rviz_camera_btn.clicked.connect(self._execute_rviz_camera_command)
+            self.rviz_camera_btn.setEnabled(False)
+        except RuntimeError:
+            self.rviz_camera_btn = None
+
+
+    def _execute_rviz_camera_command(self):
+        """Execute the Gazebo service command to move the camera to a specific pose."""
+        try:
+            result = subprocess.run(
+                ['bash', '-c', RVIZ_CAMERA_CMD],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode != 0:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    'Camera Position',
+                    f'Command failed with return code {result.returncode}.\n{result.stderr}'
+                )
+        except subprocess.TimeoutExpired:
+            QtWidgets.QMessageBox.warning(
+                self,
+                'Camera Position',
+                'Command timed out. Make sure Gazebo is running.'
+            )
+        except Exception as exc:
+            QtWidgets.QMessageBox.critical(
+                self,
+                'Camera Position Error',
+                f'Failed to execute camera command:\n{exc}'
+            )
+
+
     def _register_tool(self, name, command, start_button, stop_button, status_label):
         start_btn = self._require_widget(QtWidgets.QPushButton, start_button)
         stop_btn = self._require_widget(QtWidgets.QPushButton, stop_button)
@@ -421,6 +463,8 @@ class LauncherWindow(QtWidgets.QMainWindow):
         running = self._is_running(tool)
         tool['start_button'].setEnabled(not running)
         tool['stop_button'].setEnabled(running)
+        if name == 'gazebo' and hasattr(self, 'rviz_camera_btn') and self.rviz_camera_btn:
+            self.rviz_camera_btn.setEnabled(running)
 
     @staticmethod
     def _set_tool_status(tool, text):
