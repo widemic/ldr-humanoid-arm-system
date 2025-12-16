@@ -11,7 +11,7 @@ def generate_launch_description():
     default_world = PathJoinSubstitution([
         FindPackageShare("arm_gazebo"),
         "worlds",
-        "lab-ldr.sdf"
+        "lab.sdf"
     ])
     world_arg = DeclareLaunchArgument(
         'simulation_world',
