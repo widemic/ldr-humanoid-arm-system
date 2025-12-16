@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>520</width>
-    <height>707</height>
+    <width>564</width>
+    <height>716</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -98,22 +98,43 @@
        <string>Process Controls</string>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="7" column="1">
-        <widget class="QPushButton" name="button_moveit_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="3">
-        <widget class="QLabel" name="label_vo_status">
+       <item row="9" column="3">
+        <widget class="QLabel" name="label_octomap_status">
          <property name="text">
           <string>Idle</string>
          </property>
         </widget>
        </item>
-       <item row="9" column="3">
-        <widget class="QLabel" name="label_object_detection_status">
+       <item row="13" column="0">
+        <widget class="QLabel" name="label_vo_name">
+         <property name="text">
+          <string>Visual Odometry</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="0">
+        <widget class="QLabel" name="label_yolo_name">
+         <property name="text">
+          <string>YOLO Tracking</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="3">
+        <widget class="QLabel" name="label_rviz_status">
+         <property name="text">
+          <string>Idle</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="1">
+        <widget class="QPushButton" name="button_vo_start">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_system_status">
          <property name="text">
           <string>Idle</string>
          </property>
@@ -126,15 +147,8 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="3">
-        <widget class="QLabel" name="label_rviz_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
        <item row="8" column="2">
-        <widget class="QPushButton" name="button_octomap_stop">
+        <widget class="QPushButton" name="button_moveit_stop">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -143,17 +157,31 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="label_octomap_name">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_rqt_name">
          <property name="text">
-          <string>OctoMap Server</string>
+          <string>rqt_image_view</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QPushButton" name="button_gazebo_start">
+       <item row="11" column="0">
+        <widget class="QLabel" name="label_perception_name">
          <property name="text">
-          <string>Start</string>
+          <string>Perception</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_system_name">
+         <property name="text">
+          <string>Full System Launch</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_gazebo_name">
+         <property name="text">
+          <string>Gazebo</string>
          </property>
         </widget>
        </item>
@@ -167,192 +195,17 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="2">
-        <widget class="QPushButton" name="button_moveit_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="button_system_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_rqt_name">
-         <property name="text">
-          <string>rqt_image_view</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QPushButton" name="button_rqt_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1">
-        <widget class="QPushButton" name="button_object_detection_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="0">
-        <widget class="QLabel" name="label_yolo_name">
-         <property name="text">
-          <string>YOLO Tracking</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="2">
-        <widget class="QPushButton" name="button_perception_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_system_name">
-         <property name="text">
-          <string>Full System Launch</string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="3">
-        <widget class="QLabel" name="label_yolo_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="3">
-        <widget class="QLabel" name="label_octomap_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QPushButton" name="button_rviz_start">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_rviz_name">
-         <property name="text">
-          <string>RViz</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QLabel" name="label_rqt_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QLabel" name="label_perception_name">
-         <property name="text">
-          <string>Perception</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
-        <widget class="QPushButton" name="button_rviz_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="2">
-        <widget class="QPushButton" name="button_vo_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="2">
-        <widget class="QPushButton" name="button_object_detection_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <widget class="QLabel" name="label_moveit_name">
          <property name="text">
           <string>MoveIt (move_group)</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="3">
-        <widget class="QLabel" name="label_gazebo_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="0">
-        <widget class="QLabel" name="label_vo_name">
-         <property name="text">
-          <string>Visual Odometry</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0">
-        <widget class="QLabel" name="label_object_detection_name">
-         <property name="text">
-          <string>Object Detection</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QLabel" name="label_system_status">
-         <property name="text">
-          <string>Idle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="1">
-        <widget class="QPushButton" name="button_vo_start">
+       <item row="2" column="1">
+        <widget class="QPushButton" name="button_gazebo_start">
          <property name="text">
           <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="2">
-        <widget class="QPushButton" name="button_yolo_stop">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop</string>
          </property>
         </widget>
        </item>
@@ -367,49 +220,196 @@
         </widget>
        </item>
        <item row="8" column="1">
-        <widget class="QPushButton" name="button_octomap_start">
+        <widget class="QPushButton" name="button_moveit_start">
          <property name="text">
           <string>Start</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_gazebo_name">
+       <item row="12" column="2">
+        <widget class="QPushButton" name="button_yolo_stop">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
-          <string>Gazebo</string>
+          <string>Stop</string>
          </property>
         </widget>
        </item>
-       <item row="7" column="3">
-        <widget class="QLabel" name="label_moveit_status">
+       <item row="2" column="3">
+        <widget class="QLabel" name="label_gazebo_status">
          <property name="text">
           <string>Idle</string>
          </property>
         </widget>
        </item>
-       <item row="10" column="3">
+       <item row="10" column="0">
+        <widget class="QLabel" name="label_object_detection_name">
+         <property name="text">
+          <string>Object Detection</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="button_system_start">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="2">
+        <widget class="QPushButton" name="button_rviz_stop">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLabel" name="label_rqt_status">
+         <property name="text">
+          <string>Idle</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="2">
+        <widget class="QPushButton" name="button_object_detection_stop">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="label_octomap_name">
+         <property name="text">
+          <string>OctoMap Server</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_rviz_name">
+         <property name="text">
+          <string>RViz</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="3">
         <widget class="QLabel" name="label_perception_status">
          <property name="text">
           <string>Idle</string>
          </property>
         </widget>
        </item>
-       <item row="11" column="1">
-        <widget class="QPushButton" name="button_yolo_start">
+       <item row="11" column="2">
+        <widget class="QPushButton" name="button_perception_stop">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="3">
+        <widget class="QLabel" name="label_vo_status">
+         <property name="text">
+          <string>Idle</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="2">
+        <widget class="QPushButton" name="button_vo_stop">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="3">
+        <widget class="QLabel" name="label_object_detection_status">
+         <property name="text">
+          <string>Idle</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="1">
+        <widget class="QPushButton" name="button_object_detection_start">
          <property name="text">
           <string>Start</string>
          </property>
         </widget>
        </item>
-       <item row="10" column="1">
+       <item row="9" column="1">
+        <widget class="QPushButton" name="button_octomap_start">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="3">
+        <widget class="QLabel" name="label_yolo_status">
+         <property name="text">
+          <string>Idle</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="3">
+        <widget class="QLabel" name="label_moveit_status">
+         <property name="text">
+          <string>Idle</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QPushButton" name="button_rviz_start">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
         <widget class="QPushButton" name="button_perception_start">
          <property name="text">
           <string>Start</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="4">
-        <widget class="QCommandLinkButton" name="rviz_camera_button">
+       <item row="9" column="2">
+        <widget class="QPushButton" name="button_octomap_stop">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="1">
+        <widget class="QPushButton" name="button_yolo_start">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="button_rqt_stop">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="button_rviz_camera">
          <property name="text">
           <string>Set Camera</string>
          </property>

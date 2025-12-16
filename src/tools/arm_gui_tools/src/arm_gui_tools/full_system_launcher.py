@@ -303,7 +303,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
     def _setup_rviz_camera_button(self):
         try:
-            self.rviz_camera_btn = self._require_widget(QtWidgets.QPushButton, 'rviz_camera_button')
+            self.rviz_camera_btn = self._require_widget(QtWidgets.QPushButton, 'button_rviz_camera')
             self.rviz_camera_btn.clicked.connect(self._execute_rviz_camera_command)
             self.rviz_camera_btn.setEnabled(False)
         except RuntimeError:
