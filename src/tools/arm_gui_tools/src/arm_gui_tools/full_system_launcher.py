@@ -22,7 +22,6 @@ OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
 YOLO_TRACKING_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/yolov8_native_tracking.py'
 VISUAL_ODOMETRY_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/visual_odometry_exact.py'
 PERCEPTIION_CMD = 'ros2 launch arm_perception perception.launch.py'
-RVIZ_CAMERA_CMD = 'gz service -s /gui/move_to/pose --reqtype gz.msgs.GUICamera --reptype gz.msgs.Boolean --timeout 2000 --req "pose: {position: {x: -1.72, y: -0.44, z: 1.92} orientation: {x: -0.09, y: 0.3, z: 0.27, w: 0.9}}"'
 
 
 class LauncherWindow(QtWidgets.QMainWindow):
