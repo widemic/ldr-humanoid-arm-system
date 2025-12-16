@@ -114,6 +114,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
             stop_button='button_perception_stop',
             status_label='label_perception_status',
         )
+        self._setup_rviz_camera_button()
 
         self.monitor_timer = QtCore.QTimer(self)
         self.monitor_timer.timeout.connect(self._cleanup_finished_processes)
@@ -298,6 +299,95 @@ class LauncherWindow(QtWidgets.QMainWindow):
         if system_tool:
             system_tool['command'] = command
 
+
+    def _setup_rviz_camera_button(self):
+        try:
+            self.rviz_camera_btn = self._require_widget(QtWidgets.QPushButton, 'button_rviz_camera')
+            self.rviz_camera_btn.clicked.connect(self._execute_rviz_camera_command)
+            self.rviz_camera_btn.setEnabled(False)
+        except RuntimeError:
+            self.rviz_camera_btn = None
+
+    def _get_arm_pose(self):
+        """Quickly get arm model pose from Gazebo."""
+        try:
+            # Query arm model pose directly
+            result = subprocess.run(
+                ['gz', 'model', '-m', 'arm', '-p'],
+                capture_output=True,
+                text=True,
+                timeout=0.5
+            )
+            
+            if result.returncode == 0:
+                # Parse: "x y z roll pitch yaw"
+                values = result.stdout.strip().split()
+                if len(values) >= 3:
+                    return float(values[0]), float(values[1]), float(values[2])
+        except:
+            pass
+        
+        # Fallback to origin
+        return 0.0, 0.0, 0.0
+
+
+    def _execute_rviz_camera_command(self):
+        """Move camera to optimal viewing position focused on arm."""
+        try:
+            # Get arm position 
+            arm_x, arm_y, arm_z = self._get_arm_pose()
+        
+            # Fixed camera offset relative to arm 
+            cam_x = arm_x - 1.7
+            cam_y = arm_y - 0.5
+            cam_z = arm_z + 1.9
+            
+            # Fixed orientation quaternion 
+            qx = -0.1
+            qy = 0.3
+            qz = 0.3
+            qw = 0.9
+               
+            # Execute camera move command
+            camera_cmd = (
+                f'gz service -s /gui/move_to/pose '
+                f'--reqtype gz.msgs.GUICamera --reptype gz.msgs.Boolean '
+                f'--timeout 2000 '
+                f'--req "pose: {{position: {{x: {cam_x:.3f}, y: {cam_y:.3f}, z: {cam_z:.3f}}} '
+                f'orientation: {{x: {qx:.3f}, y: {qy:.3f}, z: {qz:.3f}, w: {qw:.3f}}}}}"'
+            )
+            
+            result = subprocess.run(
+                ['bash', '-c', camera_cmd],
+                capture_output=True,
+                text=True,
+                timeout=3
+            )
+            
+            if result.returncode == 0:
+                print(f'Camera positioned at ({cam_x:.1f}, {cam_y:.1f}, {cam_z:.1f}) viewing arm at ({arm_x:.1f}, {arm_y:.1f}, {arm_z:.1f})')
+            else:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    'Camera Position',
+                    f'Failed to move camera:\n{result.stderr}'
+                )
+                
+        except subprocess.TimeoutExpired:
+            QtWidgets.QMessageBox.warning(
+                self,
+                'Camera Position',
+                'Command timed out. Ensure Gazebo GUI is running.'
+            )
+        except Exception as exc:
+            QtWidgets.QMessageBox.critical(
+                self,
+                'Camera Position Error',
+                f'Error: {exc}'
+            )
+
+
+
     def _register_tool(self, name, command, start_button, stop_button, status_label):
         start_btn = self._require_widget(QtWidgets.QPushButton, start_button)
         stop_btn = self._require_widget(QtWidgets.QPushButton, stop_button)
@@ -421,6 +511,8 @@ class LauncherWindow(QtWidgets.QMainWindow):
         running = self._is_running(tool)
         tool['start_button'].setEnabled(not running)
         tool['stop_button'].setEnabled(running)
+        if name == 'gazebo' and hasattr(self, 'rviz_camera_btn') and self.rviz_camera_btn:
+            self.rviz_camera_btn.setEnabled(running)
 
     @staticmethod
     def _set_tool_status(tool, text):
