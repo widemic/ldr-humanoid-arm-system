@@ -1,0 +1,98 @@
+{
+  "full_system": {
+    "base_command": "ros2 launch arm_system_bringup full_system.launch.py",
+    "world_arg_key": "simulation_world"
+  },
+  "tools": [
+    {
+      "name": "system",
+      "command": "__FULL_SYSTEM__",
+      "start_button": "button_system_start",
+      "stop_button": "button_system_stop",
+      "restart_button": "button_system_restart",
+      "status_label": "label_system_status",
+      "skip_checkbox": "check_system_skip"
+    },
+    {
+      "name": "rqt",
+      "command": "ros2 run image_tools showimage --ros-args -r image:=/camera/color/image_raw",
+      "start_button": "button_rqt_start",
+      "stop_button": "button_rqt_stop",
+      "restart_button": "button_rqt_restart",
+      "status_label": "label_rqt_status",
+      "skip_checkbox": "check_rqt_skip"
+    },
+    {
+      "name": "gazebo",
+      "command": "gz sim -g",
+      "start_button": "button_gazebo_start",
+      "stop_button": "button_gazebo_stop",
+      "restart_button": "button_gazebo_restart",
+      "status_label": "label_gazebo_status",
+      "skip_checkbox": "check_gazebo_skip"
+    },
+    {
+      "name": "rviz",
+      "command": "rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/config/deep_camera.rviz",
+      "start_button": "button_rviz_start",
+      "stop_button": "button_rviz_stop",
+      "restart_button": "button_rviz_restart",
+      "status_label": "label_rviz_status",
+      "skip_checkbox": "check_rviz_skip"
+    },
+    {
+      "name": "moveit",
+      "command": "ros2 launch arm_moveit_config demo.launch.py",
+      "start_button": "button_moveit_start",
+      "stop_button": "button_moveit_stop",
+      "restart_button": "button_moveit_restart",
+      "status_label": "label_moveit_status",
+      "skip_checkbox": "check_moveit_skip"
+    },
+    {
+      "name": "octomap",
+      "command": "ros2 launch arm_system_bringup moveit_octomap_only.launch.py",
+      "start_button": "button_octomap_start",
+      "stop_button": "button_octomap_stop",
+      "restart_button": "button_octomap_restart",
+      "status_label": "label_octomap_status",
+      "skip_checkbox": "check_octomap_skip"
+    },
+    {
+      "name": "object_detection",
+      "command": "ros2 run arm_perception object_recognition_node.py",
+      "start_button": "button_object_detection_start",
+      "stop_button": "button_object_detection_stop",
+      "restart_button": "button_object_detection_restart",
+      "status_label": "label_object_detection_status",
+      "skip_checkbox": "check_object_detection_skip"
+    },
+    {
+      "name": "perception",
+      "command": "ros2 launch arm_perception perception.launch.py",
+      "start_button": "button_perception_start",
+      "stop_button": "button_perception_stop",
+      "restart_button": "button_perception_restart",
+      "status_label": "label_perception_status",
+      "skip_checkbox": "check_perception_skip"
+    },
+    {
+      "name": "yolo",
+      "command": "/home/andrei/ros2_ws/ldr-humanoid-arm-system/yolov8_native_tracking.py",
+      "start_button": "button_yolo_start",
+      "stop_button": "button_yolo_stop",
+      "restart_button": "button_yolo_restart",
+      "status_label": "label_yolo_status",
+      "skip_checkbox": "check_yolo_skip"
+    },
+    {
+      "name": "vo",
+      "command": "/home/andrei/ros2_ws/ldr-humanoid-arm-system/visual_odometry_exact.py",
+      "start_button": "button_vo_start",
+      "stop_button": "button_vo_stop",
+      "restart_button": "button_vo_restart",
+      "status_label": "label_vo_status",
+      "skip_checkbox": "check_vo_skip"
+    }
+  ]
+}

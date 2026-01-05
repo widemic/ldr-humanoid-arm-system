@@ -24,6 +24,11 @@ install(PROGRAMS
   RENAME joint_monitor
 )
 
+install(
+  DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
+)
+
 install(PROGRAMS
   src/${PROJECT_NAME}/full_system_launcher.py
   DESTINATION lib/${PROJECT_NAME}
