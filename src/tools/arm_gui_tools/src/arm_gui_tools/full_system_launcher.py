@@ -9,6 +9,7 @@ import signal
 import subprocess
 import sys
 import re
+import json
 from functools import partial
 from pathlib import Path
 
@@ -64,107 +65,37 @@ class LauncherWindow(QtWidgets.QMainWindow):
         # Optional command-line display (may be None if not in UI)
         self.command_line = self.findChild(QtWidgets.QLineEdit, 'line_command')
 
+
+        # Tools/config loading (decouple GUI wiring from commands)
+        self._config = self._load_tools_config()
+
+        fs_cfg = self._config.get('full_system', {})
+        self._full_system_base_cmd = fs_cfg.get('base_command', FULL_SYSTEM_BASE_CMD)
+        self._full_system_world_arg_key = fs_cfg.get('world_arg_key', 'simulation_world')
+
         self._setup_world_selector()
         self._update_launch_command()
 
         # ------------------------------------------------------------------
         # Register tools (buttons + status labels + (optional) restart + skip must exist in UI)
         # ------------------------------------------------------------------
-        self._register_tool(
-            name='system',
-            command=self._build_launch_command(),
-            start_button='button_system_start',
-            stop_button='button_system_stop',
-            restart_button='button_system_restart',
-            status_label='label_system_status',
-            skip_checkbox='check_system_skip',
-        )
-        self._register_tool(
-            name='rqt',
-            command=IMAGE_VIEW_CMD,
-            start_button='button_rqt_start',
-            stop_button='button_rqt_stop',
-            restart_button='button_rqt_restart',
-            status_label='label_rqt_status',
-            skip_checkbox='check_rqt_skip',
-        )
-        self._register_tool(
-            name='gazebo',
-            command=GAZEBO_CMD,
-            start_button='button_gazebo_start',
-            stop_button='button_gazebo_stop',
-            restart_button='button_gazebo_restart',
-            status_label='label_gazebo_status',
-            skip_checkbox='check_gazebo_skip',
-        )
-        self._register_tool(
-            name='rviz',
-            command=RVIZ_CMD,
-            start_button='button_rviz_start',
-            stop_button='button_rviz_stop',
-            restart_button='button_rviz_restart',
-            status_label='label_rviz_status',
-            skip_checkbox='check_rviz_skip',
-        )
-        self._register_tool(
-            name='moveit',
-            command=MOVEIT_CMD,
-            start_button='button_moveit_start',
-            stop_button='button_moveit_stop',
-            restart_button='button_moveit_restart',
-            status_label='label_moveit_status',
-            skip_checkbox='check_moveit_skip',
-        )
-        self._register_tool(
-            name='octomap',
-            command=OCTOMAP_CMD,
-            start_button='button_octomap_start',
-            stop_button='button_octomap_stop',
-            restart_button='button_octomap_restart',
-            status_label='label_octomap_status',
-            skip_checkbox='check_octomap_skip',
-        )
-        self._register_tool(
-            name='object_detection',
-            command=OBJECT_DETECTION_CMD,
-            start_button='button_object_detection_start',
-            stop_button='button_object_detection_stop',
-            restart_button='button_object_detection_restart',
-            status_label='label_object_detection_status',
-            skip_checkbox='check_object_detection_skip',
-        )
-        self._register_tool(
-            name='perception',
-            command=PERCEPTION_CMD,
-            start_button='button_perception_start',
-            stop_button='button_perception_stop',
-            restart_button='button_perception_restart',
-            status_label='label_perception_status',
-            skip_checkbox='check_perception_skip',
-        )
-        self._register_tool(
-            name='yolo',
-            command=YOLO_TRACKING_CMD,
-            start_button='button_yolo_start',
-            stop_button='button_yolo_stop',
-            restart_button='button_yolo_restart',
-            status_label='label_yolo_status',
-            skip_checkbox='check_yolo_skip',
-        )
-        self._register_tool(
-            name='vo',
-            command=VISUAL_ODOMETRY_CMD,
-            start_button='button_vo_start',
-            stop_button='button_vo_stop',
-            restart_button='button_vo_restart',
-            status_label='label_vo_status',
-            skip_checkbox='check_vo_skip',
-        )
+        for t in self._config.get('tools', []):
+            name = t['name']
+            cmd = t.get('command', '')
 
-        # Periodic monitor for processes launched by this GUI
-        self.monitor_timer = QtCore.QTimer(self)
-        self.monitor_timer.timeout.connect(self._cleanup_finished_processes)
-        self.monitor_timer.start(1000)
+            # Special-case: full system launch command is built dynamically based on world selection
+            if cmd == '__FULL_SYSTEM__':
+                cmd = self._build_launch_command()
+
+            self._register_tool(
+                name=name,
+                command=cmd,
+                start_button=t['start_button'],
+                stop_button=t['stop_button'],
+                restart_button=t.get('restart_button'),
+                status_label=t['status_label'],
+                skip_checkbox=t.get('skip_checkbox'),
+            )
 
         # Wire Stop All button (objectName remains button_reset_all)
         stop_all_btn = self.findChild(QtWidgets.QPushButton, 'button_reset_all')
@@ -203,6 +134,31 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
         uic.loadUi(str(ui_file), self)
         self._ui_root = ui_file.parent
+
+
+    def _load_tools_config(self) -> dict:
+        """Load launcher_tools.json either next to this script or from the package share directory."""
+        candidates = []
+
+        # 1) Next to this script (development / run-from-source)
+        candidates.append(Path(__file__).resolve().parent / 'launcher_tools.json')
+
+        # 2) Installed package share (arm_gui_tools/config/launcher_tools.json)
+        try:
+            from ament_index_python.packages import get_package_share_directory
+            pkg_share = Path(get_package_share_directory('arm_gui_tools'))
+            candidates.append(pkg_share / 'config' / 'launcher_tools.json')
+        except Exception:
+            pass
+
+        for p in candidates:
+            if p.exists():
+                with p.open('r', encoding='utf-8') as f:
+                    return json.load(f)
+
+        raise FileNotFoundError(
+            'launcher_tools.json not found. Looked in:\n' + '\n'.join(str(p) for p in candidates)
+        )
 
     def _resolve_ui_path(self, relative: Path) -> Path | None:
         """Resolve a path inside the UI directory regardless of install/source context."""
@@ -361,9 +317,10 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
     def _build_launch_command(self):
         """Produce the ros2 launch command with the selected world argument."""
-        command = FULL_SYSTEM_BASE_CMD
+        command = getattr(self, '_full_system_base_cmd', FULL_SYSTEM_BASE_CMD)
         if self._current_world_path:
-            command = f"{command} simulation_world:={shlex.quote(self._current_world_path)}"
+            key = getattr(self, '_full_system_world_arg_key', 'simulation_world')
+            command = f"{command} {key}:={shlex.quote(self._current_world_path)}"
         return command
 
     def _update_launch_command(self):
@@ -545,7 +502,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
         except subprocess.TimeoutExpired:
             try:
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-                process.wait(timeout=3)
+                process.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 try:
                     os.killpg(os.getpgid(process.pid), signal.SIGKILL)
