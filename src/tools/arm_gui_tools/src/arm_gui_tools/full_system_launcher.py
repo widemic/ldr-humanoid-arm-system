@@ -618,6 +618,12 @@ class LauncherWindow(QtWidgets.QMainWindow):
                 return False
             cb = t.get('skip_checkbox')
             return bool(cb is not None and cb.isChecked())
+        
+        # IMPORTANT:
+        # If full system is skipped, do NOT run any pkill cleanup.
+        # Otherwise you'll kill its child processes (gz/rviz/move_group etc) and full system will effectively stop.
+        if skipped('system'):
+            return
 
         # Start with the full list
         patterns = [
