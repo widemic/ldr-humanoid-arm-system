@@ -19,8 +19,8 @@ RVIZ_CMD = 'rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/conf
 MOVEIT_CMD = 'ros2 launch arm_moveit_config demo.launch.py'
 OCTOMAP_CMD = 'ros2 launch arm_system_bringup moveit_octomap_only.launch.py'
 OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
-YOLO_TRACKING_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/yolov8_native_tracking.py'
-VISUAL_ODOMETRY_CMD = '/home/andrei/ros2_ws/ldr-humanoid-arm-system/visual_odometry_exact.py'
+YOLO_TRACKING_CMD = '~/ldr-humanoid-arm-system/yolov8_native_tracking.py'
+VISUAL_ODOMETRY_CMD = '~/ldr-humanoid-arm-system/visual_odometry_exact.py'
 PERCEPTIION_CMD = 'ros2 launch arm_perception perception.launch.py'
 
 
