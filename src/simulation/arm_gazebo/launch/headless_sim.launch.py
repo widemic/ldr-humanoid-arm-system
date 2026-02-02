@@ -61,11 +61,10 @@ def generate_launch_description():
         arguments=[
             "-name", "arm",
             '-topic', 'robot_description',
-            # rotate robot along Z by 90 deg
             '-x', '0.0',
             '-y', '0.0',
-            '-z', '0.0',
-            '-Y', '0.0'  # 90 degrees in radians
+            '-z', '0.85',  # Raise robot so table legs touch ground
+            '-Y', '0.0'
             ],
         output='screen'
     )

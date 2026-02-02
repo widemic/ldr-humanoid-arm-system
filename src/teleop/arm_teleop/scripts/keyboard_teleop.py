@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/usr/bin/env python3
 """
 Keyboard teleoperation client for the LDR humanoid arm.
 
@@ -33,12 +32,11 @@ HELP_TEXT = """
 Arm Keyboard Teleop
 ===================
  Joint jogging (step size configurable via `step` parameter):
-   q/a : Base up/down
-   w/s : Shoulder forward/back
-   e/d : Shoulder rotate out/in
-   r/f : Elbow bend/extend
-   t/g : Wrist up/down
-   y/u : Hand rotate
+   q/a : Joint1 (shoulder pitch) up/down
+   w/s : Joint2 (shoulder roll) forward/back
+   e/d : Joint3 (shoulder yaw) rotate out/in
+   r/f : Joint4 (elbow pitch) bend/extend
+   t/g : Joint5 (elbow yaw) rotate
 
  Preset poses:
    1 : home
@@ -78,20 +76,18 @@ class KeyboardTeleop(Node):
     """Publish JointState commands based on keyboard input."""
 
     JOINT_NAMES = [
-        "left_shoulder_pitch_rs04",
-        "left_shoulder_roll_rs04",
-        "left_shoulder_yaw_rs03",
-        "left_elbow_rs03",
-        "left_wrist_rs02",
-        "left_hand_rs02",
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4",
+        "joint5",
     ]
     JOINT_LABELS = [
-        "Base up/down",
-        "Shoulder forward/back",
-        "Shoulder rotate out/in",
-        "Elbow bend/extend",
-        "Wrist up/down",
-        "Hand rotate",
+        "Shoulder pitch",
+        "Shoulder roll",
+        "Shoulder yaw",
+        "Elbow pitch",
+        "Elbow yaw",
     ]
     JOINT_INDEX = {name: idx for idx, name in enumerate(JOINT_NAMES)}
 
@@ -106,13 +102,11 @@ class KeyboardTeleop(Node):
         "f": (3, -1.0),
         "t": (4, 1.0),
         "g": (4, -1.0),
-        "y": (5, 1.0),
-        "u": (5, -1.0),
     }
     PRESET_POSES = {
-        "home": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        "ready": [0.0, 1.0, 0.0, 1.0, 0.0, 0.0],
-        "vertical": [0.0, 1.57, 0.0, 1.57, 0.0, 0.0],
+        "home": [0.0, 0.0, 0.0, 0.0, 0.0],
+        "ready": [0.5, -0.5, 0.0, 0.5, 0.0],
+        "vertical": [1.0, -1.5, 0.0, 0.0, 0.0],
     }
 
     def __init__(self) -> None:

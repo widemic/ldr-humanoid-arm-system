@@ -7,45 +7,20 @@ controller_manager:
       type: joint_trajectory_controller/JointTrajectoryController
 
 
-    hand_controller:
-      type: position_controllers/GripperActionController
-
-
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
 arm_controller:
   ros__parameters:
     joints:
-      - left_shoulder_pitch_rs04
-      - left_shoulder_roll_rs04
-      - left_shoulder_yaw_rs03
-      - left_elbow_rs03
-      - left_wrist_rs02
-      - left_hand_rs02
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+      - joint5
     command_interfaces:
       - position
     state_interfaces:
       - position
       - velocity
     allow_nonzero_velocity_at_trajectory_end: true
-hand_controller:
-  ros__parameters:
-    joint: left_palm_right_finger
-
-    # Action monitoring
-    action_monitor_rate: 20.0
-
-    # Goal tolerances
-    goal_time: 0.0
-    goal_tolerance: 0.001
-
-    # Stall detection
-    stall_velocity_threshold: 0.001
-    stall_timeout: 0.5
-
-    # Maximum effort
-    max_effort: 10.0
-
-    # Allow stalling
-    allow_stalling: true

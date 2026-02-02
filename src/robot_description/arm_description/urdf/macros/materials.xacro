@@ -1,13 +1,38 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- Basic colors -->
-  <material name="black">
-    <color rgba="0.0 0.0 0.0 1.0"/>
+  <!-- Source robot colors -->
+  <material name="blue">
+    <color rgba="0.615686 0.811765 0.929412 1"/>
+  </material>
+
+  <material name="dark_blue">
+    <color rgba="0.32549 0.529412 0.752941 1"/>
+  </material>
+
+  <material name="gold">
+    <color rgba="0.960784 0.835294 0.470588 1"/>
+  </material>
+
+  <material name="orange">
+    <color rgba="0.65098 0.486275 0.0196078 1"/>
+  </material>
+
+  <material name="purple">
+    <color rgba="0.764706 0.545098 0.803922 1"/>
+  </material>
+
+  <material name="dark_purple">
+    <color rgba="0.380392 0.0470588 0.435294 1"/>
   </material>
 
   <material name="white">
-    <color rgba="1.0 1.0 1.0 1.0"/>
+    <color rgba="1 1 1 1"/>
+  </material>
+
+  <!-- Additional basic colors -->
+  <material name="black">
+    <color rgba="0.0 0.0 0.0 1.0"/>
   </material>
 
   <material name="red">
@@ -18,20 +43,8 @@
     <color rgba="0.0 1.0 0.0 1.0"/>
   </material>
 
-  <material name="blue">
-    <color rgba="0.0 0.0 1.0 1.0"/>
-  </material>
-
   <material name="yellow">
     <color rgba="1.0 1.0 0.0 1.0"/>
-  </material>
-
-  <material name="orange">
-    <color rgba="1.0 0.647 0.0 1.0"/>
-  </material>
-
-  <material name="purple">
-    <color rgba="0.5 0.0 0.5 1.0"/>
   </material>
 
   <!-- Grayscale variations -->
@@ -50,10 +63,6 @@
   <!-- Metallic materials -->
   <material name="silver">
     <color rgba="0.75 0.75 0.75 1.0"/>
-  </material>
-
-  <material name="gold">
-    <color rgba="1.0 0.843 0.0 1.0"/>
   </material>
 
   <material name="bronze">

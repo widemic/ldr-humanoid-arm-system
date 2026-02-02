@@ -8,63 +8,41 @@
                 <!-- By default, set up controllers for simulation. This won't work on real hardware -->
                 <plugin>mock_components/GenericSystem</plugin>
             </hardware>
-            <joint name="left_shoulder_pitch_rs04">
+            <joint name="joint1">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_shoulder_pitch_rs04']}</param>
+                  <param name="initial_value">${initial_positions['joint1']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="left_shoulder_roll_rs04">
+            <joint name="joint2">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_shoulder_roll_rs04']}</param>
+                  <param name="initial_value">${initial_positions['joint2']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="left_shoulder_yaw_rs03">
+            <joint name="joint3">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_shoulder_yaw_rs03']}</param>
+                  <param name="initial_value">${initial_positions['joint3']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="left_elbow_rs03">
+            <joint name="joint4">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_elbow_rs03']}</param>
+                  <param name="initial_value">${initial_positions['joint4']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="left_wrist_rs02">
+            <joint name="joint5">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_wrist_rs02']}</param>
+                  <param name="initial_value">${initial_positions['joint5']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="left_hand_rs02">
-                <command_interface name="position"/>
-                <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_hand_rs02']}</param>
-                </state_interface>
-                <state_interface name="velocity"/>
-            </joint>
-            <joint name="left_palm_left_finger">
-                <command_interface name="position"/>
-                <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_palm_left_finger']}</param>
-                </state_interface>
-                <state_interface name="velocity"/>
-            </joint>
-            <joint name="left_palm_right_finger">
-                <command_interface name="position"/>
-                <state_interface name="position">
-                  <param name="initial_value">${initial_positions['left_palm_right_finger']}</param>
-                </state_interface>
-                <state_interface name="velocity"/>
-            </joint>
-
         </ros2_control>
     </xacro:macro>
 </robot>

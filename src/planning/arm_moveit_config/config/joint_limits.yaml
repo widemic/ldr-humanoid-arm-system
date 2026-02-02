@@ -9,48 +9,30 @@ default_acceleration_scaling_factor: 1.0  # 100% - Full acceleration
 # Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]
 # Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]
 #
-# Values below are RATED limits from actuator_specs.yaml (continuous operation safe)
-# Acceleration limits calculated from: α = (τ_rated / I_total) × safety_factor
-#   where I_total = I_motor_reflected + I_all_downstream_links
-#   Accounts for all mass each joint must accelerate in the kinematic chain
+# Joint limits based on source robot URDF specifications
 joint_limits:
-  left_shoulder_pitch_rs04:
+  joint1:
     has_velocity_limits: true
-    max_velocity: 17.49  # rad/s (ROBSTRIDE 04 rated_speed)
+    max_velocity: 16.0  # rad/s (from URDF)
     has_acceleration_limits: true
-    max_acceleration: 9.0  # rad/s² (moves entire arm: highest load)
-  left_shoulder_roll_rs04:
+    max_acceleration: 10.0  # rad/s² (shoulder pitch - moves entire arm)
+  joint2:
     has_velocity_limits: true
-    max_velocity: 17.49  # rad/s (ROBSTRIDE 04 rated_speed)
+    max_velocity: 16.0  # rad/s (from URDF)
     has_acceleration_limits: true
-    max_acceleration: 9.0  # rad/s² (moves arm minus shoulder pitch link)
-  left_shoulder_yaw_rs03:
+    max_acceleration: 10.0  # rad/s² (shoulder roll)
+  joint3:
     has_velocity_limits: true
-    max_velocity: 18.85  # rad/s (ROBSTRIDE 03 rated_speed)
+    max_velocity: 16.0  # rad/s (from URDF)
     has_acceleration_limits: true
-    max_acceleration: 15.0  # rad/s² (moves forearm + hand + gripper)
-  left_elbow_rs03:
+    max_acceleration: 15.0  # rad/s² (shoulder yaw)
+  joint4:
     has_velocity_limits: true
-    max_velocity: 18.85  # rad/s (ROBSTRIDE 03 rated_speed)
+    max_velocity: 16.0  # rad/s (from URDF)
     has_acceleration_limits: true
-    max_acceleration: 19.0  # rad/s² (moves forearm + hand + gripper)
-  left_wrist_rs02:
+    max_acceleration: 15.0  # rad/s² (elbow pitch)
+  joint5:
     has_velocity_limits: true
-    max_velocity: 37.70  # rad/s (ROBSTRIDE 02 rated_speed)
+    max_velocity: 16.0  # rad/s (from URDF)
     has_acceleration_limits: true
-    max_acceleration: 24.0  # rad/s² (moves hand + gripper only)
-  left_hand_rs02:
-    has_velocity_limits: true
-    max_velocity: 37.70  # rad/s (ROBSTRIDE 02 rated_speed)
-    has_acceleration_limits: true
-    max_acceleration: 32.0  # rad/s² (moves gripper only: lowest load)
-  left_palm_left_finger:
-    has_velocity_limits: true
-    max_velocity: 0.05  # m/s (gripper linear motion)
-    has_acceleration_limits: true
-    max_acceleration: 0.1  # m/s²
-  left_palm_right_finger:
-    has_velocity_limits: true
-    max_velocity: 0.05  # m/s (gripper linear motion)
-    has_acceleration_limits: true
-    max_acceleration: 0.1  # m/s²
+    max_acceleration: 20.0  # rad/s² (elbow yaw - lighter load)

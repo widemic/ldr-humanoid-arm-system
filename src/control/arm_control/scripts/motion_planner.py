@@ -24,11 +24,11 @@ import threading
 class MotionPlanner(Node):
     """Simple motion planner for controlling the arm."""
 
-    # Predefined poses
+    # Predefined poses (5 DOF arm)
     POSES = {
-        'home': [0.65, 0.12, -0.43, 0.26, -0.45, 0.0],
-        'ready': [0.65, 0.12, -0.43, -0.26, -0.45, 0.7],
-        'vertical': [0.56, -2.8, 0.43, 0.0, 1.0, 0.1],
+        'home': [0.0, 0.0, 0.0, 0.0, 0.0],
+        'ready': [0.5, -0.5, 0.0, 0.5, 0.0],
+        'vertical': [1.0, -1.5, 0.0, 0.0, 0.0],
     }
 
     def __init__(self):
@@ -36,14 +36,11 @@ class MotionPlanner(Node):
 
         # 5-DOF arm joints
         self.joints = [
-            'left_shoulder_pitch_rs04',
-            'left_shoulder_roll_rs04',
-            'left_shoulder_yaw_rs03',
-            'left_elbow_rs03',
-            'left_wrist_rs02',
-            'left_hand_rs02',
-            'left_palm_right_finger',
-            'left_palm_left_finger',
+            'joint1',
+            'joint2',
+            'joint3',
+            'joint4',
+            'joint5',
         ]
 
         # Action client
@@ -79,7 +76,7 @@ class MotionPlanner(Node):
             for i, name in enumerate(msg.name):
                 if name in self.joints:
                     pos[name] = msg.position[i]
-            if len(pos) == 6:
+            if len(pos) == 5:
                 self._current_pos = [pos[j] for j in self.joints]
 
     def get_position(self):
@@ -92,14 +89,14 @@ class MotionPlanner(Node):
         Move to joint positions.
 
         Args:
-            positions: List of 6 joint angles [rad]
+            positions: List of 5 joint angles [rad]
             duration: Time to complete motion [sec]
 
         Returns:
             bool: Success
         """
-        if len(positions) != 6:
-            self.get_logger().error(f'Need 6 positions, got {len(positions)}')
+        if len(positions) != 5:
+            self.get_logger().error(f'Need 5 positions, got {len(positions)}')
             return False
 
         # Create goal
@@ -109,7 +106,7 @@ class MotionPlanner(Node):
         # Single point trajectory
         point = JointTrajectoryPoint()
         point.positions = list(positions)
-        point.velocities = [0.0] * 6
+        point.velocities = [0.0] * 5
         point.time_from_start = Duration(
             sec=int(duration),
             nanosec=int((duration % 1) * 1e9)
@@ -143,14 +140,14 @@ class MotionPlanner(Node):
 
         Args:
             waypoints: List of (positions, time) tuples
-                positions: [6 joint angles in rad]
+                positions: [5 joint angles in rad]
                 time: time from start [sec]
 
         Example:
             planner.move_trajectory([
-                ([0, 1, 0, 1, 0, 0], 2.0),
-                ([0.5, 1.5, -0.5, 1.5, 0.5, 0.0], 4.0),
-                ([0, 0, 0, 0, 0, 0], 6.0)
+                ([0, 1, 0, 1, 0], 2.0),
+                ([0.5, 1.5, -0.5, 1.5, 0.5], 4.0),
+                ([0, 0, 0, 0, 0], 6.0)
             ])
         """
         if not waypoints:
@@ -162,13 +159,13 @@ class MotionPlanner(Node):
 
         # Add waypoints
         for positions, time in waypoints:
-            if len(positions) != 6:
-                self.get_logger().error(f'Need 6 positions, got {len(positions)}')
+            if len(positions) != 5:
+                self.get_logger().error(f'Need 5 positions, got {len(positions)}')
                 return False
 
             point = JointTrajectoryPoint()
             point.positions = list(positions)
-            point.velocities = [0.0] * 6
+            point.velocities = [0.0] * 5
             point.time_from_start = Duration(
                 sec=int(time),
                 nanosec=int((time % 1) * 1e9)
@@ -229,7 +226,7 @@ def main():
         planner.ready()
         time.sleep(0.5)
 
-        planner.move_to([0.5, 1.5, -0.5, 1.5, 0.5, 0.0])
+        planner.move_to([0.5, -1.0, 0.5, 0.5, 0.5])
         time.sleep(0.5)
 
         planner.home()

@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="arm_description">
+    <xacro:arg name="pkg_share" default=""/>
     <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
 
-    <!-- Import arm_description urdf file -->
+    <!-- Include robot description (links and joints only, no ros2_control) -->
     <xacro:include filename="$(find arm_description)/urdf/arm.urdf.xacro" />
 
-    <!-- Import control_xacro -->
+    <!-- ros2_control configuration -->
     <xacro:include filename="arm_description.ros2_control.xacro" />
-
 
     <xacro:arm_description_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
 

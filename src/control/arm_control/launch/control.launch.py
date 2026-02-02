@@ -1,4 +1,5 @@
 from launch import LaunchDescription
+from launch.actions import TimerAction
 from launch_ros.actions import Node
 from launch.substitutions import Command, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
@@ -39,28 +40,30 @@ def generate_launch_description():
     spawner_jsb = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        arguments=[
+            "joint_state_broadcaster",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "20",
+            "--switch-timeout", "20",
+        ],
         output="screen"
     )
 
     spawner_arm = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["arm_controller", "--controller-manager", "/controller_manager"],
-        output="screen"
-    )
-
-    spawner_hand = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["hand_controller", "--controller-manager", "/controller_manager"],
+        arguments=[
+            "arm_controller",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "20",
+            "--switch-timeout", "20",
+        ],
         output="screen"
     )
 
     return LaunchDescription([
         rsp,
         # controller_manager,
-        spawner_jsb,
-        spawner_arm,
-        spawner_hand
+        TimerAction(period=6.0, actions=[spawner_jsb]),
+        TimerAction(period=10.0, actions=[spawner_arm]),
     ])

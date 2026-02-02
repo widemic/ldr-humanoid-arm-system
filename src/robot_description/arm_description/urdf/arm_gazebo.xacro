@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <!-- Publix args so launches can change them -->
+    <!-- Public args so launches can change them -->
     <xacro:arg name="robot_name" default="arm_description"/>
     <xacro:arg name="mesh_dir" default="$(find arm_description)/meshes"/>
     <xacro:arg name="collision_dir" default="$(find arm_description)/collision"/>
@@ -13,13 +13,13 @@
     <!-- Load ros2_control macro -->
     <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro"/>
     <xacro:arm_ros2_control/>
-    <!-- <xacro:include filename="$(find arm_description)/urdf/macros/camera.xacro"/> -->
 
     <!-- Depth Camera -->
     <xacro:include filename="$(find arm_description)/urdf/macros/depth_camera.xacro"/>
-    <!-- Mount camera on base_link, 2m above the robot, rotated 90° left and tilted 15° down -->
-
-    <xacro:depth_camera parent_link="base_link" xyz="0.0 0.0 1.75" rpy="0 ${pi/12} ${pi/2}" name="camera"/>
+    <!-- Mount camera on base_link, positioned to view the workspace -->
+    <!-- The new robot has the table at z=0, arm starts at table level -->
+    <!-- Position camera 0.5m behind and 0.8m above the robot base, looking down slightly -->
+    <xacro:depth_camera parent_link="base_link" xyz="-0.3 0.0 0.8" rpy="0 ${pi/6} 0" name="camera"/>
 
     <!-- Gazebo plugins -->
     <gazebo>
@@ -32,6 +32,5 @@
             <render_engine>ogre2</render_engine>
         </plugin>
     </gazebo>
-
 
 </robot>

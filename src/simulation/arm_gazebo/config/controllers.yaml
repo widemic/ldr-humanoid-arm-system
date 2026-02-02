@@ -8,42 +8,18 @@ controller_manager:
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    hand_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
 
 arm_controller:
   ros__parameters:
     joints:
-      - left_shoulder_pitch_rs04
-      - left_shoulder_roll_rs04
-      - left_shoulder_yaw_rs03
-      - left_elbow_rs03
-      - left_wrist_rs02
-      - left_hand_rs02
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+      - joint5
     command_interfaces:
       - position
     state_interfaces:
       - position
       - velocity
     allow_nonzero_velocity_at_trajectory_end: true
-
-hand_controller:
-  ros__parameters:
-    joints:
-      - left_palm_right_finger
-
-    command_interfaces:
-      - position
-
-    state_interfaces:
-      - position
-      - velocity
-
-    # Simple tolerances
-    constraints:
-      stopped_velocity_tolerance: 0.01
-      goal_time: 0.0  # No goal time constraint
-
-    # Allow external trajectory commands
-    allow_partial_joints_goal: false
-    allow_integration_in_goal_trajectories: true

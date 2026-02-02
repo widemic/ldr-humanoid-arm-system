@@ -15,7 +15,7 @@ def generate_launch_description():
     )
     x_arg = DeclareLaunchArgument("x", default_value="0.0", description="X position")
     y_arg = DeclareLaunchArgument("y", default_value="0.0", description="Y position")
-    z_arg = DeclareLaunchArgument("z", default_value="0.0", description="Z position")
+    z_arg = DeclareLaunchArgument("z", default_value="0.85", description="Z position (0.85 puts table legs on ground)")
 
     use_sim_time = LaunchConfiguration("use_sim_time")
     x_pos = LaunchConfiguration("x")
@@ -33,47 +33,48 @@ def generate_launch_description():
     }
 
     # Robot State Publisher
-    robot_state_publisher = TimerAction(
-        period=3.0,  # Wait 4 seconds, after spawn_entity completes
-        actions=[Node(
-            package="robot_state_publisher",
-            executable="robot_state_publisher",
-            name="robot_state_publisher",
-            output="screen",
-            parameters=[robot_description, {"use_sim_time": use_sim_time}],
-        )]
+    robot_state_publisher = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher",
+        output="screen",
+        parameters=[robot_description, {"use_sim_time": use_sim_time}],
     )
 
     # Controller spawner nodes using timers
     # Note: No separate ros2_control_node needed - Gazebo provides controller_manager via GazeboSimROS2ControlPlugin
+    joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "joint_state_broadcaster",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "20",
+            "--switch-timeout", "20",
+        ],
+        output="screen",
+    )
+
+    arm_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "arm_controller",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "20",
+            "--switch-timeout", "20",
+        ],
+        output="screen",
+    )
+
     joint_state_broadcaster_node = TimerAction(
-        period=4.0,  # wait 8 seconds for Gazebo's controller_manager to be ready
-        actions=[Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-            output="screen",
-        )]
+        period=4.0,  # wait for Gazebo's controller_manager to be ready
+        actions=[joint_state_broadcaster_spawner]
     )
 
     arm_controller_node = TimerAction(
-        period=5.0,  # wait 10 seconds to ensure broadcaster is active
-        actions=[Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["arm_controller", "--controller-manager", "/controller_manager"],
-            output="screen",
-        )]
-    )
-
-    hand_controller_node = TimerAction(
-        period=6.0,  # wait for arm_controller to be active
-        actions=[Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["hand_controller", "--controller-manager", "/controller_manager"],
-            output="screen",
-        )]
+        period=8.0,  # wait to ensure broadcaster is active
+        actions=[arm_controller_spawner]
     )
 
     # Spawn robot in Gazebo
@@ -144,7 +145,6 @@ def generate_launch_description():
         robot_state_publisher,
         joint_state_broadcaster_node,
         arm_controller_node,
-        hand_controller_node,
         spawn_entity,
         camera_bridge,
         camera_frame_fix,

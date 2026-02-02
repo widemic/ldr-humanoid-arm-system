@@ -145,42 +145,6 @@ def generate_launch_description():
         ),
     )
 
-    # 2. Controller spawners - spawn the controllers needed for MoveIt
-    joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[
-            "joint_state_broadcaster",
-            "--controller-manager",
-            "/controller_manager",
-        ],
-        parameters=[{"use_sim_time": True}],
-        output="screen",
-    )
-
-    arm_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[
-            "arm_controller",
-            "--controller-manager",
-            "/controller_manager",
-        ],
-        parameters=[{"use_sim_time": True}],
-        output="screen",
-    )
-
-    # Delay controller spawning to ensure Gazebo ros2_control plugin is ready
-    delayed_joint_state_broadcaster = TimerAction(
-        period=3.0,  # Wait for Gazebo to fully initialize
-        actions=[joint_state_broadcaster_spawner],
-    )
-
-    delayed_arm_controller = TimerAction(
-        period=4.0,  # Wait for joint_state_broadcaster to be active
-        actions=[arm_controller_spawner],
-    )
-
     # 3. MoveGroup node - delay to ensure controllers are spawned and active
     move_group_node = Node(
         package="moveit_ros_move_group",
@@ -196,7 +160,7 @@ def generate_launch_description():
 
     # Delay MoveGroup start to ensure controllers are active
     delayed_move_group = TimerAction(
-        period=6.0,  # Wait for controllers to be fully active
+        period=10.0,  # Wait for controllers to be fully active
         actions=[move_group_node],
     )
 
@@ -207,8 +171,6 @@ def generate_launch_description():
             gazebo_server,
             clock_bridge,
             spawn_arm,
-            delayed_joint_state_broadcaster,
-            delayed_arm_controller,
             delayed_move_group,
         ]
     )
