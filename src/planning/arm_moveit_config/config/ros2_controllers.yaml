@@ -13,11 +13,11 @@ controller_manager:
 arm_controller:
   ros__parameters:
     joints:
-      - joint1
-      - joint2
-      - joint3
-      - joint4
-      - joint5
+      - shoulder_pitch_joint
+      - shoulder_roll_joint
+      - shoulder_yaw_joint
+      - elbow_pitch_joint
+      - elbow_yaw_joint
     command_interfaces:
       - position
     state_interfaces:

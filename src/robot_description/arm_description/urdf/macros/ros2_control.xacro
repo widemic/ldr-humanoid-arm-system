@@ -7,31 +7,31 @@
             </hardware>
 
             <!-- Arm joints (5 DOF) -->
-            <joint name="joint1">
+            <joint name="shoulder_pitch_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
                 <state_interface name="effort"/>
             </joint>
-            <joint name="joint2">
+            <joint name="shoulder_roll_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
                 <state_interface name="effort"/>
             </joint>
-            <joint name="joint3">
+            <joint name="shoulder_yaw_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
                 <state_interface name="effort"/>
             </joint>
-            <joint name="joint4">
+            <joint name="elbow_pitch_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
                 <state_interface name="effort"/>
             </joint>
-            <joint name="joint5">
+            <joint name="elbow_yaw_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>

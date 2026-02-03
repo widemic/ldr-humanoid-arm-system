@@ -9,10 +9,10 @@ moveit_simple_controller_manager:
   arm_controller:
     type: FollowJointTrajectory
     joints:
-      - joint1
-      - joint2
-      - joint3
-      - joint4
-      - joint5
+      - shoulder_pitch_joint
+      - shoulder_roll_joint
+      - shoulder_yaw_joint
+      - elbow_pitch_joint
+      - elbow_yaw_joint
     action_ns: follow_joint_trajectory
     default: true

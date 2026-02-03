@@ -47,12 +47,11 @@ class CartesianMover(Node):
         solution = future.result().solution.joint_state
 
         msg = JointTrajectory()
-        msg.joint_names = ["left_shoulder_pitch_rs04", "left_shoulder_roll_rs04",
-                           "left_shoulder_yaw_rs03", "left_elbow_rs03", "left_wrist_rs02",
-                           "left_hand_rs02"]
+        msg.joint_names = ["shoulder_pitch_joint", "shoulder_roll_joint",
+                           "shoulder_yaw_joint", "elbow_pitch_joint", "elbow_yaw_joint"]
 
         point = JointTrajectoryPoint()
-        point.positions = list(solution.position[:6])
+        point.positions = list(solution.position[:5])
         point.time_from_start.sec = 5
         msg.points = [point]
 

@@ -27,26 +27,24 @@ from sensor_msgs.msg import JointState
 
 
 JOINT_NAMES = [
-    "left_shoulder_pitch_rs04",
-    "left_shoulder_roll_rs04",
-    "left_shoulder_yaw_rs03",
-    "left_elbow_rs03",
-    "left_wrist_rs02",
-    "left_hand_rs02",
+    "shoulder_pitch_joint",
+    "shoulder_roll_joint",
+    "shoulder_yaw_joint",
+    "elbow_pitch_joint",
+    "elbow_yaw_joint",
 ]
 JOINT_LABELS = [
-    "Base up/down",
-    "Shoulder forward/back",
-    "Shoulder rotate out/in",
-    "Elbow bend/extend",
-    "Wrist up/down",
-    "Hand rotate",
+    "Shoulder pitch",
+    "Shoulder roll",
+    "Shoulder yaw",
+    "Elbow pitch",
+    "Elbow yaw",
 ]
 JOINT_INDEX = {name: idx for idx, name in enumerate(JOINT_NAMES)}
 POSES = {
-    "home": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "ready": [0.0, 1.0, 0.0, 1.0, 0.0, 0.0],
-    "vertical": [0.0, 1.57, 0.0, 1.57, 0.0, 0.0],
+    "home": [0.0, 0.0, 0.0, 0.0, 0.0],
+    "ready": [0.5, -0.5, 0.0, 0.5, 0.0],
+    "vertical": [1.0, -1.5, 0.0, 0.0, 0.0],
 }
 
 

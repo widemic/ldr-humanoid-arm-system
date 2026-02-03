@@ -32,11 +32,11 @@ HELP_TEXT = """
 Arm Keyboard Teleop
 ===================
  Joint jogging (step size configurable via `step` parameter):
-   q/a : Joint1 (shoulder pitch) up/down
-   w/s : Joint2 (shoulder roll) forward/back
-   e/d : Joint3 (shoulder yaw) rotate out/in
-   r/f : Joint4 (elbow pitch) bend/extend
-   t/g : Joint5 (elbow yaw) rotate
+   q/a : shoulder_pitch_joint up/down
+   w/s : shoulder_roll_joint forward/back
+   e/d : shoulder_yaw_joint rotate out/in
+   r/f : elbow_pitch_joint bend/extend
+   t/g : elbow_yaw_joint rotate
 
  Preset poses:
    1 : home
@@ -76,11 +76,11 @@ class KeyboardTeleop(Node):
     """Publish JointState commands based on keyboard input."""
 
     JOINT_NAMES = [
-        "joint1",
-        "joint2",
-        "joint3",
-        "joint4",
-        "joint5",
+        "shoulder_pitch_joint",
+        "shoulder_roll_joint",
+        "shoulder_yaw_joint",
+        "elbow_pitch_joint",
+        "elbow_yaw_joint",
     ]
     JOINT_LABELS = [
         "Shoulder pitch",

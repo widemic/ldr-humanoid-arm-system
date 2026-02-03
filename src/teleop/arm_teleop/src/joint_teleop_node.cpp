@@ -30,11 +30,11 @@ public:
     execution_time_sec_ = declare_parameter<double>("execution_time_sec", 1.0);
     joint_order_ = declare_parameter<std::vector<std::string>>(
         "controller_joint_names",
-        {"joint1",
-         "joint2",
-         "joint3",
-         "joint4",
-         "joint5"});
+        {"shoulder_pitch_joint",
+         "shoulder_roll_joint",
+         "shoulder_yaw_joint",
+         "elbow_pitch_joint",
+         "elbow_yaw_joint"});
 
     if (joint_order_.empty())
     {

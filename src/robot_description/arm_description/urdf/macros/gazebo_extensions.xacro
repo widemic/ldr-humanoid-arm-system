@@ -3,27 +3,27 @@
     <xacro:property name="damping" value="0.05" />
     <xacro:property name="friction" value="0.01" />
 
-    <gazebo reference="joint1">
+    <gazebo reference="shoulder_pitch_joint">
         <damping>${damping}</damping>
         <friction>${friction}</friction>
     </gazebo>
 
-    <gazebo reference="joint2">
+    <gazebo reference="shoulder_roll_joint">
         <damping>${damping}</damping>
         <friction>${friction}</friction>
     </gazebo>
 
-    <gazebo reference="joint3">
+    <gazebo reference="shoulder_yaw_joint">
         <damping>${damping}</damping>
         <friction>${friction}</friction>
     </gazebo>
 
-    <gazebo reference="joint4">
+    <gazebo reference="elbow_pitch_joint">
         <damping>${damping}</damping>
         <friction>${friction}</friction>
     </gazebo>
 
-    <gazebo reference="joint5">
+    <gazebo reference="elbow_yaw_joint">
         <damping>${damping}</damping>
         <friction>${friction}</friction>
     </gazebo>

@@ -60,12 +60,11 @@ class PowerCalculator:
 
         # Joint name to actuator mapping
         self.joint_to_actuator = {
-            'left_shoulder_pitch_rs04': 'left_shoulder_pitch_rs04',
-            'left_shoulder_roll_rs04': 'left_shoulder_roll_rs04',
-            'left_shoulder_yaw_rs03': 'left_shoulder_yaw_rs03',
-            'left_elbow_rs03': 'left_elbow_rs03',
-            'left_wrist_rs02': 'left_wrist_rs02',
-            'left_hand_rs02': 'left_wrist_rs02',  # Same motor type as wrist
+            'shoulder_pitch_joint': 'shoulder_pitch_joint',
+            'shoulder_roll_joint': 'shoulder_roll_joint',
+            'shoulder_yaw_joint': 'shoulder_yaw_joint',
+            'elbow_pitch_joint': 'elbow_pitch_joint',
+            'elbow_yaw_joint': 'elbow_yaw_joint',
         }
 
         # Brake states (default: all released)
@@ -400,7 +399,7 @@ def main():
     calc = PowerCalculator(specs_path)
 
     # Example: Calculate power for a single joint
-    joint_name = 'left_shoulder_pitch_rs04'
+    joint_name = 'shoulder_pitch_joint'
     torque = 30.0  # Nm
     velocity = 1.0  # rad/s
 
@@ -429,12 +428,11 @@ def main():
     print("="*60)
 
     joint_states = {
-        'left_shoulder_pitch_rs04': {'effort': 40.0, 'velocity': 0.5},
-        'left_shoulder_roll_rs04': {'effort': 35.0, 'velocity': 0.3},
-        'left_shoulder_yaw_rs03': {'effort': 15.0, 'velocity': 0.8},
-        'left_elbow_rs03': {'effort': 20.0, 'velocity': 1.0},
-        'left_wrist_rs02': {'effort': 5.0, 'velocity': 1.5},
-        'left_hand_rs02': {'effort': 3.0, 'velocity': 0.2},
+        'shoulder_pitch_joint': {'effort': 40.0, 'velocity': 0.5},
+        'shoulder_roll_joint': {'effort': 35.0, 'velocity': 0.3},
+        'shoulder_yaw_joint': {'effort': 15.0, 'velocity': 0.8},
+        'elbow_pitch_joint': {'effort': 20.0, 'velocity': 1.0},
+        'elbow_yaw_joint': {'effort': 5.0, 'velocity': 1.5},
     }
 
     result = calc.calculate_total_power(joint_states)

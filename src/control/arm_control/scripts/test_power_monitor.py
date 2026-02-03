@@ -36,12 +36,11 @@ def test_idle_state(calc):
     print_header("TEST 1: Idle State (No Motion)")
 
     joint_states = {
-        'left_shoulder_pitch_rs04': {'effort': 0.0, 'velocity': 0.0},
-        'left_shoulder_roll_rs04': {'effort': 0.0, 'velocity': 0.0},
-        'left_shoulder_yaw_rs03': {'effort': 0.0, 'velocity': 0.0},
-        'left_elbow_rs03': {'effort': 0.0, 'velocity': 0.0},
-        'left_wrist_rs02': {'effort': 0.0, 'velocity': 0.0},
-        'left_hand_rs02': {'effort': 0.0, 'velocity': 0.0},
+        'shoulder_pitch_joint': {'effort': 0.0, 'velocity': 0.0},
+        'shoulder_roll_joint': {'effort': 0.0, 'velocity': 0.0},
+        'shoulder_yaw_joint': {'effort': 0.0, 'velocity': 0.0},
+        'elbow_pitch_joint': {'effort': 0.0, 'velocity': 0.0},
+        'elbow_yaw_joint': {'effort': 0.0, 'velocity': 0.0},
     }
 
     result = calc.calculate_total_power(joint_states)
@@ -54,12 +53,11 @@ def test_gravity_holding(calc):
 
     # Simulate holding arm horizontal (significant torque, no velocity)
     joint_states = {
-        'left_shoulder_pitch_rs04': {'effort': 40.0, 'velocity': 0.0},  # Holding up
-        'left_shoulder_roll_rs04': {'effort': 30.0, 'velocity': 0.0},   # Side load
-        'left_shoulder_yaw_rs03': {'effort': 5.0, 'velocity': 0.0},
-        'left_elbow_rs03': {'effort': 15.0, 'velocity': 0.0},
-        'left_wrist_rs02': {'effort': 3.0, 'velocity': 0.0},
-        'left_hand_rs02': {'effort': 1.0, 'velocity': 0.0},
+        'shoulder_pitch_joint': {'effort': 40.0, 'velocity': 0.0},  # Holding up
+        'shoulder_roll_joint': {'effort': 30.0, 'velocity': 0.0},   # Side load
+        'shoulder_yaw_joint': {'effort': 5.0, 'velocity': 0.0},
+        'elbow_pitch_joint': {'effort': 15.0, 'velocity': 0.0},
+        'elbow_yaw_joint': {'effort': 3.0, 'velocity': 0.0},
     }
 
     result = calc.calculate_total_power(joint_states)
@@ -74,12 +72,11 @@ def test_slow_motion(calc):
     print_header("TEST 3: Slow Motion")
 
     joint_states = {
-        'left_shoulder_pitch_rs04': {'effort': 30.0, 'velocity': 0.3},
-        'left_shoulder_roll_rs04': {'effort': 25.0, 'velocity': 0.2},
-        'left_shoulder_yaw_rs03': {'effort': 10.0, 'velocity': 0.5},
-        'left_elbow_rs03': {'effort': 15.0, 'velocity': 0.4},
-        'left_wrist_rs02': {'effort': 5.0, 'velocity': 0.6},
-        'left_hand_rs02': {'effort': 2.0, 'velocity': 0.1},
+        'shoulder_pitch_joint': {'effort': 30.0, 'velocity': 0.3},
+        'shoulder_roll_joint': {'effort': 25.0, 'velocity': 0.2},
+        'shoulder_yaw_joint': {'effort': 10.0, 'velocity': 0.5},
+        'elbow_pitch_joint': {'effort': 15.0, 'velocity': 0.4},
+        'elbow_yaw_joint': {'effort': 5.0, 'velocity': 0.6},
     }
 
     result = calc.calculate_total_power(joint_states)
@@ -91,12 +88,11 @@ def test_fast_motion(calc):
     print_header("TEST 4: Fast Motion")
 
     joint_states = {
-        'left_shoulder_pitch_rs04': {'effort': 60.0, 'velocity': 1.5},
-        'left_shoulder_roll_rs04': {'effort': 50.0, 'velocity': 1.2},
-        'left_shoulder_yaw_rs03': {'effort': 25.0, 'velocity': 1.8},
-        'left_elbow_rs03': {'effort': 30.0, 'velocity': 2.0},
-        'left_wrist_rs02': {'effort': 10.0, 'velocity': 2.5},
-        'left_hand_rs02': {'effort': 5.0, 'velocity': 0.5},
+        'shoulder_pitch_joint': {'effort': 60.0, 'velocity': 1.5},
+        'shoulder_roll_joint': {'effort': 50.0, 'velocity': 1.2},
+        'shoulder_yaw_joint': {'effort': 25.0, 'velocity': 1.8},
+        'elbow_pitch_joint': {'effort': 30.0, 'velocity': 2.0},
+        'elbow_yaw_joint': {'effort': 10.0, 'velocity': 2.5},
     }
 
     result = calc.calculate_total_power(joint_states)
@@ -116,12 +112,11 @@ def test_peak_load(calc):
 
     # Maximum torque at moderate velocity
     joint_states = {
-        'left_shoulder_pitch_rs04': {'effort': 100.0, 'velocity': 1.0},
-        'left_shoulder_roll_rs04': {'effort': 90.0, 'velocity': 0.8},
-        'left_shoulder_yaw_rs03': {'effort': 45.0, 'velocity': 1.5},
-        'left_elbow_rs03': {'effort': 50.0, 'velocity': 1.8},
-        'left_wrist_rs02': {'effort': 15.0, 'velocity': 2.0},
-        'left_hand_rs02': {'effort': 8.0, 'velocity': 0.3},
+        'shoulder_pitch_joint': {'effort': 100.0, 'velocity': 1.0},
+        'shoulder_roll_joint': {'effort': 90.0, 'velocity': 0.8},
+        'shoulder_yaw_joint': {'effort': 45.0, 'velocity': 1.5},
+        'elbow_pitch_joint': {'effort': 50.0, 'velocity': 1.8},
+        'elbow_yaw_joint': {'effort': 15.0, 'velocity': 2.0},
     }
 
     result = calc.calculate_total_power(joint_states)
@@ -139,16 +134,15 @@ def test_brake_power(calc):
     print_header("TEST 6: Brake Power Consumption")
 
     # Engage brakes on shoulder joints
-    calc.set_brake_state('left_shoulder_pitch_rs04', True)
-    calc.set_brake_state('left_shoulder_roll_rs04', True)
+    calc.set_brake_state('shoulder_pitch_joint', True)
+    calc.set_brake_state('shoulder_roll_joint', True)
 
     joint_states = {
-        'left_shoulder_pitch_rs04': {'effort': 0.0, 'velocity': 0.0},
-        'left_shoulder_roll_rs04': {'effort': 0.0, 'velocity': 0.0},
-        'left_shoulder_yaw_rs03': {'effort': 0.0, 'velocity': 0.0},
-        'left_elbow_rs03': {'effort': 0.0, 'velocity': 0.0},
-        'left_wrist_rs02': {'effort': 0.0, 'velocity': 0.0},
-        'left_hand_rs02': {'effort': 0.0, 'velocity': 0.0},
+        'shoulder_pitch_joint': {'effort': 0.0, 'velocity': 0.0},
+        'shoulder_roll_joint': {'effort': 0.0, 'velocity': 0.0},
+        'shoulder_yaw_joint': {'effort': 0.0, 'velocity': 0.0},
+        'elbow_pitch_joint': {'effort': 0.0, 'velocity': 0.0},
+        'elbow_yaw_joint': {'effort': 0.0, 'velocity': 0.0},
     }
 
     result = calc.calculate_total_power(joint_states)
@@ -156,8 +150,8 @@ def test_brake_power(calc):
     print(f"  Brake Power:       {result['brake_power']:>8.2f} W")
 
     # Reset brakes
-    calc.set_brake_state('left_shoulder_pitch_rs04', False)
-    calc.set_brake_state('left_shoulder_roll_rs04', False)
+    calc.set_brake_state('shoulder_pitch_joint', False)
+    calc.set_brake_state('shoulder_roll_joint', False)
 
 
 def test_efficiency_analysis(calc):
@@ -168,7 +162,7 @@ def test_efficiency_analysis(calc):
     print(f"{'Torque (Nm)':<15} {'Velocity (rad/s)':<20} {'Efficiency (%)':<15}")
     print("-" * 50)
 
-    joint = 'left_shoulder_pitch_rs04'
+    joint = 'shoulder_pitch_joint'
 
     test_points = [
         (10.0, 0.5),
