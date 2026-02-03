@@ -1,106 +1,105 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- Base link (table/stand with menghina and stator) -->
+  <!-- Base link (table with torso_limiter, menghina, spacer, rotor, stator) -->
   <link name="base_link">
     <inertial>
-      <origin xyz="0.15231 0.00126822 -0.0733771" rpy="0 0 0"/>
-      <mass value="12.7824"/>
-      <inertia ixx="0.319682" ixy="2.7236e-08" ixz="0.0107613" iyy="0.0695316" iyz="1.98209e-07" izz="0.343485"/>
+      <origin xyz="0.12034 0.00123257 -0.131533" rpy="0 0 0"/>
+      <mass value="12.8024"/>
+      <inertia ixx="0.726842" ixy="-8.82389e-05" ixz="0.080114" iyy="0.717447" iyz="8.76443e-05" izz="0.70335"/>
     </inertial>
-    <!-- Table -->
+    <!-- Part torso_limiter -->
     <visual>
-      <origin xyz="0.171858 0.00126819 -0.0923205" rpy="-3.14159 2.84025e-16 -1.25251e-16"/>
+      <origin xyz="-0.0767119 -0.0215341 0.0674325" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/table.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/torso_limiter.stl"/>
       </geometry>
-      <material name="blue"/>
+      <material name="yellow">
+        <color rgba="1 0.756863 0.054902 1"/>
+      </material>
     </visual>
     <collision>
-      <origin xyz="0.171858 0.00126819 -0.0923205" rpy="-3.14159 2.84025e-16 -1.25251e-16"/>
+      <origin xyz="-0.0767119 -0.0215341 0.0674325" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/table.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/torso_limiter.stl"/>
       </geometry>
     </collision>
-    <!-- Table legs (2 legs) -->
+    <!-- Part menghina_x6 -->
     <visual>
-      <origin xyz="0.08 0.17 -0.49" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.025" length="0.75"/>
-      </geometry>
-      <material name="dark_blue"/>
-    </visual>
-    <collision>
-      <origin xyz="0.08 0.17 -0.49" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.025" length="0.75"/>
-      </geometry>
-    </collision>
-    <visual>
-      <origin xyz="0.08 -0.17 -0.49" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.025" length="0.75"/>
-      </geometry>
-      <material name="dark_blue"/>
-    </visual>
-    <collision>
-      <origin xyz="0.08 -0.17 -0.49" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.025" length="0.75"/>
-      </geometry>
-    </collision>
-    <!-- Menghina mount (on table surface) -->
-    <visual>
-      <origin xyz="0.0868579 0.00126819 6.80296e-06" rpy="0 0 1.5708"/>
+      <origin xyz="-0.0631421 0.00126819 0.000179533" rpy="0 0 1.5708"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/menghina_x6.stl"/>
       </geometry>
-      <material name="dark_blue"/>
+      <material name="blue">
+        <color rgba="0.32549 0.529412 0.752941 1"/>
+      </material>
     </visual>
     <collision>
-      <origin xyz="0.0868579 0.00126819 6.80296e-06" rpy="0 0 1.5708"/>
+      <origin xyz="-0.0631421 0.00126819 0.000179533" rpy="0 0 1.5708"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/menghina_x6.stl"/>
       </geometry>
     </collision>
-    <!-- Spacer between menghina and stator -->
+    <!-- Part spacer_x6_menghina_m4x60 -->
     <visual>
-      <origin xyz="0.00685786 0.00126819 6.80296e-06" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="-0.0331421 0.00126819 0.000179533" rpy="3.14159 0 1.5708"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/spacer_x6_menghina_m4x60.stl"/>
       </geometry>
-      <material name="purple"/>
+      <material name="purple">
+        <color rgba="0.596078 0.121569 0.67451 1"/>
+      </material>
     </visual>
     <collision>
-      <origin xyz="0.00685786 0.00126819 6.80296e-06" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="-0.0331421 0.00126819 0.000179533" rpy="3.14159 0 1.5708"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/spacer_x6_menghina_m4x60.stl"/>
       </geometry>
     </collision>
-    <!-- Rotor X6 (base) -->
+    <!-- Part table -->
     <visual>
-      <origin xyz="0.141358 0.00126819 6.80296e-06" rpy="0 -1.5708 0"/>
+      <origin xyz="0.171858 0.00126819 -0.0923205" rpy="-3.14159 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/table.stl"/>
+      </geometry>
+      <material name="light_blue">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.171858 0.00126819 -0.0923205" rpy="-3.14159 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/table.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part rotor_x6_p20_60 -->
+    <visual>
+      <origin xyz="-0.00864214 0.00126819 0.000179533" rpy="0 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/rotor_x6_p20_60.stl"/>
       </geometry>
-      <material name="orange"/>
+      <material name="gold">
+        <color rgba="0.65098 0.486275 0.0196078 1"/>
+      </material>
     </visual>
     <collision>
-      <origin xyz="0.141358 0.00126819 6.80296e-06" rpy="0 -1.5708 0"/>
+      <origin xyz="-0.00864214 0.00126819 0.000179533" rpy="0 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/rotor_x6_p20_60.stl"/>
       </geometry>
     </collision>
-    <!-- Stator X6 (on table surface) -->
+    <!-- Part stator_x6_p20_60 -->
     <visual>
-      <origin xyz="0.141358 0.00126819 6.80296e-06" rpy="0 -1.5708 0"/>
+      <origin xyz="-0.00864214 0.00126819 0.000179533" rpy="0 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/stator_x6_p20_60.stl"/>
       </geometry>
-      <material name="gold"/>
+      <material name="cream">
+        <color rgba="0.960784 0.835294 0.470588 1"/>
+      </material>
     </visual>
     <collision>
-      <origin xyz="0.141358 0.00126819 6.80296e-06" rpy="0 -1.5708 0"/>
+      <origin xyz="-0.00864214 0.00126819 0.000179533" rpy="0 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/stator_x6_p20_60.stl"/>
       </geometry>
@@ -110,17 +109,45 @@
   <!-- Link 1: Shoulder (pitch rotation) -->
   <link name="shoulder_link">
     <inertial>
-      <origin xyz="-0.00509657 -9.94177e-07 -0.0751786" rpy="0 0 0"/>
-      <mass value="2.97837"/>
-      <inertia ixx="0.00348255" ixy="-3.74291e-08" ixz="2.44885e-05" iyy="0.00306396" iyz="-6.6893e-08" izz="0.00281696"/>
+      <origin xyz="-0.00526655 -5.01444e-05 -0.0747997" rpy="0 0 0"/>
+      <mass value="2.99837"/>
+      <inertia ixx="0.00360636" ixy="-4.79289e-06" ixz="5.35805e-05" iyy="0.00316519" iyz="1.005e-05" izz="0.0029116"/>
     </inertial>
-    <!-- Rotor X6 -->
+    <!-- Part shoulder_limiter -->
+    <visual>
+      <origin xyz="-0.0305797 -0.00737046 -0.0183842" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/shoulder_limiter.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.0305797 -0.00737046 -0.0183842" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/shoulder_limiter.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part l_shoulder -->
+    <visual>
+      <origin xyz="-0.00130076 -6.96521e-06 -0.0582746" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/l_shoulder.stl"/>
+      </geometry>
+      <material name="light_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.00130076 -6.96521e-06 -0.0582746" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/l_shoulder.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part rotor_x6_p20_60_2 -->
     <visual>
       <origin xyz="-0.0385 0 -0.078" rpy="-3.14159 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/rotor_x6_p20_60.stl"/>
       </geometry>
-      <material name="orange"/>
+      <material name="gold"/>
     </visual>
     <collision>
       <origin xyz="-0.0385 0 -0.078" rpy="-3.14159 -1.5708 0"/>
@@ -128,27 +155,13 @@
         <mesh filename="package://arm_description/meshes/visual/rotor_x6_p20_60.stl"/>
       </geometry>
     </collision>
-    <!-- L Shoulder -->
-    <visual>
-      <origin xyz="-0.00130076 -6.96521e-06 -0.0582746" rpy="-1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/l_shoulder.stl"/>
-      </geometry>
-      <material name="blue"/>
-    </visual>
-    <collision>
-      <origin xyz="-0.00130076 -6.96521e-06 -0.0582746" rpy="-1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/l_shoulder.stl"/>
-      </geometry>
-    </collision>
-    <!-- Stator X6 for next joint -->
+    <!-- Part stator_x6_p20_60_2 -->
     <visual>
       <origin xyz="-0.0385 0 -0.078" rpy="-3.14159 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/stator_x6_p20_60.stl"/>
       </geometry>
-      <material name="gold"/>
+      <material name="cream"/>
     </visual>
     <collision>
       <origin xyz="-0.0385 0 -0.078" rpy="-3.14159 -1.5708 0"/>
@@ -161,48 +174,66 @@
   <!-- Link 2: Upper arm (roll rotation) -->
   <link name="upper_arm_link">
     <inertial>
-      <origin xyz="-0.112126 -2.19492e-08 0.0230405" rpy="0 0 0"/>
-      <mass value="1.54329"/>
-      <inertia ixx="0.00133766" ixy="6.04381e-10" ixz="0.000537695" iyy="0.00254134" iyz="7.1395e-08" izz="0.00234132"/>
+      <origin xyz="0.000527863 0.112716 -0.0353918" rpy="0 0 0"/>
+      <mass value="1.56329"/>
+      <inertia ixx="0.00261957" ixy="-3.7804e-05" ixz="1.27536e-05" iyy="0.00141519" iyz="0.000562166" izz="0.00242582"/>
     </inertial>
-    <!-- Rotor X6 -->
+    <!-- Part arm_limiter -->
     <visual>
-      <origin xyz="0.0445 0 -0.083" rpy="-3.14159 1.5708 0"/>
+      <origin xyz="0.0412588 0.158216 -0.0625065" rpy="1.5708 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/rotor_x6_p20_60.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/arm_limiter.stl"/>
       </geometry>
-      <material name="orange"/>
+      <material name="yellow"/>
     </visual>
     <collision>
-      <origin xyz="0.0445 0 -0.083" rpy="-3.14159 1.5708 0"/>
+      <origin xyz="0.0412588 0.158216 -0.0625065" rpy="1.5708 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/rotor_x6_p20_60.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/arm_limiter.stl"/>
       </geometry>
     </collision>
-    <!-- L Upper Arm -->
+    <!-- Part l_upper_arm -->
     <visual>
-      <origin xyz="-0.0912885 -6.25469e-08 0.00867029" rpy="-1.5708 0 -1.5708"/>
+      <origin xyz="0 0.0912885 -0.0206703" rpy="1.5708 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/l_upper_arm.stl"/>
       </geometry>
-      <material name="blue"/>
+      <material name="light_blue"/>
     </visual>
     <collision>
-      <origin xyz="-0.0912885 -6.25469e-08 0.00867029" rpy="-1.5708 0 -1.5708"/>
+      <origin xyz="0 0.0912885 -0.0206703" rpy="1.5708 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/l_upper_arm.stl"/>
       </geometry>
     </collision>
-    <!-- Stator X4 for next joint -->
+    <!-- Part rotor_x4_p36_36 -->
     <visual>
-      <origin xyz="-0.091 0 0.029" rpy="1.5708 0 -1.5708"/>
+      <origin xyz="0 0.091 -0.041" rpy="-1.5708 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/rotor_x4_p36_36.stl"/>
+      </geometry>
+      <material name="dark_purple">
+        <color rgba="0.380392 0.0470588 0.435294 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0.091 -0.041" rpy="-1.5708 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/rotor_x4_p36_36.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part stator_x4_p36_36 -->
+    <visual>
+      <origin xyz="0 0.091 -0.041" rpy="-1.5708 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/stator_x4_p36_36.stl"/>
       </geometry>
-      <material name="purple"/>
+      <material name="light_purple">
+        <color rgba="0.764706 0.545098 0.803922 1"/>
+      </material>
     </visual>
     <collision>
-      <origin xyz="-0.091 0 0.029" rpy="1.5708 0 -1.5708"/>
+      <origin xyz="0 0.091 -0.041" rpy="-1.5708 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/stator_x4_p36_36.stl"/>
       </geometry>
@@ -212,48 +243,62 @@
   <!-- Link 3: Elbow (yaw rotation) -->
   <link name="elbow_link">
     <inertial>
-      <origin xyz="0.0103789 1.30908e-06 -0.0814648" rpy="0 0 0"/>
-      <mass value="2.87437"/>
-      <inertia ixx="0.00300002" ixy="3.78723e-08" ixz="7.45868e-05" iyy="0.00280783" iyz="1.59723e-08" izz="0.00247115"/>
+      <origin xyz="0.0100547 -0.000241015 -0.0630889" rpy="0 0 0"/>
+      <mass value="2.89437"/>
+      <inertia ixx="0.00309417" ixy="-2.35227e-05" ixz="0.000125711" iyy="0.00292161" iyz="3.72513e-05" izz="0.00256028"/>
     </inertial>
-    <!-- Rotor X4 -->
+    <!-- Part elbow_limiter -->
     <visual>
-      <origin xyz="-0.091 0 0.029" rpy="1.5708 0 -1.5708"/>
+      <origin xyz="-0.0365396 -0.0350673 -0.00907087" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/rotor_x4_p36_36.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/elbow_limiter.stl"/>
       </geometry>
-      <material name="dark_purple"/>
+      <material name="yellow"/>
     </visual>
     <collision>
-      <origin xyz="-0.091 0 0.029" rpy="1.5708 0 -1.5708"/>
+      <origin xyz="-0.0365396 -0.0350673 -0.00907087" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/rotor_x4_p36_36.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/elbow_limiter.stl"/>
       </geometry>
     </collision>
-    <!-- L Elbow -->
+    <!-- Part l_elbow -->
     <visual>
-      <origin xyz="-0.000331628 1.15447e-05 -0.0692953" rpy="0 0 0"/>
+      <origin xyz="-0.000331628 1.15447e-05 -0.0512953" rpy="0 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/l_elbow.stl"/>
       </geometry>
-      <material name="blue"/>
+      <material name="light_blue"/>
     </visual>
     <collision>
-      <origin xyz="-0.000331628 1.15447e-05 -0.0692953" rpy="0 0 0"/>
+      <origin xyz="-0.000331628 1.15447e-05 -0.0512953" rpy="0 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/l_elbow.stl"/>
       </geometry>
     </collision>
-    <!-- Stator X6 for next joint -->
+    <!-- Part rotor_x6_p20_60_3 -->
     <visual>
-      <origin xyz="0.0445 0 -0.083" rpy="3.14159 1.5708 0"/>
+      <origin xyz="0.0445 0 -0.065" rpy="-3.14159 1.5708 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/stator_x6_p20_60.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/rotor_x6_p20_60.stl"/>
       </geometry>
       <material name="gold"/>
     </visual>
     <collision>
-      <origin xyz="0.0445 0 -0.083" rpy="3.14159 1.5708 0"/>
+      <origin xyz="0.0445 0 -0.065" rpy="-3.14159 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/rotor_x6_p20_60.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part stator_x6_p20_60_3 -->
+    <visual>
+      <origin xyz="0.0445 0 -0.065" rpy="-3.14159 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/stator_x6_p20_60.stl"/>
+      </geometry>
+      <material name="cream"/>
+    </visual>
+    <collision>
+      <origin xyz="0.0445 0 -0.065" rpy="-3.14159 1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/stator_x6_p20_60.stl"/>
       </geometry>
@@ -263,90 +308,185 @@
   <!-- Link 4: Upper forearm (pitch rotation) -->
   <link name="upper_forearm_link">
     <inertial>
-      <origin xyz="0.00126439 -0.111037 0.0195224" rpy="0 0 0"/>
-      <mass value="1.44829"/>
-      <inertia ixx="0.00214741" ixy="-9.87926e-07" ixz="-6.26246e-06" iyy="0.000998643" iyz="0.000395055" izz="0.00190798"/>
+      <origin xyz="0.000989597 0.111651 -0.0320435" rpy="0 0 0"/>
+      <mass value="1.46829"/>
+      <inertia ixx="0.002223" ixy="1.86954e-05" ixz="-1.84274e-06" iyy="0.00105653" iyz="0.000429196" izz="0.00197143"/>
     </inertial>
-    <!-- L Upper Forearm -->
+    <!-- Part forearm_limiter -->
     <visual>
-      <origin xyz="0.0046701 -0.0842108 0.00848547" rpy="-1.5708 -1.5708 0"/>
+      <origin xyz="-0.0189092 0.156122 -0.0697779" rpy="1.57072 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/forearm_limiter.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.0189092 0.156122 -0.0697779" rpy="1.57072 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/forearm_limiter.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part l_upper_forearm -->
+    <visual>
+      <origin xyz="0.0046701 0.0842108 -0.0204855" rpy="1.5708 1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/l_upper_forearm.stl"/>
       </geometry>
-      <material name="blue"/>
+      <material name="light_blue"/>
     </visual>
     <collision>
-      <origin xyz="0.0046701 -0.0842108 0.00848547" rpy="-1.5708 -1.5708 0"/>
+      <origin xyz="0.0046701 0.0842108 -0.0204855" rpy="1.5708 1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/l_upper_forearm.stl"/>
       </geometry>
     </collision>
-    <!-- Stator X4 for next joint -->
+    <!-- Part rotor_x4_p36_36_2 -->
     <visual>
-      <origin xyz="0 -0.09 0.023" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/stator_x4_p36_36.stl"/>
-      </geometry>
-      <material name="purple"/>
-    </visual>
-    <collision>
-      <origin xyz="0 -0.09 0.023" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/stator_x4_p36_36.stl"/>
-      </geometry>
-    </collision>
-  </link>
-
-  <!-- Link 5: End effector (lower forearm and hand) -->
-  <link name="end_effector_link">
-    <inertial>
-      <origin xyz="-2.78156e-05 0.00215422 -0.147028" rpy="0 0 0"/>
-      <mass value="0.558"/>
-      <inertia ixx="0.00382826" ixy="-3.16312e-08" ixz="2.02243e-07" iyy="0.00375463" iyz="-2.11667e-05" izz="0.000416359"/>
-    </inertial>
-    <!-- Rotor X4 -->
-    <visual>
-      <origin xyz="0 -0.09 0.023" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="0 0.09 -0.035" rpy="-1.5708 1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/rotor_x4_p36_36.stl"/>
       </geometry>
       <material name="dark_purple"/>
     </visual>
     <collision>
-      <origin xyz="0 -0.09 0.023" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="0 0.09 -0.035" rpy="-1.5708 1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/rotor_x4_p36_36.stl"/>
       </geometry>
     </collision>
-    <!-- L Lower Forearm -->
+    <!-- Part stator_x4_p36_36_2 -->
     <visual>
-      <origin xyz="-6.05561e-05 0.00294052 -0.075703" rpy="0 0 0"/>
+      <origin xyz="0 0.09 -0.035" rpy="-1.5708 1.5708 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/l_lower_forearm.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/stator_x4_p36_36.stl"/>
       </geometry>
-      <material name="blue"/>
+      <material name="light_purple"/>
     </visual>
     <collision>
-      <origin xyz="-6.05561e-05 0.00294052 -0.075703" rpy="0 0 0"/>
+      <origin xyz="0 0.09 -0.035" rpy="-1.5708 1.5708 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/l_lower_forearm.stl"/>
-      </geometry>
-    </collision>
-    <!-- Hand base -->
-    <visual>
-      <origin xyz="1.38778e-17 -8.67362e-19 -0.252" rpy="6.12396e-17 -1.98233e-16 1.5708"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/hand.stl"/>
-      </geometry>
-      <material name="white"/>
-    </visual>
-    <collision>
-      <origin xyz="1.38778e-17 -8.67362e-19 -0.252" rpy="6.12396e-17 -1.98233e-16 1.5708"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/hand.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/stator_x4_p36_36.stl"/>
       </geometry>
     </collision>
   </link>
 
+  <!-- Link 5: End effector (lower forearm with hand and fingers) -->
+  <link name="end_effector_link">
+    <inertial>
+      <origin xyz="-0.00112403 0.00121856 -0.125798" rpy="0 0 0"/>
+      <mass value="0.578"/>
+      <inertia ixx="0.00413859" ixy="-1.05389e-05" ixz="7.52215e-05" iyy="0.00406943" iyz="4.22994e-05" izz="0.000463612"/>
+    </inertial>
+    <!-- Part hand_limiter -->
+    <visual>
+      <origin xyz="-0.0317086 -0.0248862 -0.00779106" rpy="-7.42674e-05 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/hand_limiter.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.0317086 -0.0248862 -0.00779106" rpy="-7.42674e-05 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/hand_limiter.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part l_lower_forearm -->
+    <visual>
+      <origin xyz="-6.05561e-05 0.00294052 -0.058703" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/l_lower_forearm.stl"/>
+      </geometry>
+      <material name="light_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="-6.05561e-05 0.00294052 -0.058703" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/l_lower_forearm.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part hand -->
+    <visual>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/hand.stl"/>
+      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/hand.stl"/>
+      </geometry>
+    </collision>
+    <!-- Fingers f1-f5 -->
+    <visual>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f1.stl"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f1.stl"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f2.stl"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f2.stl"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f3.stl"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f3.stl"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f4.stl"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f4.stl"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f5.stl"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/f5.stl"/>
+      </geometry>
+    </collision>
+  </link>
 
 </robot>

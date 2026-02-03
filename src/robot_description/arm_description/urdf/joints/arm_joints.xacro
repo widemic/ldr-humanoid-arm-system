@@ -8,55 +8,54 @@
     <child link="base_link"/>
   </joint>
 
-  <!-- Joint 1: Shoulder pitch (on table surface) -->
+  <!-- Joint 1: Shoulder pitch (from table to shoulder) -->
   <joint name="shoulder_pitch_joint" type="revolute">
-    <origin xyz="0.0498579 0.00126819 6.80296e-06" rpy="1.5708 1.59595e-15 1.5708"/>
+    <origin xyz="-0.100142 0.00126819 0.000179533" rpy="1.5708 0 1.5708"/>
     <parent link="base_link"/>
     <child link="shoulder_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-1.5708" upper="3.14159" velocity="16.0" effort="20.0"/>
+    <limit lower="-1.5708" upper="3.14159" velocity="10.0" effort="10.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
   <!-- Joint 2: Shoulder roll -->
   <joint name="shoulder_roll_joint" type="revolute">
-    <origin xyz="0.029 1.02101e-17 -0.078" rpy="-1.5708 -9.59268e-17 1.5708"/>
+    <origin xyz="0.041 0 -0.078" rpy="-3.14159 -1.5708 0"/>
     <parent link="shoulder_link"/>
     <child link="upper_arm_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-3.14159" upper="0.112" velocity="16.0" effort="20.0"/>
+    <limit lower="0" upper="3.14159" velocity="10.0" effort="10.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
   <!-- Joint 3: Shoulder yaw -->
   <joint name="shoulder_yaw_joint" type="revolute">
-    <origin xyz="-0.157 -1.83881e-16 0.029" rpy="-1.5708 0.000395729 -1.5708"/>
+    <origin xyz="0 0.175 -0.041" rpy="1.5708 -0.000395729 0"/>
     <parent link="upper_arm_link"/>
     <child link="elbow_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-1.57119" upper="1.5704" velocity="16.0" effort="20.0"/>
+    <limit lower="-1.57119" upper="1.5704" velocity="10.0" effort="10.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
   <!-- Joint 4: Elbow pitch -->
   <joint name="elbow_pitch_joint" type="revolute">
-    <origin xyz="-0.023 4.35849e-17 -0.083" rpy="1.5708 -7.42674e-05 1.5708"/>
+    <origin xyz="-0.035 0 -0.065" rpy="-1.5708 0 1.5708"/>
     <parent link="elbow_link"/>
     <child link="upper_forearm_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-1.57087" upper="1.57072" velocity="16.0" effort="10.0"/>
+    <limit lower="-1.5708" upper="1.5708" velocity="10.0" effort="10.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
   <!-- Joint 5: Elbow yaw -->
   <joint name="elbow_yaw_joint" type="revolute">
-    <origin xyz="7.37257e-17 -0.151 0.023" rpy="-1.5708 -1.5708 0"/>
+    <origin xyz="0 0.168 -0.035" rpy="1.5708 1.5708 0"/>
     <parent link="upper_forearm_link"/>
     <child link="end_effector_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-1.5708" upper="1.5708" velocity="16.0" effort="10.0"/>
+    <limit lower="-1.5708" upper="1.5708" velocity="10.0" effort="10.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
-
 
 </robot>
