@@ -14,7 +14,7 @@
     <parent link="base_link"/>
     <child link="shoulder_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-1.5708" upper="3.14159" velocity="10.0" effort="10.0"/>
+    <limit lower="-1.5708" upper="3.14159" velocity="10.0" effort="40.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
@@ -24,7 +24,7 @@
     <parent link="shoulder_link"/>
     <child link="upper_arm_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="0" upper="3.14159" velocity="10.0" effort="10.0"/>
+    <limit lower="0" upper="3.14159" velocity="10.0" effort="40.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
@@ -34,7 +34,7 @@
     <parent link="upper_arm_link"/>
     <child link="elbow_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-1.57119" upper="1.5704" velocity="10.0" effort="10.0"/>
+    <limit lower="-1.57119" upper="1.5704" velocity="10.0" effort="40.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
@@ -44,7 +44,7 @@
     <parent link="elbow_link"/>
     <child link="upper_forearm_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-1.5708" upper="1.5708" velocity="10.0" effort="10.0"/>
+    <limit lower="-1.5708" upper="1.5708" velocity="10.0" effort="40.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
@@ -54,7 +54,7 @@
     <parent link="upper_forearm_link"/>
     <child link="end_effector_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-1.5708" upper="1.5708" velocity="10.0" effort="10.0"/>
+    <limit lower="-1.5708" upper="1.5708" velocity="10.0" effort="40.0"/>
     <dynamics damping="0.5" friction="0.1"/>
   </joint>
 
