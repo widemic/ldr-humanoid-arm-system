@@ -22,7 +22,7 @@ from rclpy.qos import (
     QoSReliabilityPolicy,
 )
 from sensor_msgs.msg import JointState, Joy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, PointStamped
 from moveit_msgs.srv import GetPositionIK
 
 import tf2_ros
@@ -49,10 +49,10 @@ class CartesianJoystickTeleop(Node):
             "axis_scales": [1.0, -1.0, 1.0],  # Invert Y for intuitive control
         },
         "dualsense": {
-            "axis_x": 1,      # Left stick Y (forward/back)
-            "axis_y": 0,      # Left stick X (left/right)
-            "axis_z": 3,      # Right stick Y (up/down)
-            "axis_scales": [1.0, -1.0, 1.0],  # Invert Y for intuitive control
+            "axis_x": 0,      # Left stick X (right=X+, left=X-)
+            "axis_y": 1,      # Left stick Y (up=Y+, down=Y-)
+            "axis_z": 3,      # Right stick Y (up=Z+, down=Z-)
+            "axis_scales": [-1.0, 1.0, 1.0],  # Invert X only
         },
     }
 
@@ -164,8 +164,12 @@ class CartesianJoystickTeleop(Node):
         # IK service client
         self._ik_client = self.create_client(GetPositionIK, '/compute_ik')
 
-        # Publisher
+        # Publishers
         self._command_pub = self.create_publisher(JointState, self._command_topic, 10)
+
+        # Debug publishers (only used when debug_mode=True)
+        self._target_pub = self.create_publisher(PointStamped, 'cartesian_teleop/target', 10)
+        self._current_pub = self.create_publisher(PointStamped, 'cartesian_teleop/current', 10)
 
         # Subscribers
         qos = QoSProfile(
@@ -536,6 +540,8 @@ class CartesianJoystickTeleop(Node):
                             f"[DEBUG] Target XYZ: ({target[0]:.3f}, {target[1]:.3f}, {target[2]:.3f}) | "
                             f"Current: {current_str} | IK: OK | Joints: [{joints_str}]"
                         )
+                        # Publish target and current for PlotJuggler
+                        self._publish_debug_points(target, current_pos)
                 else:
                     self._handle_ik_failure(target, current_pos, "Joint extraction failed")
             else:
@@ -583,6 +589,35 @@ class CartesianJoystickTeleop(Node):
                 f"[DEBUG] Target XYZ: ({target[0]:.3f}, {target[1]:.3f}, {target[2]:.3f}) | "
                 f"Current: {current_str} | IK: FAILED ({reason})"
             )
+            # Publish target and current for PlotJuggler
+            self._publish_debug_points(target, current_pos)
+
+    def _publish_debug_points(
+        self,
+        target: List[float],
+        current_pos: Optional[List[float]],
+    ) -> None:
+        """Publish target and current positions for PlotJuggler visualization."""
+        now = self.get_clock().now().to_msg()
+
+        # Publish target position
+        target_msg = PointStamped()
+        target_msg.header.stamp = now
+        target_msg.header.frame_id = self._base_frame
+        target_msg.point.x = target[0]
+        target_msg.point.y = target[1]
+        target_msg.point.z = target[2]
+        self._target_pub.publish(target_msg)
+
+        # Publish current position
+        if current_pos:
+            current_msg = PointStamped()
+            current_msg.header.stamp = now
+            current_msg.header.frame_id = self._base_frame
+            current_msg.point.x = current_pos[0]
+            current_msg.point.y = current_pos[1]
+            current_msg.point.z = current_pos[2]
+            self._current_pub.publish(current_msg)
 
 
 def main() -> None:
