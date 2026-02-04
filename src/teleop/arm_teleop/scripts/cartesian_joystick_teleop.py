@@ -61,13 +61,17 @@ class CartesianJoystickTeleop(Node):
         "capture": 3,       # Triangle (DualSense) / Y (Xbox)
         "resend": 0,        # Cross (DualSense) / A (Xbox)
         "home": 4,          # L1 (DualSense) / LB (Xbox)
+        "ready": 5,         # R1 (DualSense) / RB (Xbox)
+        "vertical": 1,      # Circle (DualSense) / B (Xbox)
         "toggle_debug": 8,  # Share (DualSense) / View (Xbox)
     }
 
     # Joint positions for preset poses (6 DOF)
     HOME_JOINTS = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     # Ready position - better for Cartesian control (not at singularity)
-    READY_JOINTS = [0.5, 0.5, 0.0, 0.5, 0.0, 0.0]
+    READY_JOINTS = [0.5, 0.5, 0.0, -0.5, 0.0, 0.0]
+    # Vertical position
+    VERTICAL_JOINTS = [1.0, 1.5, 0.0, 0.0, 0.0, 0.0]
 
     def __init__(self) -> None:
         super().__init__("cartesian_joystick_teleop")
@@ -128,6 +132,12 @@ class CartesianJoystickTeleop(Node):
         )
         self._home_button = int(
             self.declare_parameter("home_button", self.DEFAULT_BUTTONS["home"]).value
+        )
+        self._ready_button = int(
+            self.declare_parameter("ready_button", self.DEFAULT_BUTTONS["ready"]).value
+        )
+        self._vertical_button = int(
+            self.declare_parameter("vertical_button", self.DEFAULT_BUTTONS["vertical"]).value
         )
         self._toggle_debug_button = int(
             self.declare_parameter("toggle_debug_button", self.DEFAULT_BUTTONS["toggle_debug"]).value
@@ -261,8 +271,16 @@ class CartesianJoystickTeleop(Node):
             self._resend_target()
             return
         if button_idx == self._home_button:
+            self.get_logger().info("Home button pressed - moving to home position")
+            self._go_home()
+            return
+        if button_idx == self._ready_button:
             self.get_logger().info("Ready button pressed - moving to ready position")
             self._go_ready()
+            return
+        if button_idx == self._vertical_button:
+            self.get_logger().info("Vertical button pressed - moving to vertical position")
+            self._go_vertical()
             return
         if button_idx == self._toggle_debug_button:
             self._debug_mode = not self._debug_mode
@@ -426,6 +444,20 @@ class CartesianJoystickTeleop(Node):
         msg.position = list(self.READY_JOINTS)
         self._command_pub.publish(msg)
         self.get_logger().info("Sent ready joint command - wait for arm to move, then capture position")
+
+        # Reset target position (will re-initialize from TF after arm moves)
+        with self._lock:
+            self._tf_initialized = False
+            self._target_position = None
+
+    def _go_vertical(self) -> None:
+        """Send robot to vertical joint position."""
+        msg = JointState()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.name = list(self.JOINT_NAMES)
+        msg.position = list(self.VERTICAL_JOINTS)
+        self._command_pub.publish(msg)
+        self.get_logger().info("Sent vertical joint command - wait for arm to move, then capture position")
 
         # Reset target position (will re-initialize from TF after arm moves)
         with self._lock:
