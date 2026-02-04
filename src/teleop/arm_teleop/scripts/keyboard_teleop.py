@@ -81,6 +81,7 @@ class KeyboardTeleop(Node):
         "shoulder_yaw_joint",
         "elbow_pitch_joint",
         "elbow_yaw_joint",
+        "wrist_roll_joint",
     ]
     JOINT_LABELS = [
         "Shoulder pitch",
@@ -88,6 +89,7 @@ class KeyboardTeleop(Node):
         "Shoulder yaw",
         "Elbow pitch",
         "Elbow yaw",
+        "Wrist roll",
     ]
     JOINT_INDEX = {name: idx for idx, name in enumerate(JOINT_NAMES)}
 
@@ -102,11 +104,13 @@ class KeyboardTeleop(Node):
         "f": (3, -1.0),
         "t": (4, 1.0),
         "g": (4, -1.0),
+        "y": (5, 1.0),
+        "h": (5, -1.0),
     }
     PRESET_POSES = {
-        "home": [0.0, 0.0, 0.0, 0.0, 0.0],
-        "ready": [0.5, -0.5, 0.0, 0.5, 0.0],
-        "vertical": [1.0, -1.5, 0.0, 0.0, 0.0],
+        "home": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "ready": [0.5, 0.5, 0.0, 0.5, 0.0, 0.0],
+        "vertical": [1.0, 1.5, 0.0, 0.0, 0.0, 0.0],
     }
 
     def __init__(self) -> None:

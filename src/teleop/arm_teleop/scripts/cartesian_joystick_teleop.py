@@ -39,6 +39,7 @@ class CartesianJoystickTeleop(Node):
         "shoulder_yaw_joint",
         "elbow_pitch_joint",
         "elbow_yaw_joint",
+        "wrist_roll_joint",
     ]
 
     CONTROLLER_PROFILES: Dict[str, Dict[str, any]] = {
@@ -63,10 +64,10 @@ class CartesianJoystickTeleop(Node):
         "toggle_debug": 8,  # Share (DualSense) / View (Xbox)
     }
 
-    # Joint positions for preset poses
-    HOME_JOINTS = [0.0, 0.0, 0.0, 0.0, 0.0]
+    # Joint positions for preset poses (6 DOF)
+    HOME_JOINTS = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     # Ready position - better for Cartesian control (not at singularity)
-    READY_JOINTS = [0.5, -0.5, 0.0, 0.5, 0.0]
+    READY_JOINTS = [0.5, 0.5, 0.0, 0.5, 0.0, 0.0]
 
     def __init__(self) -> None:
         super().__init__("cartesian_joystick_teleop")

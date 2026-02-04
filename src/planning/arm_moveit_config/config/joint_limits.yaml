@@ -36,3 +36,8 @@ joint_limits:
     max_velocity: 16.0  # rad/s (from URDF)
     has_acceleration_limits: true
     max_acceleration: 20.0  # rad/s² (elbow yaw - lighter load)
+  wrist_roll_joint:
+    has_velocity_limits: true
+    max_velocity: 16.0  # rad/s (from URDF)
+    has_acceleration_limits: true
+    max_acceleration: 20.0  # rad/s² (wrist roll - light load)

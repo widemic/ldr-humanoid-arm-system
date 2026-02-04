@@ -35,22 +35,23 @@ class JoystickTeleop(Node):
         "shoulder_yaw_joint",
         "elbow_pitch_joint",
         "elbow_yaw_joint",
+        "wrist_roll_joint",
     ]
     JOINT_INDEX = {name: idx for idx, name in enumerate(JOINT_NAMES)}
     CONTROLLER_PROFILES: Dict[str, Dict[str, List[float]]] = {
         "xbox": {
-            "axis_bindings": [1, 0, 3, 4, 2],
-            "axis_scales": [0.8, 0.6, 0.6, 0.8, 0.6],
+            "axis_bindings": [1, 0, 3, 4, 2, 5],
+            "axis_scales": [0.8, 0.6, 0.6, 0.8, 0.6, 0.6],
         },
         "dualsense": {
-            "axis_bindings": [1, 0, 2, 3, 4],
-            "axis_scales": [5.0, 5.0, 5.0, 5.0, 5.0],
+            "axis_bindings": [1, 0, 2, 3, 4, 5],
+            "axis_scales": [5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
         },
     }
     PRESET_POSES: Dict[str, List[float]] = {
-        "home": [0.0, 0.0, 0.0, 0.0, 0.0],
-        "ready": [0.5, -0.5, 0.0, 0.5, 0.0],
-        "vertical": [1.0, -1.5, 0.0, 0.0, 0.0],
+        "home": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "ready": [0.5, 0.5, 0.0, 0.5, 0.0, 0.0],
+        "vertical": [1.0, 1.5, 0.0, 0.0, 0.0, 0.0],
     }
     DEFAULT_PRESET_BUTTONS = {
         "home": 4,      # LB

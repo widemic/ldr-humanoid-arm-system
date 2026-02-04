@@ -106,7 +106,7 @@
     </collision>
   </link>
 
-  <!-- Link 1: Shoulder (pitch rotation) -->
+  <!-- Link 1: Shoulder -->
   <link name="shoulder_link">
     <inertial>
       <origin xyz="-0.00526655 -5.01444e-05 -0.0747997" rpy="0 0 0"/>
@@ -171,7 +171,7 @@
     </collision>
   </link>
 
-  <!-- Link 2: Upper arm (roll rotation) -->
+  <!-- Link 2: Upper arm -->
   <link name="upper_arm_link">
     <inertial>
       <origin xyz="0.000527863 0.112716 -0.0353918" rpy="0 0 0"/>
@@ -240,7 +240,7 @@
     </collision>
   </link>
 
-  <!-- Link 3: Elbow (yaw rotation) -->
+  <!-- Link 3: Elbow -->
   <link name="elbow_link">
     <inertial>
       <origin xyz="0.0100547 -0.000241015 -0.0630889" rpy="0 0 0"/>
@@ -305,7 +305,7 @@
     </collision>
   </link>
 
-  <!-- Link 4: Upper forearm (pitch rotation) -->
+  <!-- Link 4: Upper forearm -->
   <link name="upper_forearm_link">
     <inertial>
       <origin xyz="0.000989597 0.111651 -0.0320435" rpy="0 0 0"/>
@@ -370,44 +370,97 @@
     </collision>
   </link>
 
-  <!-- Link 5: End effector (lower forearm with hand and fingers) -->
-  <link name="end_effector_link">
+  <!-- Link 5: Lower forearm -->
+  <link name="lower_forearm_link">
     <inertial>
-      <origin xyz="-0.00112403 0.00121856 -0.125798" rpy="0 0 0"/>
-      <mass value="0.578"/>
-      <inertia ixx="0.00413859" ixy="-1.05389e-05" ixz="7.52215e-05" iyy="0.00406943" iyz="4.22994e-05" izz="0.000463612"/>
+      <origin xyz="-0.000489596 -0.0073574 -0.0580014" rpy="0 0 0"/>
+      <mass value="1.29529"/>
+      <inertia ixx="0.000900028" ixy="-5.08249e-06" ixz="2.89909e-05" iyy="0.000825354" iyz="-2.4554e-05" izz="0.000743839"/>
     </inertial>
     <!-- Part hand_limiter -->
     <visual>
-      <origin xyz="-0.0317086 -0.0248862 -0.00779106" rpy="-7.42674e-05 0 0"/>
+      <origin xyz="-0.0317086 -0.0248862 -0.0127911" rpy="-7.42674e-05 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/hand_limiter.stl"/>
       </geometry>
       <material name="yellow"/>
     </visual>
     <collision>
-      <origin xyz="-0.0317086 -0.0248862 -0.00779106" rpy="-7.42674e-05 0 0"/>
+      <origin xyz="-0.0317086 -0.0248862 -0.0127911" rpy="-7.42674e-05 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/hand_limiter.stl"/>
       </geometry>
     </collision>
     <!-- Part l_lower_forearm -->
     <visual>
-      <origin xyz="-6.05561e-05 0.00294052 -0.058703" rpy="0 0 0"/>
+      <origin xyz="0 0.00195591 -0.0398386" rpy="0 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/l_lower_forearm.stl"/>
       </geometry>
-      <material name="light_blue"/>
+      <material name="teal">
+        <color rgba="0.537255 0.854902 0.827451 1"/>
+      </material>
     </visual>
     <collision>
-      <origin xyz="-6.05561e-05 0.00294052 -0.058703" rpy="0 0 0"/>
+      <origin xyz="0 0.00195591 -0.0398386" rpy="0 0 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/l_lower_forearm.stl"/>
       </geometry>
     </collision>
+    <!-- Part rotor_x4_p36_36_3 -->
+    <visual>
+      <origin xyz="0 -0.038 -0.0615" rpy="1.5708 0 3.14159"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/rotor_x4_p36_36.stl"/>
+      </geometry>
+      <material name="dark_purple"/>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.038 -0.0615" rpy="1.5708 0 3.14159"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/rotor_x4_p36_36.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part stator_x4_p36_36_3 -->
+    <visual>
+      <origin xyz="0 -0.038 -0.0615" rpy="1.5708 0 3.14159"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/stator_x4_p36_36.stl"/>
+      </geometry>
+      <material name="light_purple"/>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.038 -0.0615" rpy="1.5708 0 3.14159"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/stator_x4_p36_36.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Link 6: End effector (wrist with hand and fingers) -->
+  <link name="end_effector_link">
+    <inertial>
+      <origin xyz="-5.18072e-05 0.112389 -0.0262499" rpy="0 0 0"/>
+      <mass value="0.398"/>
+      <inertia ixx="0.00159798" ixy="-1.08516e-06" ixz="-7.58273e-08" iyy="0.000261878" iyz="7.53453e-05" izz="0.00147321"/>
+    </inertial>
+    <!-- Part l_wrist -->
+    <visual>
+      <origin xyz="-0.000210278 0.0435776 -0.0192949" rpy="1.5708 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/l_wrist.stl"/>
+      </geometry>
+      <material name="light_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.000210278 0.0435776 -0.0192949" rpy="1.5708 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_description/meshes/visual/l_wrist.stl"/>
+      </geometry>
+    </collision>
     <!-- Part hand -->
     <visual>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/hand.stl"/>
       </geometry>
@@ -416,73 +469,73 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/hand.stl"/>
       </geometry>
     </collision>
     <!-- Fingers f1-f5 -->
     <visual>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f1.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f1.stl"/>
       </geometry>
     </collision>
     <visual>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f2.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f2.stl"/>
       </geometry>
     </collision>
     <visual>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f3.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f3.stl"/>
       </geometry>
     </collision>
     <visual>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f4.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f4.stl"/>
       </geometry>
     </collision>
     <visual>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f5.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.235" rpy="0 0 1.5708"/>
+      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://arm_description/meshes/visual/f5.stl"/>
       </geometry>

@@ -19,6 +19,7 @@ arm_controller:
       - shoulder_yaw_joint
       - elbow_pitch_joint
       - elbow_yaw_joint
+      - wrist_roll_joint
 
     command_interfaces:
       - position

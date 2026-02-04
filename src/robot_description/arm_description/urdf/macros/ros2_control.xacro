@@ -6,7 +6,7 @@
                 <plugin>gz_ros2_control/GazeboSimSystem</plugin>
             </hardware>
 
-            <!-- Arm joints (5 DOF) -->
+            <!-- Arm joints (6 DOF) -->
             <joint name="shoulder_pitch_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
@@ -32,6 +32,12 @@
                 <state_interface name="effort"/>
             </joint>
             <joint name="elbow_yaw_joint">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="wrist_roll_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>

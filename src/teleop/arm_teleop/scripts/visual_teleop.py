@@ -30,6 +30,7 @@ class VisualTeleop(Node):
         "shoulder_yaw_joint",
         "elbow_pitch_joint",
         "elbow_yaw_joint",
+        "wrist_roll_joint",
     ]
 
     def __init__(self) -> None:

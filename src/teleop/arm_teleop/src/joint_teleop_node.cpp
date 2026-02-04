@@ -34,7 +34,8 @@ public:
          "shoulder_roll_joint",
          "shoulder_yaw_joint",
          "elbow_pitch_joint",
-         "elbow_yaw_joint"});
+         "elbow_yaw_joint",
+         "wrist_roll_joint"});
 
     if (joint_order_.empty())
     {

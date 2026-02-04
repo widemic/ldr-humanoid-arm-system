@@ -14,5 +14,6 @@ moveit_simple_controller_manager:
       - shoulder_yaw_joint
       - elbow_pitch_joint
       - elbow_yaw_joint
+      - wrist_roll_joint
     action_ns: follow_joint_trajectory
     default: true
