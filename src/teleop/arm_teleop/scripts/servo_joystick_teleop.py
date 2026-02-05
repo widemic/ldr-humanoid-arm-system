@@ -8,9 +8,9 @@ Controls (DualSense, hold L1 to enable):
   Left stick Y (up/down)      → Move forward/backward (X axis)
   Left stick X (left/right)   → Move left/right (Y axis)
   Right stick Y (up/down)     → Move up/down (Z axis)
-  Right stick X (left/right)  → Yaw   (rotation around Z)
+  Right stick X (left/right)  → Pitch (rotation around Y)
   D-pad up/down               → Roll  (rotation around X)
-  D-pad left/right            → Pitch (rotation around Y)
+  D-pad left/right            → Yaw   (rotation around Z)
 
 Gripper:
   L2 (axis 2)  → Open gripper
@@ -83,22 +83,22 @@ class ServoJoystickTeleop(Node):
         # Left stick X (axis 0) → robot X (left=-X, right=+X)
         # Left stick Y (axis 1) → robot Y (up=+Y, down=-Y)
         # Right stick Y (axis 4) → robot Z (up=+Z, down=-Z)
-        # Right stick X (axis 3) → yaw
+        # Right stick X (axis 3) → pitch
         self._axis_x = 0          # Left stick X → robot X
         self._axis_y = 1          # Left stick Y → robot Y
         self._axis_z = 4          # Right stick Y → robot Z
-        self._axis_yaw = 3        # Right stick X → yaw
+        self._axis_pitch = 3      # Right stick X → pitch
 
         self._scale_x = -1.0      # left=-X, right=+X
         self._scale_y = 1.0       # up=+Y, down=-Y
         self._scale_z = 1.0       # up=+Z, down=-Z
-        self._scale_yaw = -1.0
+        self._scale_pitch = -1.0
 
         # D-pad axis mapping (discrete: -1, 0, +1)
-        self._axis_dpad_x = 6     # D-pad left/right → pitch
+        self._axis_dpad_x = 6     # D-pad left/right → yaw
         self._axis_dpad_y = 7     # D-pad up/down → roll
         self._scale_roll = 1.0
-        self._scale_pitch = 1.0
+        self._scale_yaw = 1.0
 
         # Trigger axis mapping (1.0=released, -1.0=fully pressed)
         self._axis_l2 = 2         # L2 → open gripper
@@ -267,15 +267,15 @@ class ServoJoystickTeleop(Node):
             if self._debug_mode:
                 self.get_logger().info("Servo activated")
 
-        # Sticks → translation + yaw
+        # Sticks → translation + pitch
         vx = self._get_axis(axes, self._axis_x) * self._scale_x * self._linear_scale
         vy = self._get_axis(axes, self._axis_y) * self._scale_y * self._linear_scale
         vz = self._get_axis(axes, self._axis_z) * self._scale_z * self._linear_scale
-        wz = self._get_axis(axes, self._axis_yaw) * self._scale_yaw * self._angular_scale
+        wy = self._get_axis(axes, self._axis_pitch) * self._scale_pitch * self._angular_scale
 
-        # D-pad → roll and pitch (dpad_y=roll/X, dpad_x=pitch/Y)
+        # D-pad → roll and yaw (dpad_y=roll/X, dpad_x=yaw/Z)
         wx = self._get_axis(axes, self._axis_dpad_y) * self._scale_roll * self._angular_scale
-        wy = self._get_axis(axes, self._axis_dpad_x) * self._scale_pitch * self._angular_scale
+        wz = self._get_axis(axes, self._axis_dpad_x) * self._scale_yaw * self._angular_scale
 
         twist = TwistStamped()
         twist.header.stamp = self.get_clock().now().to_msg()
