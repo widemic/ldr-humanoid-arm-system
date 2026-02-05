@@ -12,6 +12,10 @@ Controls (DualSense, hold L1 to enable):
   D-pad up/down               → Roll  (rotation around X)
   D-pad left/right            → Pitch (rotation around Y)
 
+Gripper:
+  L2 (axis 2)  → Open gripper
+  R2 (axis 5)  → Close gripper
+
 Buttons:
   L1 (4)       → Enable servo (hold to move)
   R1 (5)       → Go to ready position
@@ -30,6 +34,8 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import TwistStamped
 from std_msgs.msg import Float64MultiArray
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from builtin_interfaces.msg import Duration
 from moveit_msgs.srv import ServoCommandType
 
 
@@ -94,6 +100,15 @@ class ServoJoystickTeleop(Node):
         self._scale_roll = 1.0
         self._scale_pitch = 1.0
 
+        # Trigger axis mapping (1.0=released, -1.0=fully pressed)
+        self._axis_l2 = 2         # L2 → open gripper
+        self._axis_r2 = 5         # R2 → close gripper
+        self._trigger_threshold = 0.0  # pressed when axis < this
+
+        # Gripper positions
+        self._gripper_open = -0.04   # fully open
+        self._gripper_closed = 0.0   # fully closed
+
         # Button mapping
         self._enable_button = 4   # L1 - enable servo
         self._ready_button = 5    # R1
@@ -108,6 +123,7 @@ class ServoJoystickTeleop(Node):
         self._servo_ready = False
         self._servo_active = False
         self._command_type_set = False
+        self._gripper_state: Optional[str] = None  # "open" or "closed"
 
         # Service client for setting command type
         self._switch_command_type_client = self.create_client(
@@ -122,6 +138,12 @@ class ServoJoystickTeleop(Node):
         self._position_pub = self.create_publisher(
             Float64MultiArray,
             "/servo_controller/commands",
+            10
+        )
+        # Gripper trajectory commands to hand_controller
+        self._gripper_pub = self.create_publisher(
+            JointTrajectory,
+            "/hand_controller/joint_trajectory",
             10
         )
 
@@ -204,6 +226,17 @@ class ServoJoystickTeleop(Node):
         self._position_pub.publish(msg)
         self.get_logger().info(f"Sent {name} position via servo_controller")
 
+    def _send_gripper(self, position: float, name: str) -> None:
+        """Send gripper command to hand_controller."""
+        msg = JointTrajectory()
+        msg.joint_names = ["left_palm_right_finger"]
+        point = JointTrajectoryPoint()
+        point.positions = [position]
+        point.time_from_start = Duration(sec=0, nanosec=500000000)
+        msg.points = [point]
+        self._gripper_pub.publish(msg)
+        self.get_logger().info(f"Gripper: {name} ({position})")
+
     def _control_loop(self) -> None:
         """Main control loop."""
         if not self._servo_ready:
@@ -255,6 +288,21 @@ class ServoJoystickTeleop(Node):
         twist.twist.angular.z = wz
 
         self._twist_pub.publish(twist)
+
+        # L2/R2 triggers → gripper open/close
+        l2_val = axes[self._axis_l2] if self._axis_l2 < len(axes) else 1.0
+        r2_val = axes[self._axis_r2] if self._axis_r2 < len(axes) else 1.0
+        l2_pressed = l2_val < self._trigger_threshold
+        r2_pressed = r2_val < self._trigger_threshold
+
+        if l2_pressed and self._gripper_state != "open":
+            self._send_gripper(self._gripper_open, "open")
+            self._gripper_state = "open"
+        elif r2_pressed and self._gripper_state != "closed":
+            self._send_gripper(self._gripper_closed, "close")
+            self._gripper_state = "closed"
+        elif not l2_pressed and not r2_pressed:
+            self._gripper_state = None  # reset so next press triggers again
 
         if self._debug_mode:
             has_lin = abs(vx) > 0.01 or abs(vy) > 0.01 or abs(vz) > 0.01
