@@ -49,6 +49,9 @@
   <exec_depend>gazebo_msgs</exec_depend>
   <exec_depend>python3-yaml</exec_depend>
 
+  <!-- MoveIt Servo for real-time control -->
+  <exec_depend>moveit_servo</exec_depend>
+
   <!-- MoveIt Task Constructor dependencies -->
   <exec_depend>moveit_task_constructor_core</exec_depend>
   <exec_depend>moveit_task_constructor_msgs</exec_depend>

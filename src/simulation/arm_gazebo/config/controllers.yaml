@@ -8,6 +8,9 @@ controller_manager:
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
+    servo_controller:
+      type: forward_command_controller/ForwardCommandController
+
 
 arm_controller:
   ros__parameters:
@@ -24,3 +27,14 @@ arm_controller:
       - position
       - velocity
     allow_nonzero_velocity_at_trajectory_end: true
+
+servo_controller:
+  ros__parameters:
+    joints:
+      - shoulder_pitch_joint
+      - shoulder_roll_joint
+      - shoulder_yaw_joint
+      - elbow_pitch_joint
+      - elbow_yaw_joint
+      - wrist_roll_joint
+    interface_name: position

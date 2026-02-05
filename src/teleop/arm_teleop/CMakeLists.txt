@@ -34,6 +34,7 @@ install(
     scripts/joystick_teleop.py
     scripts/cartesian_joystick_teleop.py
     scripts/visual_teleop.py
+    scripts/servo_joystick_teleop.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
