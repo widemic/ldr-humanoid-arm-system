@@ -61,9 +61,22 @@ def generate_launch_description():
         output="screen"
     )
 
+    spawner_hand = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "hand_controller",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "20",
+            "--switch-timeout", "20",
+        ],
+        output="screen"
+    )
+
     return LaunchDescription([
         rsp,
         # controller_manager,
         TimerAction(period=6.0, actions=[spawner_jsb]),
         TimerAction(period=10.0, actions=[spawner_arm]),
+        TimerAction(period=12.0, actions=[spawner_hand]),
     ])

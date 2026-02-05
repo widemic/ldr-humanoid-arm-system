@@ -41,3 +41,13 @@ joint_limits:
     max_velocity: 16.0  # rad/s (from URDF)
     has_acceleration_limits: true
     max_acceleration: 20.0  # rad/s² (wrist roll - light load)
+  left_palm_right_finger:
+    has_velocity_limits: true
+    max_velocity: 0.05  # m/s (gripper linear motion)
+    has_acceleration_limits: true
+    max_acceleration: 0.1  # m/s²
+  left_palm_left_finger:
+    has_velocity_limits: true
+    max_velocity: 0.05  # m/s (gripper linear motion)
+    has_acceleration_limits: true
+    max_acceleration: 0.1  # m/s²

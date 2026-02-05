@@ -437,12 +437,12 @@
     </collision>
   </link>
 
-  <!-- Link 6: End effector (wrist with hand and fingers) -->
+  <!-- Link 6: End effector (wrist only) -->
   <link name="end_effector_link">
     <inertial>
-      <origin xyz="-5.18072e-05 0.112389 -0.0262499" rpy="0 0 0"/>
-      <mass value="0.398"/>
-      <inertia ixx="0.00159798" ixy="-1.08516e-06" ixz="-7.58273e-08" iyy="0.000261878" iyz="7.53453e-05" izz="0.00147321"/>
+      <origin xyz="-0.0002 0.044 -0.019" rpy="0 0 0"/>
+      <mass value="0.15"/>
+      <inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0002"/>
     </inertial>
     <!-- Part l_wrist -->
     <visual>
@@ -458,86 +458,72 @@
         <mesh filename="package://arm_description/meshes/visual/l_wrist.stl"/>
       </geometry>
     </collision>
-    <!-- Part hand -->
+  </link>
+
+  <!-- Gripper: Palm -->
+  <link name="left_palm">
+    <inertial>
+      <origin xyz="0 0.0065 0" rpy="0 0 0"/>
+      <mass value="0.048"/>
+      <inertia ixx="0.000148" ixy="0" ixz="0" iyy="0.000377" iyz="0" izz="0.000285"/>
+    </inertial>
     <visual>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/hand.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/left_palm.stl"/>
       </geometry>
-      <material name="white">
-        <color rgba="1 1 1 1"/>
+      <material name="grey">
+        <color rgba="0.698 0.698 0.698 1"/>
       </material>
     </visual>
     <collision>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/hand.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/left_palm.stl"/>
       </geometry>
     </collision>
-    <!-- Fingers f1-f5 -->
+  </link>
+
+  <!-- Gripper: Right finger (controlled) -->
+  <link name="left_palm_right_finger_link">
+    <inertial>
+      <origin xyz="0.022 0.050 0" rpy="0 0 0"/>
+      <mass value="0.029"/>
+      <inertia ixx="0.000106" ixy="1.28e-05" ixz="0" iyy="4.91e-05" iyz="0" izz="8.9e-05"/>
+    </inertial>
     <visual>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="-0.005 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f1.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/left_palm_right_finger.stl"/>
       </geometry>
-      <material name="white"/>
+      <material name="grey"/>
     </visual>
     <collision>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="-0.005 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f1.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/left_palm_right_finger.stl"/>
       </geometry>
     </collision>
+  </link>
+
+  <!-- Gripper: Left finger (mimic) -->
+  <link name="left_palm_left_finger_link">
+    <inertial>
+      <origin xyz="-0.017 0.050 0" rpy="0 0 0"/>
+      <mass value="0.029"/>
+      <inertia ixx="0.000106" ixy="-1.28e-05" ixz="0" iyy="4.91e-05" iyz="0" izz="8.9e-05"/>
+    </inertial>
     <visual>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f2.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/left_palm_left_finger.stl"/>
       </geometry>
-      <material name="white"/>
+      <material name="grey"/>
     </visual>
     <collision>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f2.stl"/>
-      </geometry>
-    </collision>
-    <visual>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f3.stl"/>
-      </geometry>
-      <material name="white"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f3.stl"/>
-      </geometry>
-    </collision>
-    <visual>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f4.stl"/>
-      </geometry>
-      <material name="white"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f4.stl"/>
-      </geometry>
-    </collision>
-    <visual>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f5.stl"/>
-      </geometry>
-      <material name="white"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0.1785 -0.03" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://arm_description/meshes/visual/f5.stl"/>
+        <mesh filename="package://arm_description/meshes/visual/left_palm_left_finger.stl"/>
       </geometry>
     </collision>
   </link>

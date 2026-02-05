@@ -11,6 +11,9 @@ controller_manager:
     servo_controller:
       type: forward_command_controller/ForwardCommandController
 
+    hand_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
 
 arm_controller:
   ros__parameters:
@@ -38,3 +41,18 @@ servo_controller:
       - elbow_yaw_joint
       - wrist_roll_joint
     interface_name: position
+
+hand_controller:
+  ros__parameters:
+    joints:
+      - left_palm_right_finger
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+    allow_partial_joints_goal: false
+    allow_integration_in_goal_trajectories: true

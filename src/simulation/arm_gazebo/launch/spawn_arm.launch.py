@@ -77,6 +77,23 @@ def generate_launch_description():
         actions=[arm_controller_spawner]
     )
 
+    hand_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "hand_controller",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "20",
+            "--switch-timeout", "20",
+        ],
+        output="screen",
+    )
+
+    hand_controller_node = TimerAction(
+        period=10.0,  # wait to ensure arm controller is active
+        actions=[hand_controller_spawner]
+    )
+
     # Spawn robot in Gazebo
     spawn_entity = TimerAction(
         period=1.0,  # Wait 3 seconds for Gazebo to initialize
@@ -145,6 +162,7 @@ def generate_launch_description():
         robot_state_publisher,
         joint_state_broadcaster_node,
         arm_controller_node,
+        hand_controller_node,
         spawn_entity,
         camera_bridge,
         camera_frame_fix,

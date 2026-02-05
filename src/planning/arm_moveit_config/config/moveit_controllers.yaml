@@ -5,6 +5,7 @@ moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControll
 moveit_simple_controller_manager:
   controller_names:
     - arm_controller
+    - hand_controller
 
   arm_controller:
     type: FollowJointTrajectory
@@ -15,5 +16,13 @@ moveit_simple_controller_manager:
       - elbow_pitch_joint
       - elbow_yaw_joint
       - wrist_roll_joint
+    action_ns: follow_joint_trajectory
+    default: true
+
+  hand_controller:
+    type: FollowJointTrajectory
+    joints:
+      - left_palm_right_finger
+      - left_palm_left_finger
     action_ns: follow_joint_trajectory
     default: true
