@@ -72,14 +72,18 @@ class ServoJoystickTeleop(Node):
         )
 
         # DualSense axis mapping
-        self._axis_x = 1          # Left stick Y → robot X
-        self._axis_y = 0          # Left stick X → robot Y
-        self._axis_z = 3          # Right stick Y → robot Z
-        self._axis_yaw = 2        # Right stick X → yaw
+        # Left stick X (axis 0) → robot X (left=-X, right=+X)
+        # Left stick Y (axis 1) → robot Y (up=+Y, down=-Y)
+        # Right stick Y (axis 4) → robot Z (up=+Z, down=-Z)
+        # Right stick X (axis 3) → yaw
+        self._axis_x = 0          # Left stick X → robot X
+        self._axis_y = 1          # Left stick Y → robot Y
+        self._axis_z = 4          # Right stick Y → robot Z
+        self._axis_yaw = 3        # Right stick X → yaw
 
-        self._scale_x = 1.0
-        self._scale_y = -1.0
-        self._scale_z = 1.0
+        self._scale_x = -1.0      # left=-X, right=+X
+        self._scale_y = 1.0       # up=+Y, down=-Y
+        self._scale_z = 1.0       # up=+Z, down=-Z
         self._scale_yaw = -1.0
 
         # Button mapping
