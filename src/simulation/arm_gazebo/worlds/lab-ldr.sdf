@@ -159,7 +159,7 @@
     <model name="test_table">
       <static>true</static>
       <!-- Size 0.5 x 0.3 x 0.95 so surface sits at z=0.95 while resting on ground -->
-      <pose>-0.95 0.35 0.475 0 0 0</pose>
+      <pose>-1.95 0.35 0.475 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
@@ -184,7 +184,7 @@
 
     <!-- Lever object placed on source table center (pickable) -->
     <model name="lever">
-      <pose>-0.95 0.35 1.025 0 0 0</pose>
+      <pose>-1.95 0.35 1.025 0 0 0</pose>
       <link name="lever_arm">
         <collision name="collision">
           <geometry>
@@ -239,7 +239,7 @@
     <model name="destination_table">
       <static>true</static>
       <!-- Same size/height as source table -->
-      <pose>-0.95 -0.35 0.475 0 0 0</pose>
+      <pose>-1.95 -0.35 0.475 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
