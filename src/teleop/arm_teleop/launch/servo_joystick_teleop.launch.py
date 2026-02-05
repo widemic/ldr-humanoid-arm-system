@@ -48,7 +48,7 @@ def generate_launch_description():
         "moveit_servo.move_group_name": "arm",
         "moveit_servo.planning_frame": "base_link",
         "moveit_servo.ee_frame_name": "end_effector_link",
-        "moveit_servo.robot_link_command_frame": "base_link",
+        "moveit_servo.robot_link_command_frame": "end_effector_link",
         "moveit_servo.command_in_type": "speed_units",
         "moveit_servo.scale.linear": LaunchConfiguration("linear_scale"),
         "moveit_servo.scale.rotational": LaunchConfiguration("angular_scale"),
@@ -70,7 +70,7 @@ def generate_launch_description():
         "moveit_servo.lower_singularity_threshold": 1e9,
         "moveit_servo.hard_stop_singularity_threshold": 1e10,
         "moveit_servo.leaving_singularity_threshold_multiplier": 1.0,
-        "moveit_servo.joint_limit_margins": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+        "moveit_servo.joint_limit_margins": [0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
         "moveit_servo.incoming_command_timeout": PythonExpression(
             ["2.0 / ", LaunchConfiguration("publish_rate")]
         ),
@@ -171,7 +171,7 @@ def generate_launch_description():
                     "linear_scale": LaunchConfiguration("linear_scale"),
                     "angular_scale": LaunchConfiguration("angular_scale"),
                     "servo_topic": "/servo_node/delta_twist_cmds",
-                    "frame_id": "base_link",
+                    "frame_id": "end_effector_link",
                     "publish_rate": LaunchConfiguration("publish_rate"),
                     "deadzone": 0.1,
                 }],
