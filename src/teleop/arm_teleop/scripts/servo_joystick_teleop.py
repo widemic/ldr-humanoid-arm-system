@@ -4,11 +4,13 @@ MoveIt Servo joystick teleoperation for the LDR humanoid arm.
 
 Publishes TwistStamped commands to MoveIt Servo for real-time Cartesian control.
 
-Controls (DualSense):
-  Left stick Y (up/down)    → Move forward/backward (X axis)
-  Left stick X (left/right) → Move left/right (Y axis)
-  Right stick Y (up/down)   → Move up/down (Z axis)
-  Right stick X (left/right) → Rotate around Z (yaw)
+Controls (DualSense, hold L1 to enable):
+  Left stick Y (up/down)      → Move forward/backward (X axis)
+  Left stick X (left/right)   → Move left/right (Y axis)
+  Right stick Y (up/down)     → Move up/down (Z axis)
+  Right stick X (left/right)  → Yaw   (rotation around Z)
+  D-pad up/down               → Roll  (rotation around X)
+  D-pad left/right            → Pitch (rotation around Y)
 
 Buttons:
   L1 (4)       → Enable servo (hold to move)
@@ -86,8 +88,14 @@ class ServoJoystickTeleop(Node):
         self._scale_z = 1.0       # up=+Z, down=-Z
         self._scale_yaw = -1.0
 
+        # D-pad axis mapping (discrete: -1, 0, +1)
+        self._axis_dpad_x = 6     # D-pad left/right → pitch
+        self._axis_dpad_y = 7     # D-pad up/down → roll
+        self._scale_roll = 1.0
+        self._scale_pitch = 1.0
+
         # Button mapping
-        self._enable_button = 4   # L1
+        self._enable_button = 4   # L1 - enable servo
         self._ready_button = 5    # R1
         self._home_button = 3     # Triangle
         self._toggle_debug = 8    # Share
@@ -226,25 +234,35 @@ class ServoJoystickTeleop(Node):
             if self._debug_mode:
                 self.get_logger().info("Servo activated")
 
-        # Get axis values
+        # Sticks → translation + yaw
         vx = self._get_axis(axes, self._axis_x) * self._scale_x * self._linear_scale
         vy = self._get_axis(axes, self._axis_y) * self._scale_y * self._linear_scale
         vz = self._get_axis(axes, self._axis_z) * self._scale_z * self._linear_scale
         wz = self._get_axis(axes, self._axis_yaw) * self._scale_yaw * self._angular_scale
 
-        # Publish twist
+        # D-pad → roll and pitch (dpad_y=roll/X, dpad_x=pitch/Y)
+        wx = self._get_axis(axes, self._axis_dpad_y) * self._scale_roll * self._angular_scale
+        wy = self._get_axis(axes, self._axis_dpad_x) * self._scale_pitch * self._angular_scale
+
         twist = TwistStamped()
         twist.header.stamp = self.get_clock().now().to_msg()
         twist.header.frame_id = self._frame_id
         twist.twist.linear.x = vx
         twist.twist.linear.y = vy
         twist.twist.linear.z = vz
+        twist.twist.angular.x = wx
+        twist.twist.angular.y = wy
         twist.twist.angular.z = wz
 
         self._twist_pub.publish(twist)
 
-        if self._debug_mode and (abs(vx) > 0.01 or abs(vy) > 0.01 or abs(vz) > 0.01 or abs(wz) > 0.01):
-            self.get_logger().info(f"Twist: ({vx:.2f}, {vy:.2f}, {vz:.2f}) rot: {wz:.2f}")
+        if self._debug_mode:
+            has_lin = abs(vx) > 0.01 or abs(vy) > 0.01 or abs(vz) > 0.01
+            has_rot = abs(wx) > 0.01 or abs(wy) > 0.01 or abs(wz) > 0.01
+            if has_lin or has_rot:
+                self.get_logger().info(
+                    f"lin:({vx:.2f},{vy:.2f},{vz:.2f}) rot:({wx:.2f},{wy:.2f},{wz:.2f})"
+                )
 
     def _publish_zero_twist(self) -> None:
         """Stop movement."""
