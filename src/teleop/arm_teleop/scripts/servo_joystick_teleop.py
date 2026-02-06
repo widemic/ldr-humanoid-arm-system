@@ -12,14 +12,14 @@ Controls (DualSense, hold L1 to enable):
   D-pad up/down               → Roll  (rotation around X)
   D-pad left/right            → Yaw   (rotation around Z)
 
-Gripper:
+Gripper (works without L1):
   L2 (axis 2)  → Open gripper
   R2 (axis 5)  → Close gripper
 
 Buttons:
   L1 (4)       → Enable servo (hold to move)
-  R1 (5)       → Go to ready position
-  Triangle (3) → Go to home position
+  Square (0)   → Go to home position
+  Circle (2)   → Go to ready position
   Share (8)    → Toggle debug mode
 """
 
@@ -37,6 +37,7 @@ from std_msgs.msg import Float64MultiArray
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
 from moveit_msgs.srv import ServoCommandType
+from std_srvs.srv import SetBool
 
 
 class ServoJoystickTeleop(Node):
@@ -111,8 +112,8 @@ class ServoJoystickTeleop(Node):
 
         # Button mapping
         self._enable_button = 4   # L1 - enable servo
-        self._ready_button = 5    # R1
-        self._home_button = 3     # Triangle
+        self._home_button = 3     # Square
+        self._ready_button = 1    # Circle
         self._toggle_debug = 8    # Share
 
         # State
@@ -129,6 +130,12 @@ class ServoJoystickTeleop(Node):
         self._switch_command_type_client = self.create_client(
             ServoCommandType,
             "/servo_node/switch_command_type",
+            callback_group=self._callback_group
+        )
+        # Service client for pausing servo
+        self._pause_servo_client = self.create_client(
+            SetBool,
+            "/servo_node/pause_servo",
             callback_group=self._callback_group
         )
 
@@ -212,19 +219,30 @@ class ServoJoystickTeleop(Node):
     def _handle_button(self, button_idx: int) -> None:
         """Handle button press."""
         if button_idx == self._home_button:
-            self._send_position(self.HOME_JOINTS, "home")
+            self._go_to_position(self.HOME_JOINTS, "home")
         elif button_idx == self._ready_button:
-            self._send_position(self.READY_JOINTS, "ready")
+            self._go_to_position(self.READY_JOINTS, "ready")
         elif button_idx == self._toggle_debug:
             self._debug_mode = not self._debug_mode
             self.get_logger().info(f"Debug mode: {self._debug_mode}")
 
-    def _send_position(self, joints: List[float], name: str) -> None:
+    def _go_to_position(self, joints: List[float], name: str) -> None:
+        """Pause servo, send position, unpause servo."""
+        # Pause servo
+        if self._pause_servo_client.service_is_ready():
+            req = SetBool.Request()
+            req.data = True
+            self._pause_servo_client.call_async(req)
+
+        # Send position
+        self._send_position(joints)
+        self.get_logger().info(f"Moving to {name} position")
+
+    def _send_position(self, joints: List[float]) -> None:
         """Send joint positions directly to servo_controller."""
         msg = Float64MultiArray()
         msg.data = list(joints)
         self._position_pub.publish(msg)
-        self.get_logger().info(f"Sent {name} position via servo_controller")
 
     def _send_gripper(self, position: float, name: str) -> None:
         """Send gripper command to hand_controller."""
@@ -239,57 +257,13 @@ class ServoJoystickTeleop(Node):
 
     def _control_loop(self) -> None:
         """Main control loop."""
-        if not self._servo_ready:
-            return
-
         with self._lock:
             if self._latest_axes is None or self._latest_buttons is None:
                 return
             axes = list(self._latest_axes)
             buttons = list(self._latest_buttons)
 
-        # Check if L1 is held
-        enable_held = (
-            self._enable_button < len(buttons) and
-            buttons[self._enable_button] == 1
-        )
-
-        if not enable_held:
-            if self._servo_active:
-                self._publish_zero_twist()
-                self._servo_active = False
-                if self._debug_mode:
-                    self.get_logger().info("Servo deactivated")
-            return
-
-        if not self._servo_active:
-            self._servo_active = True
-            if self._debug_mode:
-                self.get_logger().info("Servo activated")
-
-        # Sticks → translation + pitch
-        vx = self._get_axis(axes, self._axis_x) * self._scale_x * self._linear_scale
-        vy = self._get_axis(axes, self._axis_y) * self._scale_y * self._linear_scale
-        vz = self._get_axis(axes, self._axis_z) * self._scale_z * self._linear_scale
-        wy = self._get_axis(axes, self._axis_pitch) * self._scale_pitch * self._angular_scale
-
-        # D-pad → roll and yaw (dpad_y=roll/X, dpad_x=yaw/Z)
-        wx = self._get_axis(axes, self._axis_dpad_y) * self._scale_roll * self._angular_scale
-        wz = self._get_axis(axes, self._axis_dpad_x) * self._scale_yaw * self._angular_scale
-
-        twist = TwistStamped()
-        twist.header.stamp = self.get_clock().now().to_msg()
-        twist.header.frame_id = self._frame_id
-        twist.twist.linear.x = vx
-        twist.twist.linear.y = vy
-        twist.twist.linear.z = vz
-        twist.twist.angular.x = wx
-        twist.twist.angular.y = wy
-        twist.twist.angular.z = wz
-
-        self._twist_pub.publish(twist)
-
-        # L2/R2 triggers → gripper open/close
+        # L2/R2 triggers → gripper open/close (works without L1 or servo)
         l2_val = axes[self._axis_l2] if self._axis_l2 < len(axes) else 1.0
         r2_val = axes[self._axis_r2] if self._axis_r2 < len(axes) else 1.0
         l2_pressed = l2_val < self._trigger_threshold
@@ -304,13 +278,60 @@ class ServoJoystickTeleop(Node):
         elif not l2_pressed and not r2_pressed:
             self._gripper_state = None  # reset so next press triggers again
 
-        if self._debug_mode:
-            has_lin = abs(vx) > 0.01 or abs(vy) > 0.01 or abs(vz) > 0.01
-            has_rot = abs(wx) > 0.01 or abs(wy) > 0.01 or abs(wz) > 0.01
-            if has_lin or has_rot:
-                self.get_logger().info(
-                    f"lin:({vx:.2f},{vy:.2f},{vz:.2f}) rot:({wx:.2f},{wy:.2f},{wz:.2f})"
-                )
+        # Check if L1 is held
+        enable_held = (
+            self._enable_button < len(buttons) and
+            buttons[self._enable_button] == 1
+        )
+
+        if enable_held and self._servo_ready:
+            # L1 held + servo ready: use servo control
+            if not self._servo_active:
+                # Unpause servo when activating
+                if self._pause_servo_client.service_is_ready():
+                    req = SetBool.Request()
+                    req.data = False  # Unpause
+                    self._pause_servo_client.call_async(req)
+                self._servo_active = True
+                if self._debug_mode:
+                    self.get_logger().info("Servo activated")
+
+            # Sticks → translation + pitch
+            vx = self._get_axis(axes, self._axis_x) * self._scale_x * self._linear_scale
+            vy = self._get_axis(axes, self._axis_y) * self._scale_y * self._linear_scale
+            vz = self._get_axis(axes, self._axis_z) * self._scale_z * self._linear_scale
+            wy = self._get_axis(axes, self._axis_pitch) * self._scale_pitch * self._angular_scale
+
+            # D-pad → roll and yaw (dpad_y=roll/X, dpad_x=yaw/Z)
+            wx = self._get_axis(axes, self._axis_dpad_y) * self._scale_roll * self._angular_scale
+            wz = self._get_axis(axes, self._axis_dpad_x) * self._scale_yaw * self._angular_scale
+
+            twist = TwistStamped()
+            twist.header.stamp = self.get_clock().now().to_msg()
+            twist.header.frame_id = self._frame_id
+            twist.twist.linear.x = vx
+            twist.twist.linear.y = vy
+            twist.twist.linear.z = vz
+            twist.twist.angular.x = wx
+            twist.twist.angular.y = wy
+            twist.twist.angular.z = wz
+
+            self._twist_pub.publish(twist)
+
+            if self._debug_mode:
+                has_lin = abs(vx) > 0.01 or abs(vy) > 0.01 or abs(vz) > 0.01
+                has_rot = abs(wx) > 0.01 or abs(wy) > 0.01 or abs(wz) > 0.01
+                if has_lin or has_rot:
+                    self.get_logger().info(
+                        f"lin:({vx:.2f},{vy:.2f},{vz:.2f}) rot:({wx:.2f},{wy:.2f},{wz:.2f})"
+                    )
+        else:
+            # L1 not held (or servo not ready)
+            if self._servo_active:
+                self._publish_zero_twist()
+                self._servo_active = False
+                if self._debug_mode:
+                    self.get_logger().info("Servo deactivated")
 
     def _publish_zero_twist(self) -> None:
         """Stop movement."""
