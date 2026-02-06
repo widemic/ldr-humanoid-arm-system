@@ -80,41 +80,44 @@ class ServoJoystickTeleop(Node):
             .string_value
         )
 
-        # DualSense axis mapping
-        # Left stick X (axis 0) → robot X (left=-X, right=+X)
-        # Left stick Y (axis 1) → robot Y (up=+Y, down=-Y)
-        # Right stick Y (axis 4) → robot Z (up=+Z, down=-Z)
-        # Right stick X (axis 3) → pitch
+        # DualSense axis mapping (joy_node)
+        # Left stick X (axis 0): left=+, right=-
+        # Left stick Y (axis 1): up=+, down=-
+        # Right stick X (axis 2): left=+, right=-
+        # Right stick Y (axis 3): up=+, down=-
         self._axis_x = 0          # Left stick X → robot X
         self._axis_y = 1          # Left stick Y → robot Y
-        self._axis_z = 4          # Right stick Y → robot Z
-        self._axis_pitch = 3      # Right stick X → pitch
+        self._axis_z = 3          # Right stick Y → robot Z
+        self._axis_pitch = 2      # Right stick X → pitch
 
-        self._scale_x = -1.0      # left=-X, right=+X
+        self._scale_x = -1.0      # right=+X, left=-X
         self._scale_y = 1.0       # up=+Y, down=-Y
         self._scale_z = 1.0       # up=+Z, down=-Z
-        self._scale_pitch = -1.0
+        self._scale_pitch = -1.0  # right=+pitch
 
-        # D-pad axis mapping (discrete: -1, 0, +1)
-        self._axis_dpad_x = 6     # D-pad left/right → yaw
-        self._axis_dpad_y = 7     # D-pad up/down → roll
+        # D-pad button mapping
+        self._btn_dpad_up = 11    # D-pad up → roll+
+        self._btn_dpad_down = 12  # D-pad down → roll-
+        self._btn_dpad_left = 13  # D-pad left → yaw+
+        self._btn_dpad_right = 14 # D-pad right → yaw-
         self._scale_roll = 1.0
         self._scale_yaw = 1.0
 
         # Trigger axis mapping (1.0=released, -1.0=fully pressed)
-        self._axis_l2 = 2         # L2 → open gripper
-        self._axis_r2 = 5         # R2 → close gripper
+        self._axis_l2 = 4         # L2 → open gripper (penultima)
+        self._axis_r2 = 5         # R2 → close gripper (ultima)
         self._trigger_threshold = 0.0  # pressed when axis < this
 
         # Gripper positions
         self._gripper_open = -0.04   # fully open
         self._gripper_closed = 0.0   # fully closed
 
-        # Button mapping
-        self._enable_button = 4   # L1 - enable servo
-        self._home_button = 3     # Square
-        self._ready_button = 1    # Circle
-        self._toggle_debug = 8    # Share
+        # Button mapping (DualSense via joy_node)
+        # X=1, Circle=2, Square=3, Triangle=4, Share=5, L1=9, R1=10
+        self._enable_button = 9   # L1 - enable servo
+        self._home_button = 2     # Circle - home position
+        self._ready_button = 3    # Square - ready position
+        self._toggle_debug = 5    # Share
 
         # State
         self._lock = threading.Lock()
@@ -302,9 +305,13 @@ class ServoJoystickTeleop(Node):
             vz = self._get_axis(axes, self._axis_z) * self._scale_z * self._linear_scale
             wy = self._get_axis(axes, self._axis_pitch) * self._scale_pitch * self._angular_scale
 
-            # D-pad → roll and yaw (dpad_y=roll/X, dpad_x=yaw/Z)
-            wx = self._get_axis(axes, self._axis_dpad_y) * self._scale_roll * self._angular_scale
-            wz = self._get_axis(axes, self._axis_dpad_x) * self._scale_yaw * self._angular_scale
+            # D-pad buttons → roll and yaw
+            dpad_up = buttons[self._btn_dpad_up] if self._btn_dpad_up < len(buttons) else 0
+            dpad_down = buttons[self._btn_dpad_down] if self._btn_dpad_down < len(buttons) else 0
+            dpad_left = buttons[self._btn_dpad_left] if self._btn_dpad_left < len(buttons) else 0
+            dpad_right = buttons[self._btn_dpad_right] if self._btn_dpad_right < len(buttons) else 0
+            wx = (dpad_up - dpad_down) * self._scale_roll * self._angular_scale  # roll
+            wz = (dpad_left - dpad_right) * self._scale_yaw * self._angular_scale  # yaw
 
             twist = TwistStamped()
             twist.header.stamp = self.get_clock().now().to_msg()
