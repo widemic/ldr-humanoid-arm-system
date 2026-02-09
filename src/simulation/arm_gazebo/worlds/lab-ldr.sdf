@@ -158,20 +158,20 @@
     <!-- Source Table (matches pick_place_scene.yaml: test_table) -->
     <model name="test_table">
       <static>true</static>
-      <!-- Size 0.5 x 0.3 x 0.95 so surface sits at z=0.95 while resting on ground -->
-      <pose>-1.95 0.35 0.475 0 0 0</pose>
+      <!-- Size 0.45 x 0.25 x 0.425 so surface sits at z=0.425 while resting on ground -->
+      <pose>-0.30 0.35 0.2125 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>0.5 0.3 0.95</size>
+              <size>0.45 0.25 0.425</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>0.5 0.3 0.95</size>
+              <size>0.45 0.25 0.425</size>
             </box>
           </geometry>
           <material>
@@ -184,12 +184,12 @@
 
     <!-- Lever object placed on source table center (pickable) -->
     <model name="lever">
-      <pose>-1.95 0.35 1.025 0 0 0</pose>
+      <pose>-0.30 0.35 0.5 0 0 0</pose>
       <link name="lever_arm">
         <collision name="collision">
           <geometry>
             <cylinder>
-              <radius>0.03035</radius>
+              <radius>0.02025</radius>
               <length>0.15</length>
             </cylinder>
           </geometry>
@@ -211,7 +211,7 @@
         <visual name="visual">
           <geometry>
             <cylinder>
-              <radius>0.03035</radius>
+              <radius>0.02025</radius>
               <length>0.15</length>
             </cylinder>
           </geometry>
@@ -239,19 +239,19 @@
     <model name="destination_table">
       <static>true</static>
       <!-- Same size/height as source table -->
-      <pose>-1.95 -0.35 0.475 0 0 0</pose>
+      <pose>-0.30 -0.35 0.2125 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>0.5 0.3 0.95</size>
+              <size>0.45 0.25 0.425</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>0.5 0.3 0.95</size>
+              <size>0.45 0.25 0.425</size>
             </box>
           </geometry>
           <material>
