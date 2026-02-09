@@ -146,6 +146,54 @@ void MTCTaskNode::doTask()
 
   const double object_radius = this->get_parameter("cylinder.dimensions.radius").as_double();
 
+  // Grasp frame position
+  const double grasp_frame_x = this->get_parameter("grasp.grasp_frame.x").as_double();
+  const double grasp_frame_y = this->get_parameter("grasp.grasp_frame.y").as_double();
+  const double grasp_frame_z = this->get_parameter("grasp.grasp_frame.z").as_double();
+
+  // Grasp frame orientations (multiple to try)
+  const auto grasp_rolls = this->get_parameter("grasp.grasp_frame.rolls").as_double_array();
+  const auto grasp_pitches = this->get_parameter("grasp.grasp_frame.pitches").as_double_array();
+  const auto grasp_yaws = this->get_parameter("grasp.grasp_frame.yaws").as_double_array();
+
+  // Place frame position
+  const double place_frame_x = this->get_parameter("grasp.place_frame.x").as_double();
+  const double place_frame_y = this->get_parameter("grasp.place_frame.y").as_double();
+  const double place_frame_z = this->get_parameter("grasp.place_frame.z").as_double();
+
+  // Place frame orientations (multiple to try)
+  const auto place_rolls = this->get_parameter("grasp.place_frame.rolls").as_double_array();
+  const auto place_pitches = this->get_parameter("grasp.place_frame.pitches").as_double_array();
+  const auto place_yaws = this->get_parameter("grasp.place_frame.yaws").as_double_array();
+
+  // Approach direction in hand_frame
+  const double approach_dir_x = this->get_parameter("motion.approach_direction.x").as_double();
+  const double approach_dir_y = this->get_parameter("motion.approach_direction.y").as_double();
+  const double approach_dir_z = this->get_parameter("motion.approach_direction.z").as_double();
+  const double approach_max_dist = this->get_parameter("motion.approach_max_distance").as_double();
+
+  // Grasp generation params
+  const double grasp_angle_delta = this->get_parameter("grasp.angle_delta").as_double();
+  const uint32_t grasp_max_ik = static_cast<uint32_t>(this->get_parameter("grasp.max_ik_solutions").as_int());
+  const double grasp_min_dist = this->get_parameter("grasp.min_solution_distance").as_double();
+
+  const size_t num_grasp_orientations = std::min({grasp_rolls.size(), grasp_pitches.size(), grasp_yaws.size()});
+  const size_t num_place_orientations = std::min({place_rolls.size(), place_pitches.size(), place_yaws.size()});
+
+  RCLCPP_INFO(LOGGER, "Grasp frame: pos(%.3f, %.3f, %.3f) with %zu orientations",
+              grasp_frame_x, grasp_frame_y, grasp_frame_z, num_grasp_orientations);
+  for (size_t i = 0; i < num_grasp_orientations; ++i) {
+    RCLCPP_INFO(LOGGER, "  grasp[%zu]: rpy(%.3f, %.3f, %.3f)",
+                i, grasp_rolls[i], grasp_pitches[i], grasp_yaws[i]);
+  }
+  RCLCPP_INFO(LOGGER, "Place frame: pos(%.3f, %.3f, %.3f) with %zu orientations",
+              place_frame_x, place_frame_y, place_frame_z, num_place_orientations);
+  for (size_t i = 0; i < num_place_orientations; ++i) {
+    RCLCPP_INFO(LOGGER, "  place[%zu]: rpy(%.3f, %.3f, %.3f)",
+                i, place_rolls[i], place_pitches[i], place_yaws[i]);
+  }
+  RCLCPP_INFO(LOGGER, "Approach direction: (%.1f, %.1f, %.1f) max=%.2fm", approach_dir_x, approach_dir_y, approach_dir_z, approach_max_dist);
+
   // Create planners (following tutorial pattern exactly)
   auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(shared_from_this());
   sampling_planner->setProperty("goal_joint_tolerance", goal_joint_tolerance);
@@ -222,52 +270,67 @@ void MTCTaskNode::doTask()
       stage->properties().set("marker_ns", "approach_object");
       stage->properties().set("link", hand_frame);
       stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-      stage->setMinMaxDistance(0.0, 0.15);  // Approach up to 15cm
+      stage->setMinMaxDistance(0.0, approach_max_dist);
       stage->setIKFrame(hand_frame);
 
-      // Approach direction: move forward in hand frame (negative Z in base_link)
+      // Approach direction in hand_frame (configurable from YAML)
       geometry_msgs::msg::Vector3Stamped vec;
       vec.header.frame_id = hand_frame;
-      vec.vector.z = -1.0;  // Approach along hand frame Z axis (towards object)
+      vec.vector.x = approach_dir_x;
+      vec.vector.y = approach_dir_y;
+      vec.vector.z = approach_dir_z;
       stage->setDirection(vec);
       grasp->insert(std::move(stage));
     }
     
     /****************************************************
   ---- *               Generate Grasp Pose (sampled)    *
+  ---- *  Tries multiple orientations via Alternatives  *
      ***************************************************/
     {
-      auto stage = std::make_unique<mtc::stages::GenerateGraspPose>("generate grasp pose");
-      stage->properties().configureInitFrom(mtc::Stage::PARENT);
-      stage->properties().set("marker_ns", "grasp_pose");
-      stage->setObject("test_cylinder");
-      stage->setPreGraspPose(hand_open_pose);
-      stage->setAngleDelta(M_PI / 12);  // 15 degrees between grasp samples (tutorial pattern)
-      stage->setMonitoredStage(initial_state_ptr);
+      // Alternatives container: MTC tries all orientations and keeps the best solutions
+      auto alternatives = std::make_unique<mtc::Alternatives>("grasp orientation alternatives");
+      // Propagate properties from parent (grasp SerialContainer) to Alternatives
+      grasp->properties().exposeTo(alternatives->properties(), { "eef", "hand", "group", "ik_frame" });
+      alternatives->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "hand", "group", "ik_frame" });
 
-      // ComputeIK wrapper - use collision detection to validate grasp poses
-      auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
-      wrapper->setMaxIKSolutions(8);
-      wrapper->setMinSolutionDistance(1.0);
+      for (size_t i = 0; i < num_grasp_orientations; ++i) {
+        auto stage = std::make_unique<mtc::stages::GenerateGraspPose>(
+            "generate grasp pose [" + std::to_string(i) + "] rpy(" +
+            std::to_string(grasp_rolls[i]) + "," +
+            std::to_string(grasp_pitches[i]) + "," +
+            std::to_string(grasp_yaws[i]) + ")");
+        stage->properties().configureInitFrom(mtc::Stage::PARENT);
+        stage->properties().set("marker_ns", "grasp_pose");
+        stage->setObject("test_cylinder");
+        stage->setPreGraspPose(hand_open_pose);
+        stage->setAngleDelta(grasp_angle_delta);
+        stage->setMonitoredStage(initial_state_ptr);
 
-      // Grasp frame transform: defines where on the gripper the object center should be
-      // GenerateGraspPose creates poses at object surface, we need offset to position gripper correctly
-      Eigen::Isometry3d grasp_frame_transform = Eigen::Isometry3d::Identity();
+        // ComputeIK wrapper - validates grasp poses with collision detection
+        auto wrapper = std::make_unique<mtc::stages::ComputeIK>(
+            "grasp pose IK [" + std::to_string(i) + "]", std::move(stage));
+        wrapper->setMaxIKSolutions(grasp_max_ik);
+        wrapper->setMinSolutionDistance(grasp_min_dist);
 
-      // Use minimal transform to improve IK feasibility
-      // (Let GenerateGraspPose drive orientation; keep grasp frame at link origin)
-      grasp_frame_transform.linear() = Eigen::Matrix3d::Identity();
-      grasp_frame_transform.translation().y() = -0.05;
-      grasp_frame_transform.translation().z() = 0.0;
+        // Grasp frame transform: offset + rotation from hand_frame to grasp point
+        // Each orientation gets the same translation but different RPY
+        Eigen::Isometry3d grasp_frame_transform = Eigen::Isometry3d::Identity();
+        grasp_frame_transform.linear() =
+            (Eigen::AngleAxisd(grasp_yaws[i], Eigen::Vector3d::UnitZ()) *
+             Eigen::AngleAxisd(grasp_pitches[i], Eigen::Vector3d::UnitY()) *
+             Eigen::AngleAxisd(grasp_rolls[i], Eigen::Vector3d::UnitX())).toRotationMatrix();
+        grasp_frame_transform.translation() = Eigen::Vector3d(grasp_frame_x, grasp_frame_y, grasp_frame_z);
 
-      wrapper->setIKFrame(grasp_frame_transform, hand_frame);
+        wrapper->setIKFrame(grasp_frame_transform, hand_frame);
+        wrapper->setIgnoreCollisions(false);
+        wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
+        wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
 
-      // Enable collision detection - validates that grasp poses are collision-free
-      // This ensures gripper doesn't collide with object or environment during grasp
-      wrapper->setIgnoreCollisions(false);
-      wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
-      wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
-      grasp->insert(std::move(wrapper));
+        alternatives->insert(std::move(wrapper));
+      }
+
+      grasp->insert(std::move(alternatives));
     }
 
     /****************************************************
@@ -275,9 +338,10 @@ void MTCTaskNode::doTask()
      ***************************************************/
     {
       auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("allow collision (hand,object)");
+      // Use getUpdatedLinkModelsWithGeometryNames() to include mimic joint links (e.g. index_intermediate)
       stage->allowCollisions(
           "test_cylinder",
-          task_.getRobotModel()->getJointModelGroup("hand")->getLinkModelNamesWithCollisionGeometry(),
+          task_.getRobotModel()->getJointModelGroup(hand_group)->getUpdatedLinkModelsWithGeometryNames(),
           true);
       grasp->insert(std::move(stage));
     }
@@ -374,44 +438,81 @@ void MTCTaskNode::doTask()
 
     /******************************************************
      *          Generate Place Pose (Destination Table)     *
+     *  Tries multiple orientations via Alternatives       *
      *****************************************************/
     {
-      // Place object on destination table (absolute position in world frame)
-      auto stage = std::make_unique<mtc::stages::GeneratePlacePose>("generate place pose");
-        stage->properties().configureInitFrom(mtc::Stage::PARENT);
-        stage->properties().set("marker_ns", "place_pose");
-      stage->setObject("test_cylinder");
+      // Place pose in WORLD FRAME, on destination table surface
+      geometry_msgs::msg::PoseStamped place_pose;
+      place_pose.header.frame_id = world_frame;
+      place_pose.pose.position.x = dest_table_x;
+      place_pose.pose.position.y = dest_table_y;
+      place_pose.pose.position.z = dest_table_z + (dest_table_thickness / 2.0) + (cylinder_height / 2.0);
+      place_pose.pose.orientation.w = 1.0;
 
-      // Pose is in WORLD FRAME (base_link), on destination table surface
-      geometry_msgs::msg::PoseStamped p;
-      p.header.frame_id = world_frame;  // Absolute position in world frame
-      p.pose.position.x = dest_table_x;
-      p.pose.position.y = dest_table_y;
-      // Place on table surface: table_z + half_thickness + half_cylinder_height
-      p.pose.position.z = dest_table_z + (dest_table_thickness / 2.0) + (cylinder_height / 2.0);
-      p.pose.orientation.w = 1.0;  // Identity orientation
-      stage->setPose(p);
-        stage->setMonitoredStage(pick_stage_ptr);
+      // Alternatives container: for each YAML orientation, sample yaw rotations
+      // around Z axis (same as GenerateGraspPose does internally with angle_delta)
+      auto alternatives = std::make_unique<mtc::Alternatives>("place orientation alternatives");
+      place->properties().exposeTo(alternatives->properties(), { "eef", "hand", "group" });
+      alternatives->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "hand", "group" });
 
-      // IK wrapper - use hand frame for IK with offset
-      auto wrapper = std::make_unique<mtc::stages::ComputeIK>("place pose IK", std::move(stage));
-      wrapper->setMaxIKSolutions(8);  // More solutions for better chance
-      wrapper->setMinSolutionDistance(0.05);
+      const int num_yaw_steps = std::max(1, static_cast<int>(std::ceil(2.0 * M_PI / grasp_angle_delta)));
+      RCLCPP_INFO(LOGGER, "Place: %zu orientations x %d yaw steps = %zu alternatives",
+                  num_place_orientations, num_yaw_steps, num_place_orientations * num_yaw_steps);
 
-      // Place frame transform: same 8cm offset as grasp
-      Eigen::Isometry3d place_frame_transform = Eigen::Isometry3d::Identity();
+      for (size_t i = 0; i < num_place_orientations; ++i) {
+        for (int j = 0; j < num_yaw_steps; ++j) {
+          const double yaw_angle = j * grasp_angle_delta;
 
-      // Rotation: align gripper with place direction (same as grasp)
-      Eigen::AngleAxisd rotation(M_PI / 12, Eigen::Vector3d::UnitZ());
-      place_frame_transform.linear() = rotation.toRotationMatrix();
+          // Rotate the target place pose around Z by yaw_angle
+          Eigen::Quaterniond q(Eigen::AngleAxisd(yaw_angle, Eigen::Vector3d::UnitZ()));
+          geometry_msgs::msg::PoseStamped rotated_pose = place_pose;
+          rotated_pose.pose.orientation.x = q.x();
+          rotated_pose.pose.orientation.y = q.y();
+          rotated_pose.pose.orientation.z = q.z();
+          rotated_pose.pose.orientation.w = q.w();
 
-      // Translation: 8cm offset along Y axis (same as grasp)
-      place_frame_transform.translation().y() = 0.08;
+          const std::string label = "[" + std::to_string(i) + "," + std::to_string(j) + "]";
+          auto stage = std::make_unique<mtc::stages::GeneratePlacePose>("generate place pose " + label);
+          stage->properties().configureInitFrom(mtc::Stage::PARENT);
+          stage->properties().set("marker_ns", "place_pose");
+          stage->setObject("test_cylinder");
+          stage->setPose(rotated_pose);
+          stage->setMonitoredStage(pick_stage_ptr);
 
-      wrapper->setIKFrame(place_frame_transform, hand_frame);
-        wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
-        wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
-      place->insert(std::move(wrapper));
+          // ComputeIK wrapper
+          auto wrapper = std::make_unique<mtc::stages::ComputeIK>("place pose IK " + label, std::move(stage));
+          wrapper->setMaxIKSolutions(8);
+          wrapper->setMinSolutionDistance(0.05);
+          // Ignore collisions: attached object MUST touch the destination table
+          wrapper->setIgnoreCollisions(true);
+
+          // Place frame transform with this orientation's RPY
+          Eigen::Isometry3d place_frame_transform = Eigen::Isometry3d::Identity();
+          place_frame_transform.linear() =
+              (Eigen::AngleAxisd(place_yaws[i], Eigen::Vector3d::UnitZ()) *
+               Eigen::AngleAxisd(place_pitches[i], Eigen::Vector3d::UnitY()) *
+               Eigen::AngleAxisd(place_rolls[i], Eigen::Vector3d::UnitX())).toRotationMatrix();
+          place_frame_transform.translation() = Eigen::Vector3d(place_frame_x, place_frame_y, place_frame_z);
+
+          wrapper->setIKFrame(place_frame_transform, hand_frame);
+          wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
+          wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
+
+          alternatives->insert(std::move(wrapper));
+        }
+      }
+
+      place->insert(std::move(alternatives));
+    }
+
+    /******************************************************
+     *          Allow collision (object, destination)      *
+     *****************************************************/
+    {
+      // Allow object-table contact for subsequent stages (open hand, detach, retreat)
+      auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("allow collision (object,destination)");
+      stage->allowCollisions("test_cylinder", "destination_table", true);
+      place->insert(std::move(stage));
     }
 
     /******************************************************
@@ -428,10 +529,11 @@ void MTCTaskNode::doTask()
      *          Forbid collision (hand,object)            *
      *****************************************************/
     {
-      // TUTORIAL PATTERN: Forbid collisions after opening hand (line 448-451)
+      // Forbid collisions after opening hand - include mimic joint links
       auto stage = std::make_unique<mtc::stages::ModifyPlanningScene>("forbid collision (hand,object)");
       stage->allowCollisions("test_cylinder",
-                             *task_.getRobotModel()->getJointModelGroup(hand_group), false);
+                             task_.getRobotModel()->getJointModelGroup(hand_group)->getUpdatedLinkModelsWithGeometryNames(),
+                             false);
       place->insert(std::move(stage));
     }
 
