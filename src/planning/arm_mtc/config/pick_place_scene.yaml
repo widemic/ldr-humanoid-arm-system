@@ -1,32 +1,32 @@
 /**:
   ros__parameters:
     # ========== WORLD CONFIGURATION ==========
-    world_frame: "base_link"
+    world_frame: "world"
 
     # ========== TABLE CONFIGURATION ==========
     # Source table (where cylinder starts)
     source_table:
       name: "test_table"
       position:
-        x: -0.45      # Aligned with planning_scene_publisher defaults
+        x: -0.30      # Aligned with lab-ldr world
         y: 0.35       # Right side (left arm natural reach)
-        z: 0.95       # Height
+        z: 0.2125     # Table center (height/2)
       dimensions:
-        length: 0.5   # Front-to-back (X)
-        width: 0.3    # Left-to-right (Y)
-        thickness: 0.02  # Height (Z)
+        length: 0.45  # Front-to-back (X)
+        width: 0.25   # Left-to-right (Y)
+        thickness: 0.425  # Height (Z)
 
     # Destination table (where cylinder will be placed)
     destination_table:
       name: "destination_table"
       position:
-        x: -0.45      # Moved farther (matches planning_scene_publisher patch)
+        x: -0.30      # Moved farther (matches lab-ldr world)
         y: -0.35      # Left side (symmetric)
-        z: 0.95       # Same height
+        z: 0.2125     # Same height (center)
       dimensions:
-        length: 0.5
-        width: 0.3
-        thickness: 0.02
+        length: 0.45
+        width: 0.25
+        thickness: 0.425
 
     # ========== OBJECT CONFIGURATION ==========
     # Cylinder object to grasp
@@ -34,7 +34,7 @@
       name: "test_cylinder"
       dimensions:
         height: 0.15    # 15cm tall
-        radius: 0.03    # 3cm radius
+        radius: 0.02025 # 2.025cm radius
       position_offset:
         x: 0.0          # Offset from table center (X)
         y: 0.0          # Offset from table center (Y)
@@ -78,4 +78,4 @@
       arm: "arm"
       hand: "hand"
       eef: "hand"
-      hand_frame: "left_palm"
+      hand_frame: "end_effector_link"
