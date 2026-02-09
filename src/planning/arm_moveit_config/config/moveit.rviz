@@ -125,17 +125,32 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm:
+          hand_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm_left_finger_link:
+          thumb_proximal:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm_right_finger_link:
+          index_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          middle_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          ring_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          pinky_proximal:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -286,17 +301,32 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm:
+          hand_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm_left_finger_link:
+          thumb_proximal:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm_right_finger_link:
+          index_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          middle_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          ring_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          pinky_proximal:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -422,17 +452,32 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm:
+          hand_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm_left_finger_link:
+          thumb_proximal:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          left_palm_right_finger_link:
+          index_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          middle_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          ring_proximal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          pinky_proximal:
             Alpha: 1
             Show Axes: false
             Show Trail: false

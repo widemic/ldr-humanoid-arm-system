@@ -106,7 +106,7 @@
       <parent link="hand_base_link"/>
       <child link="thumb_proximal_base"/>
       <axis xyz="0 0 1"/>
-      <limit lower="0" upper="1.308" effort="1" velocity="0.5"/>
+      <limit lower="0" upper="1.31" effort="1" velocity="0.5"/>
     </joint>
 
     <link name="thumb_proximal">
