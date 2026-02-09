@@ -12,7 +12,7 @@
     <!-- ros2_control interfaces for Gazebo simulation -->
     <!-- Load ros2_control macro -->
     <xacro:include filename="$(find arm_description)/urdf/macros/ros2_control.xacro"/>
-    <xacro:arm_ros2_control/>
+    <xacro:arm_ros2_control hand_type="$(arg hand_type)"/>
 
     <!-- Depth Camera -->
     <xacro:include filename="$(find arm_description)/urdf/macros/depth_camera.xacro"/>
