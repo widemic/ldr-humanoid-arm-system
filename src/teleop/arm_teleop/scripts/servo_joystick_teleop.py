@@ -68,6 +68,11 @@ class ServoJoystickTeleop(Node):
         self._angular_scale = float(self.declare_parameter("angular_scale", 0.5).value)
         self._deadzone = float(self.declare_parameter("deadzone", 0.1).value)
         self._publish_rate = float(self.declare_parameter("publish_rate", 50.0).value)
+        self._hand_type = (
+            self.declare_parameter("hand_type", "inspire_hand")
+            .get_parameter_value()
+            .string_value
+        )
 
         self._servo_topic = (
             self.declare_parameter("servo_topic", "/servo_node/delta_twist_cmds")
@@ -109,8 +114,22 @@ class ServoJoystickTeleop(Node):
         self._trigger_threshold = 0.0  # pressed when axis < this
 
         # Gripper positions
-        self._gripper_open = -0.04   # fully open
-        self._gripper_closed = 0.0   # fully closed
+        if self._hand_type == "simple_gripper":
+            self._gripper_joint_names = ["left_palm_right_finger"]
+            self._gripper_open = [-0.04]   # fully open
+            self._gripper_closed = [0.0]   # fully closed
+        else:
+            # Inspire hand (6 actuated joints)
+            self._gripper_joint_names = [
+                "thumb_proximal_yaw_joint",
+                "thumb_proximal_pitch_joint",
+                "index_proximal_joint",
+                "middle_proximal_joint",
+                "ring_proximal_joint",
+                "pinky_proximal_joint",
+            ]
+            self._gripper_open = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            self._gripper_closed = [1.0, 0.6, 1.2, 1.2, 1.2, 1.2]
 
         # Button mapping (DualSense via joy_node)
         # X=1, Circle=2, Square=3, Triangle=4, Share=5, L1=9, R1=10
@@ -247,16 +266,16 @@ class ServoJoystickTeleop(Node):
         msg.data = list(joints)
         self._position_pub.publish(msg)
 
-    def _send_gripper(self, position: float, name: str) -> None:
+    def _send_gripper(self, positions: List[float], name: str) -> None:
         """Send gripper command to hand_controller."""
         msg = JointTrajectory()
-        msg.joint_names = ["left_palm_right_finger"]
+        msg.joint_names = list(self._gripper_joint_names)
         point = JointTrajectoryPoint()
-        point.positions = [position]
+        point.positions = list(positions)
         point.time_from_start = Duration(sec=0, nanosec=500000000)
         msg.points = [point]
         self._gripper_pub.publish(msg)
-        self.get_logger().info(f"Gripper: {name} ({position})")
+        self.get_logger().info(f"Gripper: {name} ({positions})")
 
     def _control_loop(self) -> None:
         """Main control loop."""
