@@ -6,6 +6,8 @@ controller_manager:
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
+    hand_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -19,6 +21,22 @@ arm_controller:
       - elbow_pitch_joint
       - elbow_yaw_joint
       - wrist_roll_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    allow_nonzero_velocity_at_trajectory_end: true
+
+hand_controller:
+  ros__parameters:
+    joints:
+      - thumb_proximal_yaw_joint
+      - thumb_proximal_pitch_joint
+      - index_proximal_joint
+      - middle_proximal_joint
+      - ring_proximal_joint
+      - pinky_proximal_joint
     command_interfaces:
       - position
     state_interfaces:

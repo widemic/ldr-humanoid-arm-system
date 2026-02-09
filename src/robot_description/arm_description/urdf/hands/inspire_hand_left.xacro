@@ -135,7 +135,7 @@
       <parent link="thumb_proximal_base"/>
       <child link="thumb_proximal"/>
       <axis xyz="0 0 -1"/>
-      <limit lower="0" upper="0.6" effort="1" velocity="0.5"/>
+      <limit lower="0" upper="0.61" effort="1" velocity="0.5"/>
     </joint>
 
     <link name="thumb_intermediate">

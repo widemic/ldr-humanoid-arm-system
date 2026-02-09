@@ -22,7 +22,11 @@ moveit_simple_controller_manager:
   hand_controller:
     type: FollowJointTrajectory
     joints:
-      - left_palm_right_finger
-      - left_palm_left_finger
+      - thumb_proximal_yaw_joint
+      - thumb_proximal_pitch_joint
+      - index_proximal_joint
+      - middle_proximal_joint
+      - ring_proximal_joint
+      - pinky_proximal_joint
     action_ns: follow_joint_trajectory
     default: true

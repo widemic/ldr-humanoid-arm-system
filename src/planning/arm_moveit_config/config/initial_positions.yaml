@@ -6,3 +6,10 @@ initial_positions:
   shoulder_yaw_joint: 0.0
   elbow_pitch_joint: 0.0
   elbow_yaw_joint: 0.0
+  wrist_roll_joint: 0.0
+  thumb_proximal_yaw_joint: 0.0
+  thumb_proximal_pitch_joint: 0.0
+  index_proximal_joint: 0.0
+  middle_proximal_joint: 0.0
+  ring_proximal_joint: 0.0
+  pinky_proximal_joint: 0.0
