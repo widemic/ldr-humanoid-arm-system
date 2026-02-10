@@ -449,57 +449,46 @@ void MTCTaskNode::doTask()
       place_pose.pose.position.z = dest_table_z + (dest_table_thickness / 2.0) + (cylinder_height / 2.0);
       place_pose.pose.orientation.w = 1.0;
 
-      // Alternatives container: for each YAML orientation, sample yaw rotations
-      // around Z axis (same as GenerateGraspPose does internally with angle_delta)
+      // Alternatives container: same pattern as grasp - one alternative per orientation,
+      // each GeneratePlacePose internally samples multiple yaw angles around Z
       auto alternatives = std::make_unique<mtc::Alternatives>("place orientation alternatives");
       place->properties().exposeTo(alternatives->properties(), { "eef", "hand", "group" });
       alternatives->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "hand", "group" });
 
-      const int num_yaw_steps = std::max(1, static_cast<int>(std::ceil(2.0 * M_PI / grasp_angle_delta)));
-      RCLCPP_INFO(LOGGER, "Place: %zu orientations x %d yaw steps = %zu alternatives",
-                  num_place_orientations, num_yaw_steps, num_place_orientations * num_yaw_steps);
+      RCLCPP_INFO(LOGGER, "Place: %zu orientation alternatives", num_place_orientations);
 
       for (size_t i = 0; i < num_place_orientations; ++i) {
-        for (int j = 0; j < num_yaw_steps; ++j) {
-          const double yaw_angle = j * grasp_angle_delta;
+        const std::string label = "[" + std::to_string(i) + "] rpy(" +
+            std::to_string(place_rolls[i]) + "," +
+            std::to_string(place_pitches[i]) + "," +
+            std::to_string(place_yaws[i]) + ")";
 
-          // Rotate the target place pose around Z by yaw_angle
-          Eigen::Quaterniond q(Eigen::AngleAxisd(yaw_angle, Eigen::Vector3d::UnitZ()));
-          geometry_msgs::msg::PoseStamped rotated_pose = place_pose;
-          rotated_pose.pose.orientation.x = q.x();
-          rotated_pose.pose.orientation.y = q.y();
-          rotated_pose.pose.orientation.z = q.z();
-          rotated_pose.pose.orientation.w = q.w();
+        auto stage = std::make_unique<mtc::stages::GeneratePlacePose>("generate place pose " + label);
+        stage->properties().configureInitFrom(mtc::Stage::PARENT);
+        stage->properties().set("marker_ns", "place_pose");
+        stage->setObject("test_cylinder");
+        stage->setPose(place_pose);
+        stage->setMonitoredStage(pick_stage_ptr);
 
-          const std::string label = "[" + std::to_string(i) + "," + std::to_string(j) + "]";
-          auto stage = std::make_unique<mtc::stages::GeneratePlacePose>("generate place pose " + label);
-          stage->properties().configureInitFrom(mtc::Stage::PARENT);
-          stage->properties().set("marker_ns", "place_pose");
-          stage->setObject("test_cylinder");
-          stage->setPose(rotated_pose);
-          stage->setMonitoredStage(pick_stage_ptr);
+        // ComputeIK wrapper
+        auto wrapper = std::make_unique<mtc::stages::ComputeIK>("place pose IK " + label, std::move(stage));
+        wrapper->setMaxIKSolutions(grasp_max_ik);
+        wrapper->setMinSolutionDistance(grasp_min_dist);
+        wrapper->setIgnoreCollisions(true);
 
-          // ComputeIK wrapper
-          auto wrapper = std::make_unique<mtc::stages::ComputeIK>("place pose IK " + label, std::move(stage));
-          wrapper->setMaxIKSolutions(8);
-          wrapper->setMinSolutionDistance(0.05);
-          // Ignore collisions: attached object MUST touch the destination table
-          wrapper->setIgnoreCollisions(true);
+        // Place frame transform with this orientation's RPY
+        Eigen::Isometry3d place_frame_transform = Eigen::Isometry3d::Identity();
+        place_frame_transform.linear() =
+            (Eigen::AngleAxisd(place_yaws[i], Eigen::Vector3d::UnitZ()) *
+             Eigen::AngleAxisd(place_pitches[i], Eigen::Vector3d::UnitY()) *
+             Eigen::AngleAxisd(place_rolls[i], Eigen::Vector3d::UnitX())).toRotationMatrix();
+        place_frame_transform.translation() = Eigen::Vector3d(place_frame_x, place_frame_y, place_frame_z);
 
-          // Place frame transform with this orientation's RPY
-          Eigen::Isometry3d place_frame_transform = Eigen::Isometry3d::Identity();
-          place_frame_transform.linear() =
-              (Eigen::AngleAxisd(place_yaws[i], Eigen::Vector3d::UnitZ()) *
-               Eigen::AngleAxisd(place_pitches[i], Eigen::Vector3d::UnitY()) *
-               Eigen::AngleAxisd(place_rolls[i], Eigen::Vector3d::UnitX())).toRotationMatrix();
-          place_frame_transform.translation() = Eigen::Vector3d(place_frame_x, place_frame_y, place_frame_z);
+        wrapper->setIKFrame(place_frame_transform, hand_frame);
+        wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
+        wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
 
-          wrapper->setIKFrame(place_frame_transform, hand_frame);
-          wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
-          wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
-
-          alternatives->insert(std::move(wrapper));
-        }
+        alternatives->insert(std::move(wrapper));
       }
 
       place->insert(std::move(alternatives));
