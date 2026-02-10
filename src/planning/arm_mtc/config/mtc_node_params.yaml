@@ -12,25 +12,25 @@ mtc_node:
     # Robot configuration (must match SRDF)
     arm_group_name: "arm"
     gripper_group_name: "hand"
-    gripper_frame: "left_hand"  # End effector link (parent_link in SRDF)
+    gripper_frame: "end_effector_link"  # End effector link (parent_link in SRDF)
     gripper_open_pose: "open"   # Named pose in SRDF
     gripper_close_pose: "close" # Named pose in SRDF
     arm_home_pose: "home"       # Named pose in SRDF
 
     # Scene frame (must match robot's planning frame from SRDF)
-    world_frame: "base_link"
+    world_frame: "world"
 
     # Object parameters
     object_name: "target_object"
     object_type: "cylinder"  # "cylinder" or "box"
-    object_dimensions: [0.10, 0.025]  # [height, radius] for cylinder - smaller object
-    object_pose: [0.0, 0.4, 1.15, 0.0, 0.0, 0.0]  # [x, y, z, roll, pitch, yaw] - closer and slightly lower
-    object_reference_frame: "base_link"
+    object_dimensions: [0.15, 0.02025]  # [height, radius] for cylinder
+    object_pose: [-0.30, 0.35, 0.5, 0.0, 0.0, 0.0]  # centered on source table top
+    object_reference_frame: "world"
 
     # Support surface
     surface_name: "table"
-    surface_dimensions: [0.8, 0.6, 0.1]  # [length, width, height]
-    surface_pose: [0.0, 0.4, 1.0, 0.0, 0.0, 0.0]  # [x, y, z, roll, pitch, yaw] - table top at 1m height
+    surface_dimensions: [0.45, 0.25, 0.425]  # [length, width, height]
+    surface_pose: [-0.30, 0.35, 0.2125, 0.0, 0.0, 0.0]  # table center
 
     # Grasp and place parameters
     # Grasp frame transform: offset from gripper_frame to grasp point
@@ -38,7 +38,7 @@ mtc_node:
     grasp_frame_transform: [0.0, 0.0, 0.15, 0.0, 1.5708, 0.0]  # Rotate 90deg pitch, 15cm offset for grasp point
 
     # Place pose: where to place the object
-    place_pose: [0.2, 0.3, 1.15, 0.0, 0.0, 0.0]  # [x, y, z, roll, pitch, yaw] - near pick height
+    place_pose: [-0.30, -0.35, 0.5, 0.0, 0.0, 0.0]  # on destination table top
     place_pose_z_offset_factor: 0.5  # Multiply by object height to offset place pose
 
     # Motion planning parameters

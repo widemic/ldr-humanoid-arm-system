@@ -63,7 +63,7 @@ def generate_launch_description():
             '-topic', 'robot_description',
             '-x', '0.0',
             '-y', '0.0',
-            '-z', '0.85',  # Raise robot so table legs touch ground
+            '-z', '0.0',  # Raise robot so table legs touch ground
             '-Y', '0.0'
             ],
         output='screen'

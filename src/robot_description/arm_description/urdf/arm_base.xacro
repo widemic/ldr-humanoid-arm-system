@@ -13,4 +13,19 @@
     <!-- Arm Joints -->
     <xacro:include filename="$(find arm_description)/urdf/joints/arm_joints.xacro" />
 
+    <!-- Hand/Gripper macros -->
+    <xacro:include filename="$(find arm_description)/urdf/hands/simple_gripper.xacro" />
+    <xacro:include filename="$(find arm_description)/urdf/hands/inspire_hand_left.xacro" />
+
+    <!-- Resolve hand_type arg into a property for conditional evaluation -->
+    <xacro:property name="hand_type" value="$(arg hand_type)"/>
+
+    <!-- Conditionally instantiate hand based on hand_type arg -->
+    <xacro:if value="${hand_type == 'simple_gripper'}">
+        <xacro:simple_gripper parent="end_effector_link"/>
+    </xacro:if>
+    <xacro:if value="${hand_type == 'inspire_hand'}">
+        <xacro:inspire_hand_left parent="end_effector_link"/>
+    </xacro:if>
+
 </robot>

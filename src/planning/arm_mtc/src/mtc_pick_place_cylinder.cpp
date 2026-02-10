@@ -205,20 +205,20 @@ mtc::Task MTCPickPlaceCylinder::createTask()
 
   const auto& arm_group_name = "arm";
   const auto& hand_group_name = "hand";
-  const auto& hand_frame = "left_palm";
+  const auto& hand_frame = "end_effector_link";
 
   // ========== CONFIGURABLE PARAMETERS ==========
   // Pre-grasp offset: distance from palm origin for IK (must be > 0 to avoid collision)
   // This is where the gripper will be BEFORE the approach
-  const double pre_grasp_offset = 0.15;  // 15cm - stand-off distance for IK
+  const double pre_grasp_offset = 0.05;  // 5cm - stand-off distance for IK
   
   // Approach: move from pre_grasp position toward the object
   // Final grasp position = pre_grasp_offset - approach_distance
-  const double approach_min_dist = 0.05;  // 5cm minimum approach (final offset = 10cm)
-  const double approach_max_dist = 0.25;  // 25cm maximum approach
+  const double approach_min_dist = 0.02;  // 2cm minimum approach
+  const double approach_max_dist = 0.10;  // 10cm maximum approach
   
   // Grasp offset for place stage (where object center is relative to palm)
-  const double grasp_offset = 0.05;  // 5cm - approximate final grasp position
+  const double grasp_offset = 0.02;  // 2cm - approximate final grasp position
   
   const double lift_min_dist = 0.02;
   const double lift_max_dist = 0.10;
@@ -299,7 +299,7 @@ mtc::Task MTCPickPlaceCylinder::createTask()
         object_config_.id,
         task.getRobotModel()->getJointModelGroup(hand_group_name)->getLinkModelNamesWithCollisionGeometry(),
         true);
-      stage->allowCollisions(object_config_.id, "left_hand", true);
+      // Hand link list already provided by joint model group
       grasp->insert(std::move(stage));
     }
 
@@ -345,58 +345,11 @@ mtc::Task MTCPickPlaceCylinder::createTask()
       grasp->insert(std::move(stage));
     }
 
-    // 6.4: Close gripper - Query object size from planning scene and calculate grip position
+    // 6.4: Close gripper (use named pose from SRDF)
     {
       auto stage = std::make_unique<mtc::stages::MoveTo>("close gripper", interpolation_planner);
       stage->setGroup(hand_group_name);
-      
-      // Query planning scene for object dimensions
-      moveit::planning_interface::PlanningSceneInterface psi;
-      auto objects = psi.getObjects({object_config_.id});
-      
-      double object_radius = 0.025;  // Default fallback
-      if (objects.count(object_config_.id) > 0) {
-        const auto& obj = objects[object_config_.id];
-        if (!obj.primitives.empty() && 
-            obj.primitives[0].type == shape_msgs::msg::SolidPrimitive::CYLINDER) {
-          // Cylinder dimensions: [height, radius]
-          object_radius = obj.primitives[0].dimensions[1];
-          RCLCPP_INFO(LOGGER, "Detected object '%s' radius from planning scene: %.4fm",
-                      object_config_.id.c_str(), object_radius);
-        }
-      } else {
-        RCLCPP_WARN(LOGGER, "Object '%s' not found in planning scene, using parameter radius",
-                    object_config_.id.c_str());
-        object_radius = object_config_.radius;
-      }
-      
-      // Calculate gripper position based on detected object size
-      // Add small clearance to avoid collision (fingers just touching, not penetrating)
-      const double clearance = 0.002;  // 2mm gap to avoid collision in planning
-      const double object_diameter = 2.0 * object_radius;
-      
-      const double left_open = 0.033;
-      const double right_open = -0.033;
-      const double total_open = left_open - right_open;  // 0.066m
-      
-      // Close to just touch the object (with clearance)
-      const double close_amount = (total_open - object_diameter - 2.0 * clearance) / 2.0;
-      
-      double left_closed = left_open - close_amount;
-      double right_closed = right_open + close_amount;
-      
-      // Clamp to valid range
-      left_closed = std::max(left_closed, 0.0);
-      right_closed = std::min(right_closed, 0.0);
-      
-      RCLCPP_INFO(LOGGER, "Gripper closing to: left=%.4f, right=%.4f (object diameter=%.4fm, clearance=%.4fm)",
-                  left_closed, right_closed, object_diameter, clearance);
-      
-      std::map<std::string, double> closed_position;
-      closed_position["left_palm_left_finger"] = left_closed;
-      closed_position["left_palm_right_finger"] = right_closed;
-      stage->setGoal(closed_position);
-      
+      stage->setGoal("close");
       grasp->insert(std::move(stage));
     }
 

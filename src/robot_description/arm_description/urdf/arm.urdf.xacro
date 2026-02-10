@@ -9,6 +9,8 @@
         <!-- Select robot variant(base, gazebo, or real) -->
     <xacro:arg name="use_sim"
         default="false" />
+    <xacro:arg name="hand_type"
+        default="inspire_hand" />
 
     <xacro:if value="$(arg use_sim)">
         <xacro:include filename="$(find arm_description)/urdf/arm_gazebo.xacro" />
