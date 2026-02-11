@@ -64,15 +64,15 @@ def generate_launch_description():
     # Set GZ_SIM_SYSTEM_PLUGIN_PATH to find gz_ros2_control plugin
     gz_plugin_path = SetEnvironmentVariable(
         name='GZ_SIM_SYSTEM_PLUGIN_PATH',
-        value='/opt/ros/jazzy/lib'
+        value='/opt/ros/humble/lib'
     )
-    
+
     # gz_resource_path = SetEnvironmentVariable(
     #     name="GZ_SIM_RESOURCE_PATH", value=os.path.join(install_dir, "share")
     # )
 
     # gz_plugin_path = SetEnvironmentVariable(
-    #     name="GZ_SIM_SYSTEM_PLUGIN_PATH", value="/opt/ros/jazzy/lib"
+    #     name="GZ_SIM_SYSTEM_PLUGIN_PATH", value="/opt/ros/humble/lib"
     # )
 
     gazebo_server = IncludeLaunchDescription(

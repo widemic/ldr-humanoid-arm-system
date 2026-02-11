@@ -29,7 +29,7 @@ except ImportError as e:
     print("="*60)
     print(f"\nImport error: {e}")
     print("\nTo install MTC, run:")
-    print("  sudo apt install ros-jazzy-moveit-task-constructor-*")
+    print("  sudo apt install ros-humble-moveit-task-constructor-*")
     print("\nFor detailed installation instructions, run:")
     print("  ros2 run arm_demos check_mtc.py")
     print("\n" + "="*60)

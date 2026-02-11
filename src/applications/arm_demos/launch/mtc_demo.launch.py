@@ -85,7 +85,7 @@ def launch_setup(context, *args, **kwargs):
         print("="*60)
         print("\nMTC demo cannot run without MTC packages.")
         print("\nTo install MTC, run:")
-        print("  sudo apt install ros-jazzy-moveit-task-constructor-*")
+        print("  sudo apt install ros-humble-moveit-task-constructor-*")
         print("\nFor detailed installation check, run:")
         print("  ros2 run arm_demos check_mtc.py")
         print("\nLaunching MoveIt environment only (no demo)...")
@@ -163,7 +163,7 @@ def launch_setup(context, *args, **kwargs):
     if demo == 'simple':
         demo_node = Node(
             package='arm_demos',
-            executable='mtc_simple_demo.py',
+            executable='mtc_simple_demo',
             name='mtc_simple_demo',
             output='screen',
             parameters=[{
@@ -180,7 +180,7 @@ def launch_setup(context, *args, **kwargs):
     elif demo == 'pick_place':
         demo_node = Node(
             package='arm_demos',
-            executable='mtc_pick_place_demo.py',
+            executable='mtc_pick_place_demo',
             name='mtc_pick_place_demo',
             output='screen',
             parameters=[{

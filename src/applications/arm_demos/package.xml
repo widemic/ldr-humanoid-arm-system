@@ -8,14 +8,23 @@
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
+  <!-- C++ dependencies for MTC demos -->
+  <depend>rclcpp</depend>
+  <depend>moveit_task_constructor_core</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_core</depend>
+  <depend>geometry_msgs</depend>
+  <depend>shape_msgs</depend>
+  <depend>tf2_geometry_msgs</depend>
+
+  <!-- Python dependencies -->
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>moveit_ros_planning_interface</exec_depend>
   <exec_depend>arm_moveit_config</exec_depend>
   <exec_depend>arm_control</exec_depend>
 
   <!-- MoveIt Task Constructor -->
-  <exec_depend>moveit_task_constructor_core</exec_depend>
   <exec_depend>moveit_task_constructor_msgs</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>

@@ -179,10 +179,6 @@ mtc::Task MTCTaskNode::createTask() {
 
   const auto controller_names = this->get_parameter("controller_names").as_string_array();
 
-  // Create separate controller vectors for arm-only and gripper-only stages
-  std::vector<std::string> arm_controller = {"arm_controller"};
-  std::vector<std::string> gripper_controller = {"hand_controller"};
-
   const auto object_dimensions = this->get_parameter("object_dimensions").as_double_array();
   const auto grasp_frame_transform = this->get_parameter("grasp_frame_transform").as_double_array();
   const auto place_pose = this->get_parameter("place_pose").as_double_array();
@@ -216,12 +212,8 @@ mtc::Task MTCTaskNode::createTask() {
   task.setProperty("eef", gripper_group_name);
   task.setProperty("ik_frame", gripper_frame);
 
-  // Create planners
-  auto ompl_map_arm = std::unordered_map<std::string, std::string>{
-    {"ompl", arm_group_name + "[RRTConnectkConfigDefault]"}
-  };
-  auto ompl_planner_arm = std::make_shared<mtc::solvers::PipelinePlanner>(
-    shared_from_this(), ompl_map_arm);
+  // Create planners (Humble MTC API)
+  auto ompl_planner_arm = std::make_shared<mtc::solvers::PipelinePlanner>(shared_from_this());
 
   auto interpolation_planner = std::make_shared<mtc::solvers::JointInterpolationPlanner>();
 
@@ -247,8 +239,6 @@ mtc::Task MTCTaskNode::createTask() {
     auto stage = std::make_unique<mtc::stages::MoveTo>("open gripper", interpolation_planner);
     stage->setGroup(gripper_group_name);
     stage->setGoal(gripper_open_pose);
-    stage->properties().set("trajectory_execution_info",
-      mtc::TrajectoryExecutionInfo().set__controller_names(gripper_controller));
     task.add(std::move(stage));
   }
 
@@ -327,8 +317,6 @@ mtc::Task MTCTaskNode::createTask() {
       auto stage = std::make_unique<mtc::stages::MoveTo>("close gripper", interpolation_planner);
       stage->setGroup(gripper_group_name);
       stage->setGoal(gripper_close_pose);
-      stage->properties().set("trajectory_execution_info",
-        mtc::TrajectoryExecutionInfo().set__controller_names(gripper_controller));
       grasp->insert(std::move(stage));
     }
 
@@ -449,8 +437,6 @@ mtc::Task MTCTaskNode::createTask() {
       auto stage = std::make_unique<mtc::stages::MoveTo>("open gripper", interpolation_planner);
       stage->setGroup(gripper_group_name);
       stage->setGoal(gripper_open_pose);
-      stage->properties().set("trajectory_execution_info",
-        mtc::TrajectoryExecutionInfo().set__controller_names(gripper_controller));
       place->insert(std::move(stage));
     }
 
@@ -498,8 +484,6 @@ mtc::Task MTCTaskNode::createTask() {
     auto stage = std::make_unique<mtc::stages::MoveTo>("move home", ompl_planner_arm);
     stage->properties().configureInitFrom(mtc::Stage::PARENT, {"group"});
     stage->setGoal(arm_home_pose);
-    stage->properties().set("trajectory_execution_info",
-      mtc::TrajectoryExecutionInfo().set__controller_names(arm_controller));
     task.add(std::move(stage));
   }
 

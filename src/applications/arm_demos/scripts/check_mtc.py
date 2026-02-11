@@ -71,13 +71,13 @@ def check_mtc_installation():
         print("\n" + "="*60)
         print("INSTALLATION INSTRUCTIONS")
         print("="*60)
-        print("\nTo install MoveIt Task Constructor for ROS 2 Jazzy:")
+        print("\nTo install MoveIt Task Constructor for ROS 2 Humble:")
         print("\n1. Install from apt:")
         print("   sudo apt update")
-        print("   sudo apt install ros-jazzy-moveit-task-constructor-*")
+        print("   sudo apt install ros-humble-moveit-task-constructor-*")
 
         print("\n2. Source your ROS 2 installation:")
-        print("   source /opt/ros/jazzy/setup.bash")
+        print("   source /opt/ros/humble/setup.bash")
 
         print("\n3. Rebuild your workspace:")
         print("   cd /path/to/ldr-humanoid-arm-system")

@@ -2,7 +2,7 @@
  * Software License Agreement (BSD License)
  *
  * Based on MoveIt Task Constructor tutorial (Panda pick_place_demo)
- * Adapted for LDR Humanoid Arm System - ROS 2 Jazzy
+ * Adapted for LDR Humanoid Arm System - ROS 2 Humble
  *
  * Pick and place task using MoveIt Task Constructor
  * - Picks cylinder from source table
