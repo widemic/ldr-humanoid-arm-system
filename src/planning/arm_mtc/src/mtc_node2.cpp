@@ -1,6 +1,15 @@
 #include <rclcpp/rclcpp.hpp>
-#include <moveit/planning_scene/planning_scene.hpp>
-#include <moveit/planning_scene_interface/planning_scene_interface.hpp>
+
+#if __has_include(<moveit/planning_scene/planning_scene.hpp>)
+  #include <moveit/planning_scene/planning_scene.hpp>
+  #include <moveit/planning_scene_interface/planning_scene_interface.hpp>
+#elif __has_include(<moveit/planning_scene/planning_scene.h>)
+  #include <moveit/planning_scene/planning_scene.h>
+  #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#else
+  #error "MoveIt planning_scene header not found"
+#endif
+
 #include <moveit/task_constructor/task.h>
 #include <moveit/task_constructor/solvers.h>
 #include <moveit/task_constructor/stages.h>
