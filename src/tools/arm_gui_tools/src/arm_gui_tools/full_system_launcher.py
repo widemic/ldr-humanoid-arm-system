@@ -15,6 +15,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 FULL_SYSTEM_BASE_CMD = 'ros2 launch arm_system_bringup full_system.launch.py'
 IMAGE_VIEW_CMD = 'ros2 run image_tools showimage --ros-args -r image:=/camera/color/image_raw'
 GAZEBO_CMD = 'gz sim -g'
+GAZEBO_EXTERNAL_CMD = 'ros2 launch arm_gazebo gz_gui.launch.py'
 RVIZ_CMD = 'rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/config/deep_camera.rviz'
 MOVEIT_CMD = 'ros2 launch arm_moveit_config demo.launch.py'
 OCTOMAP_CMD = 'ros2 launch arm_system_bringup moveit_octomap_only.launch.py'
@@ -42,7 +43,13 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self._world_combo = None
         self._current_world_path = ''
 
+        self._external_server_checkbox = None
+        self._external_ip_edit = None
+        self._external_user_edit = None
+        self._external_password_edit = None
+
         self._setup_world_selector()
+        self._setup_external_server()
         self._update_launch_command()
         self._register_tool(
             name='system',
@@ -211,6 +218,106 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
         self._world_combo = combo
         self._populate_world_selector()
+
+    def _setup_external_server(self):
+        """Add an 'External Server' checkbox with IP, user and password fields."""
+        group_box = self.findChild(QtWidgets.QGroupBox, 'group_processes')
+        grid_layout = group_box.layout() if group_box else None
+        if not isinstance(grid_layout, QtWidgets.QGridLayout):
+            return
+
+        checkbox = QtWidgets.QCheckBox('External Server', self)
+        checkbox.setObjectName('checkbox_external_server')
+        checkbox.setToolTip('Connect to a headless Gazebo server running on a remote machine (e.g. Jetson)')
+
+        ip_edit = QtWidgets.QLineEdit(self)
+        ip_edit.setObjectName('edit_external_ip')
+        ip_edit.setPlaceholderText('IP (e.g. 192.168.1.50)')
+        ip_edit.setVisible(False)
+
+        user_edit = QtWidgets.QLineEdit(self)
+        user_edit.setObjectName('edit_external_user')
+        user_edit.setPlaceholderText('User')
+        user_edit.setText('nano')
+        user_edit.setMaximumWidth(100)
+        user_edit.setVisible(False)
+
+        password_edit = QtWidgets.QLineEdit(self)
+        password_edit.setObjectName('edit_external_password')
+        password_edit.setPlaceholderText('Password')
+        password_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+        password_edit.setMaximumWidth(120)
+        password_edit.setVisible(False)
+
+        row = grid_layout.rowCount()
+        grid_layout.addWidget(checkbox, row, 0)
+        grid_layout.addWidget(ip_edit, row, 1)
+        grid_layout.addWidget(user_edit, row, 2)
+        grid_layout.addWidget(password_edit, row, 3)
+
+        self._external_server_checkbox = checkbox
+        self._external_ip_edit = ip_edit
+        self._external_user_edit = user_edit
+        self._external_password_edit = password_edit
+
+        checkbox.toggled.connect(self._on_external_server_toggled)
+
+    def _on_external_server_toggled(self, checked):
+        """Show/hide connection fields, disable Full System button, and swap Gazebo command."""
+        self._external_ip_edit.setVisible(checked)
+        self._external_user_edit.setVisible(checked)
+        self._external_password_edit.setVisible(checked)
+
+        # Disable Full System start when using external server
+        system_tool = self.tools.get('system')
+        if system_tool:
+            system_tool['start_button'].setEnabled(not checked and not self._is_running(system_tool))
+            if checked:
+                self._set_tool_status(system_tool, 'Disabled (external server)')
+            elif not self._is_running(system_tool):
+                self._set_tool_status(system_tool, 'Idle')
+
+        # Swap Gazebo command
+        self._update_gazebo_external_command()
+
+        # Re-update gazebo command when any field changes
+        fields = [self._external_ip_edit, self._external_user_edit, self._external_password_edit]
+        if checked:
+            for field in fields:
+                field.textChanged.connect(self._on_external_field_changed)
+        else:
+            for field in fields:
+                try:
+                    field.textChanged.disconnect(self._on_external_field_changed)
+                except TypeError:
+                    pass
+
+    def _on_external_field_changed(self):
+        """Update the Gazebo command when any external server field changes."""
+        self._update_gazebo_external_command()
+
+    def _update_gazebo_external_command(self):
+        """Build the Gazebo command based on external server fields."""
+        gazebo_tool = self.tools.get('gazebo')
+        if not gazebo_tool:
+            return
+
+        if not (self._external_server_checkbox and self._external_server_checkbox.isChecked()):
+            gazebo_tool['command'] = GAZEBO_CMD
+            return
+
+        ip = self._external_ip_edit.text().strip()
+        user = self._external_user_edit.text().strip()
+        password = self._external_password_edit.text()
+
+        cmd = GAZEBO_EXTERNAL_CMD
+        if ip:
+            cmd += f' jetson_ip:={ip}'
+        if user:
+            cmd += f' jetson_user:={user}'
+        if password:
+            cmd += f' jetson_password:={password}'
+        gazebo_tool['command'] = cmd
 
     def _populate_world_selector(self):
         """Fill the combo box with *.sdf files from arm_gazebo/worlds."""
@@ -421,6 +528,9 @@ class LauncherWindow(QtWidgets.QMainWindow):
         running = self._is_running(tool)
         tool['start_button'].setEnabled(not running)
         tool['stop_button'].setEnabled(running)
+        # Keep Full System disabled when using external server
+        if name == 'system' and self._external_server_checkbox and self._external_server_checkbox.isChecked():
+            tool['start_button'].setEnabled(False)
 
     @staticmethod
     def _set_tool_status(tool, text):
