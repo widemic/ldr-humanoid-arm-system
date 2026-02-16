@@ -17,7 +17,8 @@ IMAGE_VIEW_CMD = 'ros2 run image_tools showimage --ros-args -r image:=/camera/co
 GAZEBO_CMD = 'gz sim -g'
 GAZEBO_EXTERNAL_CMD = 'ros2 launch arm_gazebo gz_gui.launch.py'
 RVIZ_CMD = 'rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/config/deep_camera.rviz'
-MOVEIT_CMD = 'ros2 launch arm_moveit_config demo.launch.py'
+MOVEIT_SERVER_CMD = 'ros2 launch arm_moveit_config move_group.launch.py'
+MOVEIT_CLIENT_CMD = 'ros2 launch arm_moveit_config moveit_rviz.launch.py'
 OCTOMAP_CMD = 'ros2 launch arm_system_bringup moveit_octomap_only.launch.py'
 OBJECT_DETECTION_CMD = 'ros2 run arm_perception object_recognition_node.py'
 YOLO_TRACKING_CMD = '~/ldr-humanoid-arm-system/yolov8_native_tracking.py'
@@ -47,8 +48,10 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self._external_ip_edit = None
         self._external_user_edit = None
         self._external_password_edit = None
+        self._moveit_client_widgets = None
 
         self._setup_world_selector()
+        self._setup_moveit_split_controls()
         self._setup_external_server()
         self._update_launch_command()
         self._register_tool(
@@ -80,8 +83,15 @@ class LauncherWindow(QtWidgets.QMainWindow):
             status_label='label_rviz_status',
         )
         self._register_tool(
-            name='moveit',
-            command=MOVEIT_CMD,
+            name='moveit_client',
+            command=MOVEIT_CLIENT_CMD,
+            start_button=self._moveit_client_widgets['start_button'],
+            stop_button=self._moveit_client_widgets['stop_button'],
+            status_label=self._moveit_client_widgets['status_label'],
+        )
+        self._register_tool(
+            name='moveit_server',
+            command=MOVEIT_SERVER_CMD,
             start_button='button_moveit_start',
             stop_button='button_moveit_stop',
             status_label='label_moveit_status',
@@ -262,6 +272,69 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
         checkbox.toggled.connect(self._on_external_server_toggled)
 
+    def _setup_moveit_split_controls(self):
+        """Reuse existing MoveIt controls for server and add a client row."""
+        group_box = self.findChild(QtWidgets.QGroupBox, 'group_processes')
+        grid_layout = group_box.layout() if group_box else None
+        if not isinstance(grid_layout, QtWidgets.QGridLayout):
+            return
+
+        moveit_server_label = self.findChild(QtWidgets.QLabel, 'label_moveit_name')
+        if moveit_server_label:
+            moveit_server_label.setText('MoveIt Server')
+
+        label = QtWidgets.QLabel('MoveIt Client', self)
+
+        start_btn = QtWidgets.QPushButton('Start', self)
+        start_btn.setObjectName('button_moveit_client_start')
+        stop_btn = QtWidgets.QPushButton('Stop', self)
+        stop_btn.setObjectName('button_moveit_client_stop')
+        status_lbl = QtWidgets.QLabel('Idle', self)
+        status_lbl.setObjectName('label_moveit_client_status')
+
+        row = self._insert_row_below_widget(grid_layout, moveit_server_label)
+        grid_layout.addWidget(label, row, 0)
+        grid_layout.addWidget(start_btn, row, 1)
+        grid_layout.addWidget(stop_btn, row, 2)
+        grid_layout.addWidget(status_lbl, row, 3)
+
+        self._moveit_client_widgets = {
+            'start_button': start_btn,
+            'stop_button': stop_btn,
+            'status_label': status_lbl,
+        }
+
+    @staticmethod
+    def _insert_row_below_widget(grid_layout, widget):
+        """Insert a new row below widget's row by shifting lower rows down."""
+        if widget is None:
+            return grid_layout.rowCount()
+
+        index = grid_layout.indexOf(widget)
+        if index < 0:
+            return grid_layout.rowCount()
+
+        server_row, _, _, _ = grid_layout.getItemPosition(index)
+        insert_row = server_row + 1
+
+        entries = []
+        for i in range(grid_layout.count()):
+            item = grid_layout.itemAt(i)
+            child_widget = item.widget()
+            if child_widget is None:
+                continue
+            row, col, row_span, col_span = grid_layout.getItemPosition(i)
+            entries.append((child_widget, row, col, row_span, col_span))
+
+        for child_widget, _, _, _, _ in entries:
+            grid_layout.removeWidget(child_widget)
+
+        for child_widget, row, col, row_span, col_span in entries:
+            new_row = row + 1 if row >= insert_row else row
+            grid_layout.addWidget(child_widget, new_row, col, row_span, col_span)
+
+        return insert_row
+
     def _on_external_server_toggled(self, checked):
         """Show/hide connection fields, disable Full System button, and swap Gazebo command."""
         self._external_ip_edit.setVisible(checked)
@@ -279,6 +352,11 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
         # Swap Gazebo command
         self._update_gazebo_external_command()
+        self._update_tool_buttons('moveit_server')
+        self._update_tool_buttons('moveit_client')
+        moveit_server_tool = self.tools.get('moveit_server')
+        if moveit_server_tool and checked and not self._is_running(moveit_server_tool):
+            self._set_tool_status(moveit_server_tool, 'Disabled (external server)')
 
         # Re-update gazebo command when any field changes
         fields = [self._external_ip_edit, self._external_user_edit, self._external_password_edit]
@@ -406,9 +484,21 @@ class LauncherWindow(QtWidgets.QMainWindow):
             system_tool['command'] = command
 
     def _register_tool(self, name, command, start_button, stop_button, status_label):
-        start_btn = self._require_widget(QtWidgets.QPushButton, start_button)
-        stop_btn = self._require_widget(QtWidgets.QPushButton, stop_button)
-        status_lbl = self._require_widget(QtWidgets.QLabel, status_label)
+        start_btn = (
+            self._require_widget(QtWidgets.QPushButton, start_button)
+            if isinstance(start_button, str)
+            else start_button
+        )
+        stop_btn = (
+            self._require_widget(QtWidgets.QPushButton, stop_button)
+            if isinstance(stop_button, str)
+            else stop_button
+        )
+        status_lbl = (
+            self._require_widget(QtWidgets.QLabel, status_label)
+            if isinstance(status_label, str)
+            else status_label
+        )
 
         tool = {
             'command': command,
@@ -437,6 +527,19 @@ class LauncherWindow(QtWidgets.QMainWindow):
             self._set_tool_status(tool, 'Already running.')
             return
 
+        if name == 'moveit_server':
+            if self._external_server_checkbox and self._external_server_checkbox.isChecked():
+                self._set_tool_status(tool, 'Disabled (external server)')
+                self._update_tool_buttons(name)
+                return
+        if name == 'moveit_client':
+            external = bool(self._external_server_checkbox and self._external_server_checkbox.isChecked())
+            moveit_server_tool = self.tools.get('moveit_server')
+            if (not external) and (not moveit_server_tool or not self._is_running(moveit_server_tool)):
+                self._set_tool_status(tool, 'Start MoveIt Server first.')
+                self._update_tool_buttons(name)
+                return
+
         try:
             tool['process'] = self._start_process(tool['command'])
         except Exception as exc:
@@ -450,6 +553,8 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
         self._set_tool_status(tool, f'Running (pid {tool["process"].pid}).')
         self._update_tool_buttons(name)
+        if name == 'moveit_server':
+            self._update_tool_buttons('moveit_client')
 
     def stop_tool(self, name):
         tool = self.tools[name]
@@ -458,6 +563,11 @@ class LauncherWindow(QtWidgets.QMainWindow):
         else:
             self._set_tool_status(tool, 'Not running.')
         self._update_tool_buttons(name)
+        if name == 'moveit_server':
+            moveit_client_tool = self.tools.get('moveit_client')
+            if moveit_client_tool and not self._is_running(moveit_client_tool):
+                self._set_tool_status(moveit_client_tool, 'Start MoveIt Server first.')
+            self._update_tool_buttons('moveit_client')
 
     def _start_process(self, command):
         """Launch a ROS command in the background using bash."""
@@ -518,6 +628,11 @@ class LauncherWindow(QtWidgets.QMainWindow):
                 tool['process'] = None
                 self._set_tool_status(tool, 'Exited.')
                 self._update_tool_buttons(name)
+                if name == 'moveit_server':
+                    moveit_client_tool = self.tools.get('moveit_client')
+                    if moveit_client_tool and not self._is_running(moveit_client_tool):
+                        self._set_tool_status(moveit_client_tool, 'Start MoveIt Server first.')
+                    self._update_tool_buttons('moveit_client')
 
     @staticmethod
     def _is_running(tool):
@@ -531,6 +646,14 @@ class LauncherWindow(QtWidgets.QMainWindow):
         # Keep Full System disabled when using external server
         if name == 'system' and self._external_server_checkbox and self._external_server_checkbox.isChecked():
             tool['start_button'].setEnabled(False)
+        if name == 'moveit_server':
+            external = bool(self._external_server_checkbox and self._external_server_checkbox.isChecked())
+            tool['start_button'].setEnabled((not running) and (not external))
+        if name == 'moveit_client':
+            external = bool(self._external_server_checkbox and self._external_server_checkbox.isChecked())
+            moveit_server_tool = self.tools.get('moveit_server')
+            server_running = bool(moveit_server_tool and self._is_running(moveit_server_tool))
+            tool['start_button'].setEnabled((not running) and (external or server_running))
 
     @staticmethod
     def _set_tool_status(tool, text):
