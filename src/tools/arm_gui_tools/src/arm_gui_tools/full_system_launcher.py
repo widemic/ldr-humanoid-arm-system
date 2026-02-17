@@ -12,8 +12,8 @@ from pathlib import Path
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 
-FULL_SYSTEM_BASE_CMD = 'ros2 launch arm_system_bringup full_system.launch.py'
-IMAGE_VIEW_CMD = 'ros2 run image_tools showimage --ros-args -r image:=/camera/color/image_raw'
+ROBOT_CONTROL_CMD = 'ros2 launch arm_control control.launch.py'
+SIMULATION_WORLD_CMD = 'ros2 launch arm_gazebo headless_sim.launch.py'
 GAZEBO_CMD = 'gz sim -g'
 GAZEBO_EXTERNAL_CMD = 'ros2 launch arm_gazebo gz_gui.launch.py'
 RVIZ_CMD = 'rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/config/deep_camera.rviz'
@@ -56,17 +56,17 @@ class LauncherWindow(QtWidgets.QMainWindow):
         self._update_launch_command()
         self._register_tool(
             name='system',
-            command=self._build_launch_command(),
+            command=ROBOT_CONTROL_CMD,
             start_button='button_system_start',
             stop_button='button_system_stop',
             status_label='label_system_status',
         )
         self._register_tool(
-            name='rqt',
-            command=IMAGE_VIEW_CMD,
-            start_button='button_rqt_start',
-            stop_button='button_rqt_stop',
-            status_label='label_rqt_status',
+            name='simulation_world',
+            command=self._build_launch_command(),
+            start_button='button_simulation_world_start',
+            stop_button='button_simulation_world_stop',
+            status_label='label_simulation_world_status',
         )
         self._register_tool(
             name='gazebo',
@@ -336,19 +336,10 @@ class LauncherWindow(QtWidgets.QMainWindow):
         return insert_row
 
     def _on_external_server_toggled(self, checked):
-        """Show/hide connection fields, disable Full System button, and swap Gazebo command."""
+        """Show/hide connection fields and swap Gazebo command."""
         self._external_ip_edit.setVisible(checked)
         self._external_user_edit.setVisible(checked)
         self._external_password_edit.setVisible(checked)
-
-        # Disable Full System start when using external server
-        system_tool = self.tools.get('system')
-        if system_tool:
-            system_tool['start_button'].setEnabled(not checked and not self._is_running(system_tool))
-            if checked:
-                self._set_tool_status(system_tool, 'Disabled (external server)')
-            elif not self._is_running(system_tool):
-                self._set_tool_status(system_tool, 'Idle')
 
         # Swap Gazebo command
         self._update_gazebo_external_command()
@@ -469,7 +460,7 @@ class LauncherWindow(QtWidgets.QMainWindow):
 
     def _build_launch_command(self):
         """Produce the ros2 launch command with the selected world argument."""
-        command = FULL_SYSTEM_BASE_CMD
+        command = SIMULATION_WORLD_CMD
         if self._current_world_path:
             command = f"{command} simulation_world:={shlex.quote(self._current_world_path)}"
         return command
@@ -479,9 +470,9 @@ class LauncherWindow(QtWidgets.QMainWindow):
         command = self._build_launch_command()
         if self.command_line:
             self.command_line.setText(command)
-        system_tool = self.tools.get('system')
-        if system_tool:
-            system_tool['command'] = command
+        simulation_tool = self.tools.get('simulation_world')
+        if simulation_tool:
+            simulation_tool['command'] = command
 
     def _register_tool(self, name, command, start_button, stop_button, status_label):
         start_btn = (
@@ -643,9 +634,6 @@ class LauncherWindow(QtWidgets.QMainWindow):
         running = self._is_running(tool)
         tool['start_button'].setEnabled(not running)
         tool['stop_button'].setEnabled(running)
-        # Keep Full System disabled when using external server
-        if name == 'system' and self._external_server_checkbox and self._external_server_checkbox.isChecked():
-            tool['start_button'].setEnabled(False)
         if name == 'moveit_server':
             external = bool(self._external_server_checkbox and self._external_server_checkbox.isChecked())
             tool['start_button'].setEnabled((not running) and (not external))

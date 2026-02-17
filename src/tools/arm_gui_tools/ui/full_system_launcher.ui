@@ -101,7 +101,7 @@
                             <item row="0" column="0">
                                 <widget class="QLabel" name="label_system_name">
                                     <property name="text">
-                                        <string>Full System Launch</string>
+                                        <string>Robot Control</string>
                                     </property>
                                 </widget>
                             </item>
@@ -130,21 +130,21 @@
                                 </widget>
                             </item>
                             <item row="1" column="0">
-                                <widget class="QLabel" name="label_rqt_name">
+                                <widget class="QLabel" name="label_simulation_world_name">
                                     <property name="text">
-                                        <string>rqt_image_view</string>
+                                        <string>Simulation World</string>
                                     </property>
                                 </widget>
                             </item>
                             <item row="1" column="1">
-                                <widget class="QPushButton" name="button_rqt_start">
+                                <widget class="QPushButton" name="button_simulation_world_start">
                                     <property name="text">
                                         <string>Start</string>
                                     </property>
                                 </widget>
                             </item>
                             <item row="1" column="2">
-                                <widget class="QPushButton" name="button_rqt_stop">
+                                <widget class="QPushButton" name="button_simulation_world_stop">
                                     <property name="enabled">
                                         <bool>false</bool>
                                     </property>
@@ -154,7 +154,7 @@
                                 </widget>
                             </item>
                             <item row="1" column="3">
-                                <widget class="QLabel" name="label_rqt_status">
+                                <widget class="QLabel" name="label_simulation_world_status">
                                     <property name="text">
                                         <string>Idle</string>
                                     </property>
