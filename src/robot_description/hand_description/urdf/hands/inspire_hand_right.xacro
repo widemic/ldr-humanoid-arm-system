@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="inspire_hand_right" params="parent mount_x:=0.0 mount_y:=0.0 mount_z:=0.0 mount_roll:=0.0 mount_pitch:=0.0 mount_yaw:=0.0">
+  <xacro:macro name="inspire_hand_right" params="parent prefix:=right_ mount_x:=0.0 mount_y:=0.0 mount_z:=0.0 mount_roll:=0.0 mount_pitch:=0.0 mount_yaw:=0.0">
 
-    <joint name="right_hand_base_joint" type="fixed">
+    <joint name="${prefix}hand_base_joint" type="fixed">
       <origin xyz="${mount_x} ${mount_y} ${mount_z}" rpy="${mount_roll} ${mount_pitch} ${mount_yaw}"/>
       <parent link="${parent}"/>
-      <child link="right_hand_base_link"/>
+      <child link="${prefix}hand_base_link"/>
     </joint>
 
-      <link name="right_hand_base_link">
+      <link name="${prefix}hand_base_link">
         <inertial>
           <origin xyz="-0.0025264 -0.066047 0.0019598" rpy="0 0 0"/>
           <mass value="0.14143"/>
@@ -70,7 +70,7 @@
           </geometry>
         </collision>
       </link>
-      <link name="right_thumb_proximal_base">
+      <link name="${prefix}thumb_proximal_base">
         <inertial>
           <origin xyz="-0.0048064 0.0009382 -0.00757" rpy="0 0 0"/>
           <mass value="0.0018869"/>
@@ -89,14 +89,14 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_thumb_proximal_yaw_joint" type="revolute">
+      <joint name="${prefix}thumb_proximal_yaw_joint" type="revolute">
         <origin xyz="-0.01696 -0.0691 -0.02045" rpy="1.5708 -1.5708 0"/>
-        <parent link="right_hand_base_link"/>
-        <child link="right_thumb_proximal_base"/>
+        <parent link="${prefix}hand_base_link"/>
+        <child link="${prefix}thumb_proximal_base"/>
         <axis xyz="0 0 -1"/>
         <limit lower="0.0" upper="1.308" effort="1" velocity="0.5"/>
       </joint>
-      <link name="right_thumb_proximal">
+      <link name="${prefix}thumb_proximal">
         <inertial>
           <origin xyz="0.021932 0.012785 -0.0080386" rpy="0 0 0"/>
           <mass value="0.0066075"/>
@@ -115,14 +115,14 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_thumb_proximal_pitch_joint" type="revolute">
+      <joint name="${prefix}thumb_proximal_pitch_joint" type="revolute">
         <origin xyz="-0.0088099 0.010892 -0.00925" rpy="1.5708 0 2.8587"/>
-        <parent link="right_thumb_proximal_base"/>
-        <child link="right_thumb_proximal"/>
+        <parent link="${prefix}thumb_proximal_base"/>
+        <child link="${prefix}thumb_proximal"/>
         <axis xyz="0 0 1"/>
         <limit lower="0" upper="0.6" effort="1" velocity="0.5"/>
       </joint>
-      <link name="right_thumb_intermediate">
+      <link name="${prefix}thumb_intermediate">
         <inertial>
           <origin xyz="0.0095544 -0.0016282 -0.0071997" rpy="0 0 0"/>
           <mass value="0.0037847"/>
@@ -141,15 +141,15 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_thumb_intermediate_joint" type="revolute">
+      <joint name="${prefix}thumb_intermediate_joint" type="revolute">
         <origin xyz="0.04407 0.034553 -0.0008" rpy="0 0 0"/>
-        <parent link="right_thumb_proximal"/>
-        <child link="right_thumb_intermediate"/>
+        <parent link="${prefix}thumb_proximal"/>
+        <child link="${prefix}thumb_intermediate"/>
         <axis xyz="0 0 1"/>
         <limit lower="0" upper="0.8" effort="1" velocity="0.5"/>
-        <mimic joint="right_thumb_proximal_pitch_joint" multiplier="1.334" offset="0"/>
+        <mimic joint="${prefix}thumb_proximal_pitch_joint" multiplier="1.334" offset="0"/>
       </joint>
-      <link name="right_thumb_distal">
+      <link name="${prefix}thumb_distal">
         <inertial>
           <origin xyz="0.0092888 0.0049529 -0.0060033" rpy="0 0 0"/>
           <mass value="0.0033441"/>
@@ -168,15 +168,15 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_thumb_distal_joint" type="revolute">
+      <joint name="${prefix}thumb_distal_joint" type="revolute">
         <origin xyz="0.020248 0.010156 -0.0012" rpy="0 0 0"/>
-        <parent link="right_thumb_intermediate"/>
-        <child link="right_thumb_distal"/>
+        <parent link="${prefix}thumb_intermediate"/>
+        <child link="${prefix}thumb_distal"/>
         <axis xyz="0 0 1"/>
         <limit lower="0" upper="0.4" effort="1" velocity="0.5"/>
-        <mimic joint="right_thumb_proximal_pitch_joint" multiplier="0.667" offset="0"/>
+        <mimic joint="${prefix}thumb_proximal_pitch_joint" multiplier="0.667" offset="0"/>
       </joint>
-      <link name="right_index_proximal">
+      <link name="${prefix}index_proximal">
         <inertial>
           <origin xyz="0.0012259 0.011942 -0.0060001" rpy="0 0 0"/>
           <mass value="0.0042403"/>
@@ -195,14 +195,14 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_index_proximal_joint" type="revolute">
+      <joint name="${prefix}index_proximal_joint" type="revolute">
         <origin xyz="0.00028533 -0.13653 -0.032268" rpy="-3.1067 0 0"/>
-        <parent link="right_hand_base_link"/>
-        <child link="right_index_proximal"/>
+        <parent link="${prefix}hand_base_link"/>
+        <child link="${prefix}index_proximal"/>
         <axis xyz="0 0 1"/>
         <limit lower="0" upper="1.47" effort="1" velocity="0.5"/>
       </joint>
-      <link name="right_index_intermediate">
+      <link name="${prefix}index_intermediate">
         <inertial>
           <origin xyz="0.0019697 0.019589 -0.005" rpy="0 0 0"/>
           <mass value="0.0045683"/>
@@ -221,15 +221,15 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_index_intermediate_joint" type="revolute">
+      <joint name="${prefix}index_intermediate_joint" type="revolute">
         <origin xyz="-0.0026138 0.032026 -0.001" rpy="0 0 0"/>
-        <parent link="right_index_proximal"/>
-        <child link="right_index_intermediate"/>
+        <parent link="${prefix}index_proximal"/>
+        <child link="${prefix}index_intermediate"/>
         <axis xyz="0 0 1"/>
         <limit lower="-0.04545" upper="1.56" effort="1" velocity="0.5"/>
-        <mimic joint="right_index_proximal_joint" multiplier="1.06399" offset="-0.04545"/>
+        <mimic joint="${prefix}index_proximal_joint" multiplier="1.06399" offset="-0.04545"/>
       </joint>
-      <link name="right_middle_proximal">
+      <link name="${prefix}middle_proximal">
         <inertial>
           <origin xyz="0.001297 0.011934 -0.0060001" rpy="0 0 0"/>
           <mass value="0.0042403"/>
@@ -248,14 +248,14 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_middle_proximal_joint" type="revolute">
+      <joint name="${prefix}middle_proximal_joint" type="revolute">
         <origin xyz="0.00028533 -0.1371 -0.01295" rpy="-3.1416 0 0"/>
-        <parent link="right_hand_base_link"/>
-        <child link="right_middle_proximal"/>
+        <parent link="${prefix}hand_base_link"/>
+        <child link="${prefix}middle_proximal"/>
         <axis xyz="0 0 1"/>
         <limit lower="0" upper="1.47" effort="1" velocity="0.5"/>
       </joint>
-      <link name="right_middle_intermediate">
+      <link name="${prefix}middle_intermediate">
         <inertial>
           <origin xyz="0.001921 0.020796 -0.005" rpy="0 0 0"/>
           <mass value="0.0050396"/>
@@ -274,15 +274,15 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_middle_intermediate_joint" type="revolute">
+      <joint name="${prefix}middle_intermediate_joint" type="revolute">
         <origin xyz="-0.0024229 0.032041 -0.001" rpy="0 0 0"/>
-        <parent link="right_middle_proximal"/>
-        <child link="right_middle_intermediate"/>
+        <parent link="${prefix}middle_proximal"/>
+        <child link="${prefix}middle_intermediate"/>
         <axis xyz="0 0 1"/>
         <limit lower="-0.04545" upper="1.56" effort="1" velocity="0.5"/>
-        <mimic joint="right_middle_proximal_joint" multiplier="1.06399" offset="-0.04545"/>
+        <mimic joint="${prefix}middle_proximal_joint" multiplier="1.06399" offset="-0.04545"/>
       </joint>
-      <link name="right_ring_proximal">
+      <link name="${prefix}ring_proximal">
         <inertial>
           <origin xyz="0.001297 0.011934 -0.0060002" rpy="0 0 0"/>
           <mass value="0.0042403"/>
@@ -301,14 +301,14 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_ring_proximal_joint" type="revolute">
+      <joint name="${prefix}ring_proximal_joint" type="revolute">
         <origin xyz="0.00028533 -0.13691 0.0062872" rpy="3.0892 0 0"/>
-        <parent link="right_hand_base_link"/>
-        <child link="right_ring_proximal"/>
+        <parent link="${prefix}hand_base_link"/>
+        <child link="${prefix}ring_proximal"/>
         <axis xyz="0 0 1"/>
         <limit lower="0" upper="1.47" effort="1" velocity="0.5"/>
       </joint>
-      <link name="right_ring_intermediate">
+      <link name="${prefix}ring_intermediate">
         <inertial>
           <origin xyz="0.0021753 0.019567 -0.005" rpy="0 0 0"/>
           <mass value="0.0045683"/>
@@ -327,15 +327,15 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_ring_intermediate_joint" type="revolute">
+      <joint name="${prefix}ring_intermediate_joint" type="revolute">
         <origin xyz="-0.0024229 0.032041 -0.001" rpy="0 0 0"/>
-        <parent link="right_ring_proximal"/>
-        <child link="right_ring_intermediate"/>
+        <parent link="${prefix}ring_proximal"/>
+        <child link="${prefix}ring_intermediate"/>
         <axis xyz="0 0 1"/>
         <limit lower="-0.04545" upper="1.56" effort="1" velocity="0.5"/>
-        <mimic joint="right_ring_proximal_joint" multiplier="1.06399" offset="-0.04545"/>
+        <mimic joint="${prefix}ring_proximal_joint" multiplier="1.06399" offset="-0.04545"/>
       </joint>
-      <link name="right_pinky_proximal">
+      <link name="${prefix}pinky_proximal">
         <inertial>
           <origin xyz="0.001297 0.011934 -0.0060001" rpy="0 0 0"/>
           <mass value="0.0042403"/>
@@ -354,14 +354,14 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_pinky_proximal_joint" type="revolute">
+      <joint name="${prefix}pinky_proximal_joint" type="revolute">
         <origin xyz="0.00028533 -0.13571 0.025488" rpy="3.0369 0 0"/>
-        <parent link="right_hand_base_link"/>
-        <child link="right_pinky_proximal"/>
+        <parent link="${prefix}hand_base_link"/>
+        <child link="${prefix}pinky_proximal"/>
         <axis xyz="0 0 1"/>
         <limit lower="0" upper="1.47" effort="1" velocity="0.5"/>
       </joint>
-      <link name="right_pinky_intermediate">
+      <link name="${prefix}pinky_intermediate">
         <inertial>
           <origin xyz="0.0024748 0.016203 -0.0050031" rpy="0 0 0"/>
           <mass value="0.0035996"/>
@@ -380,44 +380,44 @@
           </geometry>
         </collision>
       </link>
-      <joint name="right_pinky_intermediate_joint" type="revolute">
+      <joint name="${prefix}pinky_intermediate_joint" type="revolute">
         <origin xyz="-0.0024229 0.032041 -0.001" rpy="0 0 0"/>
-        <parent link="right_pinky_proximal"/>
-        <child link="right_pinky_intermediate"/>
+        <parent link="${prefix}pinky_proximal"/>
+        <child link="${prefix}pinky_intermediate"/>
         <axis xyz="0 0 1"/>
         <limit lower="-0.04545" upper="1.56" effort="1" velocity="0.5"/>
-        <mimic joint="right_pinky_proximal_joint" multiplier="1.06399" offset="-0.04545"/>
+        <mimic joint="${prefix}pinky_proximal_joint" multiplier="1.06399" offset="-0.04545"/>
       </joint>
-    
-      <link name='right_thumb_tip'/>
-      <joint name="right_thumb_tip_joint" type="fixed">
+
+      <link name="${prefix}thumb_tip"/>
+      <joint name="${prefix}thumb_tip_joint" type="fixed">
         <origin xyz="0.0202 0.0140 -0.006" rpy="0 0 0"/>
-        <parent link="right_thumb_distal"/>
-        <child link="right_thumb_tip"/>
+        <parent link="${prefix}thumb_distal"/>
+        <child link="${prefix}thumb_tip"/>
       </joint>
-      <link name='right_index_tip'/>
-      <joint name="right_index_tip_joint" type="fixed">
+      <link name="${prefix}index_tip"/>
+      <joint name="${prefix}index_tip_joint" type="fixed">
         <origin xyz="-0.0008 0.045 -0.005" rpy="0 0 0"/>
-        <parent link="right_index_intermediate"/>
-        <child link="right_index_tip"/>
+        <parent link="${prefix}index_intermediate"/>
+        <child link="${prefix}index_tip"/>
       </joint>
-      <link name='right_middle_tip'/>
-      <joint name="right_middle_tip_joint" type="fixed">
+      <link name="${prefix}middle_tip"/>
+      <joint name="${prefix}middle_tip_joint" type="fixed">
         <origin xyz="-0.001 0.048 -0.005" rpy="0 0 0"/>
-        <parent link="right_middle_intermediate"/>
-        <child link="right_middle_tip"/>
+        <parent link="${prefix}middle_intermediate"/>
+        <child link="${prefix}middle_tip"/>
       </joint>
-      <link name='right_ring_tip'/>
-      <joint name="right_ring_tip_joint" type="fixed">
+      <link name="${prefix}ring_tip"/>
+      <joint name="${prefix}ring_tip_joint" type="fixed">
         <origin xyz="-0.0008 0.045 -0.005" rpy="0 0 0"/>
-        <parent link="right_ring_intermediate"/>
-        <child link="right_ring_tip"/>
+        <parent link="${prefix}ring_intermediate"/>
+        <child link="${prefix}ring_tip"/>
       </joint>
-      <link name='right_pinky_tip'/>
-      <joint name="right_pinky_tip_joint" type="fixed">
+      <link name="${prefix}pinky_tip"/>
+      <joint name="${prefix}pinky_tip_joint" type="fixed">
         <origin xyz="-0.0008 0.037 -0.005" rpy="0 0 0"/>
-        <parent link="right_pinky_intermediate"/>
-        <child link="right_pinky_tip"/>
+        <parent link="${prefix}pinky_intermediate"/>
+        <child link="${prefix}pinky_tip"/>
       </joint>
 
   </xacro:macro>

@@ -7,9 +7,9 @@ initial_positions:
   elbow_pitch_joint: 0.0
   elbow_yaw_joint: 0.0
   wrist_roll_joint: 0.0
-  thumb_proximal_yaw_joint: 0.0
-  thumb_proximal_pitch_joint: 0.0
-  index_proximal_joint: 0.0
-  middle_proximal_joint: 0.0
-  ring_proximal_joint: 0.0
-  pinky_proximal_joint: 0.0
+  left_thumb_proximal_yaw_joint: 0.0
+  left_thumb_proximal_pitch_joint: 0.0
+  left_index_proximal_joint: 0.0
+  left_middle_proximal_joint: 0.0
+  left_ring_proximal_joint: 0.0
+  left_pinky_proximal_joint: 0.0

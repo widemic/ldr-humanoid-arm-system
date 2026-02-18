@@ -8,6 +8,7 @@
 
   <xacro:inspire_hand_left
     parent="urdf_l_wrist_assembly"
+    prefix="left_"
     mount_x="-0.0"
     mount_y="-0.07"
     mount_z="0.03"
@@ -17,6 +18,7 @@
 
   <xacro:inspire_hand_right
     parent="urdf_r_wrist_assembly"
+    prefix="right_"
     mount_x="-0.0"
     mount_y="-0.07"
     mount_z="0.03"

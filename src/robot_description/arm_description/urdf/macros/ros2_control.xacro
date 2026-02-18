@@ -75,69 +75,69 @@
                     <plugin>gz_ros2_control/GazeboSimSystem</plugin>
                 </hardware>
                 <!-- 6 actuated joints (command + state) -->
-                <joint name="thumb_proximal_yaw_joint">
+                <joint name="left_thumb_proximal_yaw_joint">
                     <command_interface name="position"/>
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="thumb_proximal_pitch_joint">
+                <joint name="left_thumb_proximal_pitch_joint">
                     <command_interface name="position"/>
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="index_proximal_joint">
+                <joint name="left_index_proximal_joint">
                     <command_interface name="position"/>
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="middle_proximal_joint">
+                <joint name="left_middle_proximal_joint">
                     <command_interface name="position"/>
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="ring_proximal_joint">
+                <joint name="left_ring_proximal_joint">
                     <command_interface name="position"/>
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="pinky_proximal_joint">
+                <joint name="left_pinky_proximal_joint">
                     <command_interface name="position"/>
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
                 <!-- 6 mimic joints (state only) -->
-                <joint name="thumb_intermediate_joint">
+                <joint name="left_thumb_intermediate_joint">
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="thumb_distal_joint">
+                <joint name="left_thumb_distal_joint">
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="index_intermediate_joint">
+                <joint name="left_index_intermediate_joint">
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="middle_intermediate_joint">
+                <joint name="left_middle_intermediate_joint">
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="ring_intermediate_joint">
+                <joint name="left_ring_intermediate_joint">
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>
                 </joint>
-                <joint name="pinky_intermediate_joint">
+                <joint name="left_pinky_intermediate_joint">
                     <state_interface name="position"/>
                     <state_interface name="velocity"/>
                     <state_interface name="effort"/>

@@ -41,32 +41,32 @@ joint_limits:
     max_velocity: 16.0  # rad/s (from URDF)
     has_acceleration_limits: true
     max_acceleration: 20.0  # rad/s² (wrist roll - light load)
-  thumb_proximal_yaw_joint:
+  left_thumb_proximal_yaw_joint:
     has_velocity_limits: true
     max_velocity: 0.5  # rad/s (from URDF)
     has_acceleration_limits: true
     max_acceleration: 1.0  # rad/s²
-  thumb_proximal_pitch_joint:
+  left_thumb_proximal_pitch_joint:
     has_velocity_limits: true
     max_velocity: 0.5  # rad/s (from URDF)
     has_acceleration_limits: true
     max_acceleration: 1.0  # rad/s²
-  index_proximal_joint:
+  left_index_proximal_joint:
     has_velocity_limits: true
     max_velocity: 0.5  # rad/s (from URDF)
     has_acceleration_limits: true
     max_acceleration: 1.0  # rad/s²
-  middle_proximal_joint:
+  left_middle_proximal_joint:
     has_velocity_limits: true
     max_velocity: 0.5  # rad/s (from URDF)
     has_acceleration_limits: true
     max_acceleration: 1.0  # rad/s²
-  ring_proximal_joint:
+  left_ring_proximal_joint:
     has_velocity_limits: true
     max_velocity: 0.5  # rad/s (from URDF)
     has_acceleration_limits: true
     max_acceleration: 1.0  # rad/s²
-  pinky_proximal_joint:
+  left_pinky_proximal_joint:
     has_velocity_limits: true
     max_velocity: 0.5  # rad/s (from URDF)
     has_acceleration_limits: true

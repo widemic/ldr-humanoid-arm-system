@@ -14,13 +14,17 @@ def generate_launch_description():
     pkg_arm_gazebo = FindPackageShare('arm_gazebo')
     pkg_ros_gz_bridge = FindPackageShare('ros_gz_bridge')
 
-    # Get install prefix to resolve package:// URIs
-    install_dir = get_package_prefix('arm_description')
+    # Get install prefixes to resolve package:// URIs
+    install_dir_arm = get_package_prefix('arm_description')
+    install_dir_hand = get_package_prefix('hand_description')
 
-    # Set GZ_SIM_RESOURCE_PATH to ROS workspace for package:// URI resolution
+    # Set GZ_SIM_RESOURCE_PATH so Gazebo can resolve model:// URIs for all packages
     gz_resource_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
-        value=os.path.join(install_dir, 'share')
+        value=':'.join([
+            os.path.join(install_dir_arm, 'share'),
+            os.path.join(install_dir_hand, 'share'),
+        ])
     )
 
     # Declare launch arguments

@@ -45,12 +45,12 @@ servo_controller:
 hand_controller:
   ros__parameters:
     joints:
-      - thumb_proximal_yaw_joint
-      - thumb_proximal_pitch_joint
-      - index_proximal_joint
-      - middle_proximal_joint
-      - ring_proximal_joint
-      - pinky_proximal_joint
+      - left_thumb_proximal_yaw_joint
+      - left_thumb_proximal_pitch_joint
+      - left_index_proximal_joint
+      - left_middle_proximal_joint
+      - left_ring_proximal_joint
+      - left_pinky_proximal_joint
     command_interfaces:
       - position
     state_interfaces:
