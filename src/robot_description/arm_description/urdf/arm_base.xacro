@@ -15,7 +15,7 @@
 
     <!-- Hand/Gripper macros -->
     <xacro:include filename="$(find arm_description)/urdf/hands/simple_gripper.xacro" />
-    <xacro:include filename="$(find arm_description)/urdf/hands/inspire_hand_left.xacro" />
+    <xacro:include filename="$(find hand_description)/urdf/hands/inspire_hand_left.xacro" />
 
     <!-- Resolve hand_type arg into a property for conditional evaluation -->
     <xacro:property name="hand_type" value="$(arg hand_type)"/>

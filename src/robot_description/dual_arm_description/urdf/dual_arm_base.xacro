@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find dual_arm_description)/urdf/links/dual_arm_links.xacro" />
+  <xacro:include filename="$(find dual_arm_description)/urdf/joints/dual_arm_joints.xacro" />
+  <xacro:include filename="$(find hand_description)/urdf/hands/inspire_hand_left.xacro" />
+  <xacro:include filename="$(find hand_description)/urdf/hands/inspire_hand_right.xacro" />
+
+  <xacro:inspire_hand_left
+    parent="urdf_l_wrist_assembly"
+    mount_x="-0.0"
+    mount_y="-0.07"
+    mount_z="0.03"
+    mount_roll="0"
+    mount_pitch="3.14159265"
+    mount_yaw="0"/>
+
+  <xacro:inspire_hand_right
+    parent="urdf_r_wrist_assembly"
+    mount_x="-0.0"
+    mount_y="-0.07"
+    mount_z="0.03"
+    mount_roll="0"
+    mount_pitch="0"
+    mount_yaw="0"/>
+
+</robot>

@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <joint name="left_wrist_roll_joint_X4" type="revolute">
+    <origin xyz="-1.66533e-16 0.033 -0.0565" rpy="1.5708 -0.174533 1.69056e-18"/>
+    <parent link="urdf_l_lower_forearm_assembly"/>
+    <child link="urdf_l_wrist_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.74533" upper="1.39626"/>
+  </joint>
+  <joint name="left_wrist_yaw_joint_X4" type="revolute">
+    <origin xyz="1.38778e-17 -0.168 0.04" rpy="-1.5708 -1.5708 0"/>
+    <parent link="urdf_l_upper_forearm_assembly"/>
+    <child link="urdf_l_lower_forearm_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-2.35619" upper="2.35619"/>
+  </joint>
+  <joint name="left_elbow_pitch_joint_X6" type="revolute">
+    <origin xyz="-0.04 -6.93889e-18 -0.065" rpy="1.5708 -2.10491e-17 1.5708"/>
+    <parent link="urdf_l_elbow_assembly"/>
+    <child link="urdf_l_upper_forearm_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.5708" upper="1.5708"/>
+  </joint>
+  <joint name="left_shoulder_yaw_joint_X4" type="revolute">
+    <origin xyz="1.38778e-16 -0.17 0.046" rpy="-1.5708 -6.32981e-16 -1.98615e-16"/>
+    <parent link="urdf_l_upper_arm_assembly"/>
+    <child link="urdf_l_elbow_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-2.35619" upper="2.35619"/>
+  </joint>
+  <joint name="left_shoulder_roll_joint_X6" type="revolute">
+    <origin xyz="0.046 -5.55112e-17 -0.07" rpy="1.5708 -1.39626 -1.5708"/>
+    <parent link="urdf_l_shoulder_assembly"/>
+    <child link="urdf_l_upper_arm_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.39626" upper="1.74533"/>
+  </joint>
+  <joint name="left_shoulder_pitch_joint_X6" type="revolute">
+    <origin xyz="-0.162498 -3.95689e-06 -0.421" rpy="-1.5708 1.2642e-15 -1.5708"/>
+    <parent link="urdf_simplified_torso_sub_assembly"/>
+    <child link="urdf_l_shoulder_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.5708" upper="3.14159"/>
+  </joint>
+  <joint name="right_wrist_roll_joint_X4" type="revolute">
+    <origin xyz="-3.88578e-16 0.033 -0.0565" rpy="1.5708 0.174533 1.00188e-18"/>
+    <parent link="urdf_r_lower_forearm_assembly"/>
+    <child link="urdf_r_wrist_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.39626" upper="1.74533"/>
+  </joint>
+  <joint name="right_wrist_yaw_joint_X4" type="revolute">
+    <origin xyz="4.85723e-17 0.168 0.04" rpy="1.5708 1.5708 0"/>
+    <parent link="urdf_r_upper_forearm_assembly"/>
+    <child link="urdf_r_lower_forearm_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-2.35619" upper="2.35619"/>
+  </joint>
+  <joint name="right_elbow_pitch_joint_X6" type="revolute">
+    <origin xyz="0.04 8.32667e-17 -0.065" rpy="-1.5708 -4.75872e-16 1.5708"/>
+    <parent link="urdf_r_elbow_assembly"/>
+    <child link="urdf_r_upper_forearm_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.5708" upper="1.5708"/>
+  </joint>
+  <joint name="right_shoulder_yaw_joint_X4" type="revolute">
+    <origin xyz="0 -0.17 0.046" rpy="-1.5708 4.66207e-17 -1.0175e-15"/>
+    <parent link="urdf_r_upper_arm_assembly"/>
+    <child link="urdf_r_elbow_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-2.35619" upper="2.35619"/>
+  </joint>
+  <joint name="right_shoulder_roll_joint_X6" type="revolute">
+    <origin xyz="0.046 -2.77556e-17 -0.07" rpy="1.5708 1.39626 -1.5708"/>
+    <parent link="urdf_r_shoulder_assembly"/>
+    <child link="urdf_r_upper_arm_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.74533" upper="1.39626"/>
+  </joint>
+  <joint name="right_shoulder_pitch_joint_X6" type="revolute">
+    <origin xyz="0.162502 -3.95689e-06 -0.421" rpy="1.5708 -1.25563e-17 -1.5708"/>
+    <parent link="urdf_simplified_torso_sub_assembly"/>
+    <child link="urdf_r_shoulder_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.14159" upper="1.5708"/>
+  </joint>
+  <joint name="waist_yaw_joint" type="fixed">
+    <origin xyz="0.000699067 0.0333466 -0.29826" rpy="3.14159 2.72165e-16 4.32987e-15"/>
+    <parent link="urdf_base"/>
+    <child link="urdf_simplified_torso_sub_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.5708" upper="1.5708"/>
+  </joint>
+  
+<joint name="left_ankle_pitch_joint_2" type="fixed">
+    <origin xyz="-3.747e-16 -0.395 0.03" rpy="-3.14159 3.08616e-14 2.63855e-14"/>
+    <parent link="urdf_l_tibia_assembly"/>
+    <child link="ankle_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.785398" upper="0.785398"/>
+  </joint>
+  
+<joint name="left_ankle_pitch_joint" type="fixed">
+    <origin xyz="-3.747e-16 -0.395 0.03" rpy="-3.14159 3.08616e-14 2.63855e-14"/>
+    <parent link="urdf_l_tibia_assembly"/>
+    <child link="ankle_assembly_2"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.785398" upper="0.785398"/>
+  </joint>
+  
+<joint name="left_knee_joint" type="fixed">
+    <origin xyz="-0.055 8.60423e-16 -0.113" rpy="1.5708 1.15516e-14 1.5708"/>
+    <parent link="urdf_lower_femur_assembly"/>
+    <child link="urdf_l_tibia_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  
+<joint name="left_hip_yaw_joint" type="fixed">
+    <origin xyz="2.77556e-17 -0.217 0.0551145" rpy="-1.5708 -2.56711e-31 -1.62214e-31"/>
+    <parent link="urdf_l_upper_femur_assembly"/>
+    <child link="urdf_lower_femur_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.5708" upper="1.5708"/>
+  </joint>
+  
+<joint name="left_hip_roll_joint" type="fixed">
+    <origin xyz="0.055 3.33067e-16 -0.073" rpy="-1.43744e-16 -1.5708 0"/>
+    <parent link="urdf_hip_assembly"/>
+    <child link="urdf_l_upper_femur_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.14159" upper="0.349066"/>
+  </joint>
+  
+<joint name="left_hip_pitch_joint" type="fixed">
+    <origin xyz="-0.111301 0.0333466 -0.46826" rpy="1.5708 4.63554e-15 1.5708"/>
+    <parent link="urdf_base"/>
+    <child link="urdf_hip_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.5708" upper="2.53073"/>
+  </joint>
+  
+<joint name="right_ankle_pitch_joint_2" type="fixed">
+    <origin xyz="0.025 0.423 0.056" rpy="-3.14159 1.5708 0"/>
+    <parent link="urdf_r_tibia_assembly"/>
+    <child link="ankle_assembly_3"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.785398" upper="0.785398"/>
+  </joint>
+  
+<joint name="right_ankle_pitch_joint" type="fixed">
+    <origin xyz="0.025 0.423 0.056" rpy="-3.14159 1.5708 0"/>
+    <parent link="urdf_r_tibia_assembly"/>
+    <child link="ankle_assembly_4"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.785398" upper="0.785398"/>
+  </joint>
+  
+<joint name="right_knee_joint" type="fixed">
+    <origin xyz="0.055 1.37102e-06 -0.113" rpy="-1.5708 0.0173732 1.57082"/>
+    <parent link="urdf_lower_femur_assembly_2"/>
+    <child link="urdf_r_tibia_assembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.191906" upper="2.33882"/>
+  </joint>
+  
+<joint name="right_hip_yaw_joint" type="fixed">
+    <origin xyz="-2.77556e-17 -0.217 0.053" rpy="-1.5708 1.68892e-21 -1.05152e-19"/>
+    <parent link="urdf_r_upper_femur_assemby"/>
+    <child link="urdf_lower_femur_assembly_2"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.57082" upper="1.57077"/>
+  </joint>
+  
+<joint name="right_hip_roll_joint" type="fixed">
+    <origin xyz="0.0549931 -0.000872784 -0.078" rpy="1.5708 1.56925 -1.58667"/>
+    <parent link="urdf_hip_assembly_2"/>
+    <child link="urdf_r_upper_femur_assemby"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.35061" upper="3.14005"/>
+  </joint>
+  
+<joint name="right_hip_pitch_joint" type="fixed">
+    <origin xyz="0.107699 0.0333466 -0.46826" rpy="-1.5708 -1.41455e-17 1.5708"/>
+    <parent link="urdf_base"/>
+    <child link="urdf_hip_assembly_2"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-2.51486" upper="1.58667"/>
+  </joint>
+
+</robot>

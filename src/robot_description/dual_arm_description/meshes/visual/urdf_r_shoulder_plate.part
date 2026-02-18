@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "44eccb8c34362883e6cd3fd1",
+    "documentMicroversion": "6da04ad117eba02dfee7f63f",
+    "elementId": "9e8e66b1a39e423b0cd0fe05",
+    "fullConfiguration": "default",
+    "id": "MQ6hmN3qiaa9b3vDu",
+    "isStandardContent": false,
+    "name": "URDF_R_Shoulder_Plate <1>",
+    "partId": "RpCD",
+    "suppressed": false,
+    "type": "Part"
+}

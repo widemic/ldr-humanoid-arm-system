@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "44eccb8c34362883e6cd3fd1",
+    "documentMicroversion": "6da04ad117eba02dfee7f63f",
+    "elementId": "9e8e66b1a39e423b0cd0fe05",
+    "fullConfiguration": "default",
+    "id": "M5kdIk6EyeLbvhw84",
+    "isStandardContent": false,
+    "name": "URDF_RBM_120 <1>",
+    "partId": "RiCD",
+    "suppressed": false,
+    "type": "Part"
+}
